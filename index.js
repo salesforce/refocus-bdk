@@ -89,18 +89,19 @@ module.exports = function(config) {
       'reconnect': true,
       'reconnection delay': 10,
       'transports': ['websocket'],
-      upgrade: false,
-      extraHeaders: {
+       upgrade: false
+      , extraHeaders: {
         Authorization: token
-      }
-    });
+      }})
 
     const settingsChangedEventName = 'refocus.internal.realtime.room.settingsChanged';
     const initalizeEventName = 'refocus.internal.realtime.bot.namespace.initialize';
+    const botActionsAdd = 'refocus.internal.realtime.bot.action.add';
+    const botActionsUpdate = 'refocus.internal.realtime.bot.action.update';
 
     socket.on(initalizeEventName, function(data) {
        // Connected, let's sign-up for to receive messages for this room
-       console.log("socket initialized");
+       console.log("socket initialized")
     });
 
     socket.on(settingsChangedEventName, function(data) {
@@ -108,6 +109,18 @@ module.exports = function(config) {
        const eventData = JSON.parse(data);
        const room = eventData[settingsChangedEventName];
        app.emit('refocus.room.settings', room);
+    });
+
+    socket.on(botActionsAdd, function(data) {
+       const eventData = JSON.parse(data);
+       const action = eventData[botActionsAdd];
+       app.emit('refocus.bot.actions', action);
+    });
+
+    socket.on(botActionsUpdate, function(data) {
+       const eventData = JSON.parse(data);
+       const action = eventData[botActionsUpdate];
+       app.emit('refocus.bot.actions', action);
     });
 
     socket.on('connect', function() {
@@ -122,13 +135,56 @@ module.exports = function(config) {
   } // setupSocketIOClient
 
   /**
-   * Find bot data by room, bot, and name
+   * STOP GAP PROCESSES
+   * Polling function that will hit the server over and over
+   * to see if there is new updates to data or settings updates for
+   * the UI to use. This polling can be replaced with sockets for
+   * subscription based updates.
    *
-   * @param room {String} - ID of room
-   * @param bot {String} - ID of bot
-   * @param name {String} - Name of bot data
-   * @returns {Promise} - Bot Data response
+   * @param app {Express} - App stream so we can push events to the server
    */
+  function refocusConnectPolling(app){
+    setInterval(function() {
+      // genericGet(SERVER+API+ROOMS_ROUTE+'/')
+      // .then((rooms) => {
+      //   rooms.body.forEach(room => {
+      //     var duration = moment.duration(moment().diff(moment(room.updatedAt))).asSeconds();
+      //     if(duration < 8){
+      //       app.emit('refocus.room.settings', room);
+      //     }
+      //   });
+      // });
+      // genericGet(SERVER+API+BOTACTIONS_ROUTE+'/')
+      // .then((botActions) => {
+      //   botActions.body.forEach(botAction => {
+      //     var duration = moment.duration(moment().diff(moment(botAction.updatedAt))).asSeconds();
+      //     if((!botAction.response) && (duration < 8)){
+      //       app.emit('refocus.bot.actions', botAction);
+      //     }
+      //   });
+      // });
+      genericGet(SERVER+API+BOTDATA_ROUTE+'/')
+      .then((botData) => {
+        botData.body.forEach(bd => {
+          var duration = moment.duration(moment().diff(moment(bd.updatedAt))).asSeconds();
+          if(duration < 8){
+            app.emit('refocus.bot.data', bd);
+          }
+        });
+      });
+      genericGet(SERVER+API+EVENTS_ROUTE+'/')
+      .then((events) => {
+        events = events.body;
+        if (events.length > 0) {
+          var duration = moment.duration(moment().diff(moment(events[events.length - 1].updatedAt))).asSeconds();
+          if (duration < 8) {
+            app.emit('refocus.events', data[data.length - 1]);
+          }
+        }
+      });
+    }, 5000);
+  }
+
   return {
 
     /**
@@ -281,57 +337,6 @@ module.exports = function(config) {
       };
       
       return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData);
-    },
-
-    /**
-     * STOP GAP PROCESSES
-     * Polling function that will hit the server over and over
-     * to see if there is new updates to data or settings updates for
-     * the UI to use. This polling can be replaced with sockets for
-     * subscription based updates.
-     *
-     * @param app {Express} - App stream so we can push events to the server
-     */
-    refocusConnectPolling: function(app){
-      setInterval(function() {
-        // genericGet(SERVER+API+ROOMS_ROUTE+'/')
-        // .then((rooms) => {
-        //   rooms.body.forEach(room => {
-        //     var duration = moment.duration(moment().diff(moment(room.updatedAt))).asSeconds();
-        //     if(duration < 8){
-        //       app.emit('refocus.room.settings', room);
-        //     }
-        //   });
-        // });
-        genericGet(SERVER+API+BOTACTIONS_ROUTE+'/')
-        .then((botActions) => {
-          botActions.body.forEach(botAction => {
-            var duration = moment.duration(moment().diff(moment(botAction.updatedAt))).asSeconds();
-            if((!botAction.response) && (duration < 8)){
-              app.emit('refocus.bot.actions', botAction);
-            }
-          });
-        });
-        genericGet(SERVER+API+BOTDATA_ROUTE+'/')
-        .then((botData) => {
-          botData.body.forEach(bd => {
-            var duration = moment.duration(moment().diff(moment(bd.updatedAt))).asSeconds();
-            if(duration < 8){
-              app.emit('refocus.bot.data', bd);
-            }
-          });
-        });
-        genericGet(SERVER+API+EVENTS_ROUTE+'/')
-        .then((events) => {
-          events = events.body;
-          if (events.length > 0) {
-            var duration = moment.duration(moment().diff(moment(events[events.length - 1].updatedAt))).asSeconds();
-            if (duration < 8) {
-              app.emit('refocus.events', data[data.length - 1]);
-            }
-          }
-        });
-      }, 5000);
     },
 
     /**
