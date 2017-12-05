@@ -13,7 +13,7 @@ These instructions will enable you to have a copy of this project up and running
 * Copy the .npmrc file into the root directory of your project (.npmrc will be a sibling of the node_modules folder).
 * Include the dependency @salesforce/refocus-bdk in your package.json file.
 * When npm install is run, it will use this .npmrc file as authentication, to ensure that you have correct permissions to use the @salesforce/refocus-bdk module.
-* Require the module in the file that you want to use it: const bdk = require('refocus-bdk')(config);
+* Require the module in the file that you want to use it: const bdk = require('@salesforce/refocus-bdk')(config);
 * If this bot is going to be hosted somewhere (eg Heroku), you should change the contents of the .npmrc file to something like //registry.npmjs.org/:_authToken=${NPM_TOKEN} , and add NPM_TOKEN as an environment variable in Heroku. This means that when Heroku tries to install your modules, it will be able to authenticate correctly and install @salesforce/refocus-bdk.
 
 ### Coding Example
