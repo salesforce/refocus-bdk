@@ -23,6 +23,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 ```
 
 ### Available Functions
+* installOrUpdateBot
 * findRoom
 * updateSettings
 * findBot
