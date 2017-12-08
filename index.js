@@ -24,6 +24,7 @@ const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
+const ui = 'web/dist/bot.zip';
 
 module.exports = function(config) {
   const SERVER = config.refocusUrl;
@@ -89,8 +90,8 @@ module.exports = function(config) {
       'reconnect': true,
       'reconnection delay': 10,
       'transports': ['websocket'],
-       upgrade: false
-      , extraHeaders: {
+      upgrade: false,
+      extraHeaders: {
         Authorization: token
       }})
 
@@ -184,6 +185,117 @@ module.exports = function(config) {
       });
     }, 5000);
   }
+
+  /**
+   * Installs a new Bot.
+   * Executes a POST request against Refocus /v1/bots route
+   *
+   */
+  function installBot(bot) {
+
+    const {
+      name,
+      url,
+      ui,
+      active = false,
+      actions = [],
+      data = [],
+      settings = []
+    } = bot;
+
+    return new Promise((resolve, reject) => {
+      request
+      .post(`${SERVER}/v1/bots`)
+      .set('Content-Type', 'multipart/form-data')
+      .set('Authorization', TOKEN)
+      .field('name', name)
+      .field('url', url)
+      .field('active', active)
+      .field('actions', JSON.stringify(actions))
+      .field('data', JSON.stringify(data))
+      .field('settings', JSON.stringify(settings))
+      .attach('ui', ui)
+      .set('Accept', 'application/json')
+      .end((err, res) => {
+        if (!res) {
+          console.log('Failed to install a bot. Check if Refocus server is running');
+          return;
+        }
+        const ok = (res.status === 200) || (res.status === 201);
+        if (err || !ok) {
+          const [ errorMessage ] = res.body.errors;
+          if (errorMessage) {
+            if (errorMessage.message === 'name must be unique') {
+              reject('duplicate');
+            }
+          }
+          reject(err || !ok);
+        } else {
+          //Need to save this after install
+          console.log('Socket Authorization Token: ' + res.body.token);
+          resolve(res);
+        }
+      });
+    });
+  }  // installBot
+
+  /**
+   * Updates existing Bot.
+   * Executes a PUT request against Refocus /v1/bots route
+   *
+   */
+  function updateBot(bot) {
+
+    const {
+      name,
+      url,
+      ui,
+      active = false,
+      actions = [],
+      data = [],
+      settings = []
+    } = bot;
+
+    return new Promise((resolve, reject) => {
+      request
+      .put(`${SERVER}/v1/bots/${name}`)
+      .set('Content-Type', 'multipart/form-data')
+      .set('Authorization', TOKEN)
+      .field('name', name)
+      .field('url', url)
+      .field('active', active)
+      .field('actions', JSON.stringify(actions))
+      .field('data', JSON.stringify(data))
+      .field('settings', JSON.stringify(settings))
+      .attach('ui', ui)
+      .set('Accept', 'application/json')
+      .end((err, res) => {
+        if (!res) {
+          console.log('Failed to update a bot. Check if Refocus server is running');
+          reject();
+        } else {
+          const ok = (res.status === 200) || (res.status === 201);
+          if (err || !ok) {
+            if(!res.status == 404) {
+              console.log(`error: ${JSON.stringify(err)} res: ${JSON.stringify(res)}`);
+              const [ errorMessage ] = res.body.errors;
+              if (errorMessage) {
+                if (errorMessage.type === 'SequelizeValidationError') {
+                  reject('validation error');
+                }
+              }
+            } else {
+              console.log(`${bot.name} does not exist so cannot update, will try to install instead.`);
+            }
+
+            reject(err || !ok);
+          } else {
+            resolve(res);
+          }
+        }
+      });
+    });
+  } // updateBot
 
   return {
 
@@ -347,6 +459,45 @@ module.exports = function(config) {
     refocusConnect: function(app, token){
       refocusConnectPolling(app);
       refocusConnectSocket(app, token);
+    },
+
+    /**
+     *  Installs or updates a bot depending on whether it has been 
+     *  installed before or not.
+     *
+     *  @param packageJSON {JSON} - Contains information such as actions, names, url etc
+     */
+    installOrUpdateBot: function(packageJSON) {
+      const { metadata: { actions, data, settings }, name, url } = packageJSON;
+      const bot = { name, url, actions, data, settings, ui, active: true };
+
+      // try to update a bot
+      // this function is more common then installing a new bot
+      // therefore executed first
+      updateBot(bot)
+      .then(res => {
+        console.log(`bot ${name} successfully updated on: ${SERVER}`);
+      })
+      .catch(error => {
+        // err not found indicate that bot doesnt exist yet
+        if (error.status == 404) {
+          // installs a new bot in refocus
+          installBot(bot)
+          .then(res => {
+            console.log(`bot ${name} successfully installed on: ${SERVER}`);
+          })
+          .catch(error => {
+            console.log(`unable to install bot ${name} on: ${SERVER}`);
+            console.log(`Details: ${JSON.stringify(error)}`);
+            process.exit(1);
+          });
+        }
+        else {
+          console.log(`Something went wrong while updating ${name} on: ${SERVER}`);
+          console.log(`Details: ${JSON.stringify(error)}`);
+          process.exit(1);
+        }
+      });
     }
   };
 };
