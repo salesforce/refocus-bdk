@@ -12,7 +12,7 @@ These instructions will enable you to have a copy of this project up and running
 * In the terminal run ```npm login```.
 * Include the dependency ```@salesforce/refocus-bdk``` in your package.json file.
 * When npm install is run, it will make sure that you have correct permissions to use the @salesforce/refocus-bdk module.
-* Require the module in the file that you want to use it: const bdk = require('@salesforce/refocus-bdk')(config);
+* Require the module in the file that you want to use it: ```const bdk = require('@salesforce/refocus-bdk')(config);```
 * If this bot is going to be hosted somewhere (eg Heroku), you will need an .npmrc file for authentication. This will be something like ```//registry.npmjs.org/:_authToken=${NPM_TOKEN}```. This means that when Heroku tries to install your modules, it will be able to authenticate correctly and install @salesforce/refocus-bdk.
 
 ### Coding Example
