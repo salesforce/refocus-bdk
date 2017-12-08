@@ -471,7 +471,6 @@ module.exports = function(config) {
      *  installed before or not.
      *
      *  @param packageJSON {JSON} - Contains information such as actions, names, url etc
-     *
      */
     installOrUpdateBot: function(packageJSON) {
       const { metadata: { actions, data, settings }, name, url } = packageJSON;
