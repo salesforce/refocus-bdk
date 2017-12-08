@@ -482,7 +482,6 @@ module.exports = function(config) {
       updateBot(bot)
       .then(res => {
         console.log(`bot ${name} successfully updated on: ${SERVER}`);
-        //process.exit();
       })
       .catch(error => {
         // err not found indicate that bot doesnt exist yet
@@ -491,7 +490,6 @@ module.exports = function(config) {
           installBot(bot)
           .then(res => {
             console.log(`bot ${name} successfully installed on: ${SERVER}`);
-            //process.exit();
           })
           .catch(error => {
             console.log(`unable to install bot ${name} on: ${SERVER}`);
