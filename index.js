@@ -26,10 +26,9 @@ const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
 const ui = 'web/dist/bot.zip';
 
-module.exports = function(config, packageJSON) {
+module.exports = function(config) {
   const SERVER = config.refocusUrl;
-  const { token } = config;
-  const { metadata: { actions, data, settings }, name, url } = packageJSON;
+  const TOKEN = config.token;
 
   /**
    * Get JSON from server asynchronous
@@ -209,7 +208,7 @@ module.exports = function(config, packageJSON) {
       request
       .post(`${SERVER}/v1/bots`)
       .set('Content-Type', 'multipart/form-data')
-      .set('Authorization', token)
+      .set('Authorization', TOKEN)
       .field('name', name)
       .field('url', url)
       .field('active', active)
@@ -263,7 +262,7 @@ module.exports = function(config, packageJSON) {
       request
       .put(`${SERVER}/v1/bots/${name}`)
       .set('Content-Type', 'multipart/form-data')
-      .set('Authorization', token)
+      .set('Authorization', TOKEN)
       .field('name', name)
       .field('url', url)
       .field('active', active)
@@ -470,8 +469,12 @@ module.exports = function(config, packageJSON) {
     /**
      *  Installs or updates a bot depending on whether it has been 
      *  installed before or not.
+     *
+     *  @param packageJSON {JSON} - Contains information such as actions, names, url etc
+     *
      */
-    installOrUpdateBot: function() {
+    installOrUpdateBot: function(packageJSON) {
+      const { metadata: { actions, data, settings }, name, url } = packageJSON;
       const bot = { name, url, actions, data, settings, ui, active: true };
 
       // try to update a bot
@@ -480,7 +483,6 @@ module.exports = function(config, packageJSON) {
       updateBot(bot)
       .then(res => {
         console.log(`bot ${name} successfully updated on: ${SERVER}`);
-        process.exit();
       })
       .catch(error => {
         // err not found indicate that bot doesnt exist yet
@@ -489,7 +491,6 @@ module.exports = function(config, packageJSON) {
           installBot(bot)
           .then(res => {
             console.log(`bot ${name} successfully installed on: ${SERVER}`);
-            process.exit();
           })
           .catch(error => {
             console.log(`unable to install bot ${name} on: ${SERVER}`);
