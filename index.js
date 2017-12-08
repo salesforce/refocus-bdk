@@ -186,7 +186,6 @@ module.exports = function(config) {
     }, 5000);
   }
 
-
   /**
    * Installs a new Bot.
    * Executes a POST request against Refocus /v1/bots route
@@ -240,7 +239,6 @@ module.exports = function(config) {
     });
   }  // installBot
 
-
   /**
    * Updates existing Bot.
    * Executes a PUT request against Refocus /v1/bots route
@@ -279,7 +277,7 @@ module.exports = function(config) {
           const ok = (res.status === 200) || (res.status === 201);
           if (err || !ok) {
             if(!res.status == 404) {
-              console.log(`error: ${err} res: ${res}`);
+              console.log(`error: ${JSON.stringify(err)} res: ${JSON.stringify(res)}`);
               const [ errorMessage ] = res.body.errors;
               if (errorMessage) {
                 if (errorMessage.type === 'SequelizeValidationError') {
@@ -298,8 +296,6 @@ module.exports = function(config) {
       });
     });
   } // updateBot
-
-
 
   return {
 
@@ -464,7 +460,6 @@ module.exports = function(config) {
       refocusConnectPolling(app);
       refocusConnectSocket(app, token);
     },
-
 
     /**
      *  Installs or updates a bot depending on whether it has been 
