@@ -102,7 +102,7 @@ module.exports = function(config) {
     const botDataAdd = 'refocus.internal.realtime.bot.data.add';
     const botDataUpdate = 'refocus.internal.realtime.bot.data.update';
     const botEventAdd = 'refocus.internal.realtime.bot.event.add';
-    const botEventUpdate = 'refocus.internal.realtime.bot.event.update',
+    const botEventUpdate = 'refocus.internal.realtime.bot.event.update';
 
     socket.on(initalizeEventName, function(data) {
        // Connected, let's sign-up for to receive messages for this room
