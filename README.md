@@ -19,6 +19,7 @@ These instructions will enable you to have a copy of this project up and running
 * Copy the .npmrc file into the root directory of your project (.npmrc will be a sibling of the node_modules folder).
 * You should change the contents of the .npmrc file to something like: ```//registry.npmjs.org/:_authToken=${NPM_TOKEN}``` and add ```NPM_TOKEN``` as an env var.
 * When Heroku tries to install your modules upon deploy, it will be able to authenticate correctly and install @salesforce/refocus-bdk.
+* By default this package uses a socket connection to get updates from Refocus. However if desiered, polling can be used to get updates instead by setting an environment variable ```USE_POLLING = true```.
 
 ### Coding Example
 ```javascript
