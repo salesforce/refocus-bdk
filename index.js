@@ -99,6 +99,8 @@ module.exports = function(config) {
     const initalizeEventName = 'refocus.internal.realtime.bot.namespace.initialize';
     const botActionsAdd = 'refocus.internal.realtime.bot.action.add';
     const botActionsUpdate = 'refocus.internal.realtime.bot.action.update';
+    const botDataAdd = 'refocus.internal.realtime.bot.data.add';
+    const botDataUpdate = 'refocus.internal.realtime.bot.data.update';
 
     socket.on(initalizeEventName, function(data) {
        // Connected, let's sign-up for to receive messages for this room
@@ -124,6 +126,18 @@ module.exports = function(config) {
        app.emit('refocus.bot.actions', action);
     });
 
+    socket.on(botDataAdd, function(data) {
+      const eventData = JSON.parse(data);
+      const botData = eventData[botDataAdd];
+      app.emit('refocus.bot.data', botData);
+    });
+
+    socket.on(botDataUpdate, function(data) {
+      const eventData = JSON.parse(data);
+      const botData = eventData[botDataUpdate];
+      app.emit('refocus.bot.data', botData);
+    });
+
     socket.on('connect', function() {
        // Connected, let's sign-up for to receive messages for this room
        console.log("socket connected")
@@ -146,24 +160,24 @@ module.exports = function(config) {
    */
   function refocusConnectPolling(app){
     setInterval(function() {
-      // genericGet(SERVER+API+ROOMS_ROUTE+'/')
-      // .then((rooms) => {
-      //   rooms.body.forEach(room => {
-      //     var duration = moment.duration(moment().diff(moment(room.updatedAt))).asSeconds();
-      //     if(duration < 8){
-      //       app.emit('refocus.room.settings', room);
-      //     }
-      //   });
-      // });
-      // genericGet(SERVER+API+BOTACTIONS_ROUTE+'/')
-      // .then((botActions) => {
-      //   botActions.body.forEach(botAction => {
-      //     var duration = moment.duration(moment().diff(moment(botAction.updatedAt))).asSeconds();
-      //     if((!botAction.response) && (duration < 8)){
-      //       app.emit('refocus.bot.actions', botAction);
-      //     }
-      //   });
-      // });
+      genericGet(SERVER+API+ROOMS_ROUTE+'/')
+      .then((rooms) => {
+        rooms.body.forEach(room => {
+          var duration = moment.duration(moment().diff(moment(room.updatedAt))).asSeconds();
+          if(duration < 8){
+            app.emit('refocus.room.settings', room);
+          }
+        });
+      });
+      genericGet(SERVER+API+BOTACTIONS_ROUTE+'/')
+      .then((botActions) => {
+        botActions.body.forEach(botAction => {
+          var duration = moment.duration(moment().diff(moment(botAction.updatedAt))).asSeconds();
+          if((!botAction.response) && (duration < 8)){
+            app.emit('refocus.bot.actions', botAction);
+          }
+        });
+      });
       genericGet(SERVER+API+BOTDATA_ROUTE+'/')
       .then((botData) => {
         botData.body.forEach(bd => {
@@ -457,8 +471,11 @@ module.exports = function(config) {
      * @param app {Express} - App stream so we can push events to the server
      */
     refocusConnect: function(app, token){
-      refocusConnectPolling(app);
-      refocusConnectSocket(app, token);
+      if(process.env.USE_POLLING) {
+        refocusConnectPolling(app);
+      } else {
+        refocusConnectSocket(app, token);
+      }
     },
 
     /**
