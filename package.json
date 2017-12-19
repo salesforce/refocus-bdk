@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/refocus-bdk",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Utilities used by Refocus Bots to communicate with Refocus.",
   "main": "index.js",
   "scripts": {
