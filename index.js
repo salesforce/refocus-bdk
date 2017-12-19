@@ -17,6 +17,7 @@
 
 const moment = require('moment');
 const request = require('superagent');
+require('superagent-proxy')(request);
 const io = require('socket.io-client');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
@@ -29,6 +30,10 @@ const ui = 'web/dist/bot.zip';
 module.exports = function(config) {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
+  let PROXY_URL = undefined;
+  if (config.proxy && config.proxyPort) {
+    PROXY_URL = `${config.proxy}:${config.proxyPort}`;
+  }
 
   /**
    * Get JSON from server asynchronous
@@ -40,6 +45,7 @@ module.exports = function(config) {
     return new Promise((resolve, reject) => {
       request
       .get(route)
+      .proxy(PROXY_URL)
       .set('Authorization', TOKEN)
       .end((error, res) => {
         resolve(res);
@@ -58,6 +64,7 @@ module.exports = function(config) {
     return new Promise((resolve, reject) => {
       request
       .patch(route)
+      .proxy(PROXY_URL)
       .set('Authorization', TOKEN)
       .send(obj)
       .end((error, res) => {
@@ -77,6 +84,7 @@ module.exports = function(config) {
     return new Promise((resolve, reject) => {
       request
       .post(route)
+      .proxy(PROXY_URL)
       .set('Authorization', TOKEN)
       .send(obj)
       .end((error, res) => {
@@ -234,6 +242,7 @@ module.exports = function(config) {
     return new Promise((resolve, reject) => {
       request
       .post(`${SERVER}/v1/bots`)
+      .proxy(PROXY_URL)
       .set('Content-Type', 'multipart/form-data')
       .set('Authorization', TOKEN)
       .field('name', name)
@@ -287,6 +296,7 @@ module.exports = function(config) {
     return new Promise((resolve, reject) => {
       request
       .put(`${SERVER}/v1/bots/${name}`)
+      .proxy(PROXY_URL)
       .set('Content-Type', 'multipart/form-data')
       .set('Authorization', TOKEN)
       .field('name', name)
@@ -475,7 +485,7 @@ module.exports = function(config) {
       const newBotData = {
         "value": botData
       };
-      
+
       return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData);
     },
 
@@ -493,7 +503,7 @@ module.exports = function(config) {
     },
 
     /**
-     *  Installs or updates a bot depending on whether it has been 
+     *  Installs or updates a bot depending on whether it has been
      *  installed before or not.
      *
      *  @param packageJSON {JSON} - Contains information such as actions, names, url etc
