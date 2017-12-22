@@ -17,7 +17,6 @@
 
 const moment = require('moment');
 const request = require('superagent');
-require('superagent-proxy')(request);
 const io = require('socket.io-client');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
@@ -31,8 +30,9 @@ module.exports = function(config) {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
   let PROXY_URL = undefined;
-  if (config.proxy && config.proxyPort) {
-    PROXY_URL = `${config.proxy}:${config.proxyPort}`;
+  if (config.http_proxy) {
+    require('superagent-proxy')(request);
+    PROXY_URL = config.http_proxy;
   }
 
   /**
