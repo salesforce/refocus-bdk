@@ -46,9 +46,9 @@ module.exports = function(config) {
    */
   function genericGet(route){
     return new Promise((resolve, reject) => {
-      request
-      .get(route)
-      .proxy(PROXY_URL)
+      let req = request.get(route);
+      if (PROXY_URL) req.proxy(PROXY_URL);
+      req
       .set('Authorization', TOKEN)
       .end((error, res) => {
         resolve(res);
@@ -65,9 +65,9 @@ module.exports = function(config) {
    */
   function genericPatch(route, obj){
     return new Promise((resolve, reject) => {
-      request
-      .patch(route)
-      .proxy(PROXY_URL)
+      let req = request.patch(route);
+      if (PROXY_URL) req.proxy(PROXY_URL);
+      req
       .set('Authorization', TOKEN)
       .send(obj)
       .end((error, res) => {
@@ -85,9 +85,9 @@ module.exports = function(config) {
    */
   function genericPost(route, obj){
     return new Promise((resolve, reject) => {
-      request
-      .post(route)
-      .proxy(PROXY_URL)
+      let req = request.post(route);
+      if (PROXY_URL) req.proxy(PROXY_URL);
+      req
       .set('Authorization', TOKEN)
       .send(obj)
       .end((error, res) => {
@@ -243,9 +243,9 @@ module.exports = function(config) {
     } = bot;
 
     return new Promise((resolve, reject) => {
-      request
-      .post(`${SERVER}/v1/bots`)
-      .proxy(PROXY_URL)
+      let req = request.post(`${SERVER}/v1/bots`);
+      if (PROXY_URL) req.proxy(PROXY_URL);
+      req
       .set('Content-Type', 'multipart/form-data')
       .set('Authorization', TOKEN)
       .field('name', name)
@@ -297,9 +297,9 @@ module.exports = function(config) {
     } = bot;
 
     return new Promise((resolve, reject) => {
-      request
-      .put(`${SERVER}/v1/bots/${name}`)
-      .proxy(PROXY_URL)
+      let req = request.put(`${SERVER}/v1/bots/${name}`);
+      if (PROXY_URL) req.proxy(PROXY_URL);
+      req
       .set('Content-Type', 'multipart/form-data')
       .set('Authorization', TOKEN)
       .field('name', name)
