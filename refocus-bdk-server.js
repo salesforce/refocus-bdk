@@ -7,10 +7,13 @@
  */
 
 /**
- * index.js
+ * refocus-bdk-server.js
  *
  * This package is utility package for bot development to speed up development
  * and consolidate commonly used functions.
+ *
+ * Server-side version of the BDK.
+ * Optimized for non-DOM based javascript execution environment.
  *
  */
 'use strict';
