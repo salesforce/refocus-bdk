@@ -525,7 +525,7 @@ module.exports = function(config) {
         }
         else {
           console.log(`Something went wrong while updating ${name} on: ${SERVER}`);
-          console.log(`Details: ${JSON.stringify(error)}`);
+          console.log(`Details: ${error}`);
           process.exit(1);
         }
       });
