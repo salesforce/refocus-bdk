@@ -7,19 +7,16 @@
  */
 
 /**
- * refocus-bdk-server.js
+ * index.js
  *
  * This package is utility package for bot development to speed up development
  * and consolidate commonly used functions.
- * Server-side version of the BDK.
- * Optimized for non-dom based javascript execution environment.
  *
  */
 'use strict';
 
 const moment = require('moment');
 const request = require('superagent');
-const requestProxy = require('superagent-proxy');
 const io = require('socket.io-client');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
@@ -34,6 +31,7 @@ module.exports = function(config) {
   const TOKEN = config.token;
   let PROXY_URL = undefined;
   if (config.http_proxy) {
+    const requestProxy = require('superagent-proxy');
     requestProxy(request);
     PROXY_URL = config.http_proxy;
   }
