@@ -31,9 +31,10 @@ module.exports = function(config) {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
   let PROXY_URL = undefined;
-  if (config.http_proxy) {
+
+  if (config.httpProxy) {
     requestProxy(request);
-    PROXY_URL = config.http_proxy;
+    PROXY_URL = config.httpProxy;
   }
 
   /**
