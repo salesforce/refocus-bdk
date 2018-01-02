@@ -58,4 +58,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.1 Basic utilities, polling for actions, data and settings, basic support for sockets - actions only.
 * 1.0.2 Bot auto-installation (or update) functionality.
 * 1.0.3 Full sockets support. Toggle switch between polling and sockets.
-* 1.1.1 Basic proxy support for REST requests.
+* 2.0.1 Split for browser and server environments. Basic proxy support for REST requests.

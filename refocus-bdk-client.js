@@ -7,10 +7,12 @@
  */
 
 /**
- * /lib/refocus-bdk.js
+ * refocus-bdk-client.js
  *
  * This package is utility package for bot development to speed up development
  * and consolidate commonly used functions.
+ * Client-side version of the BDK.
+ * Optimized for a browser execution environment.
  *
  */
 'use strict';
@@ -24,16 +26,10 @@ const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
-const ui = 'web/dist/bot.zip';
 
 module.exports = function(config) {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
-  let PROXY_URL = undefined;
-  if (config.http_proxy) {
-    require('superagent-proxy')(request);
-    PROXY_URL = config.http_proxy;
-  }
 
   /**
    * Get JSON from server asynchronous
@@ -45,13 +41,12 @@ module.exports = function(config) {
     return new Promise((resolve, reject) => {
       request
       .get(route)
-      .proxy(PROXY_URL)
       .set('Authorization', TOKEN)
       .end((error, res) => {
         resolve(res);
       });
     });
-  }
+  } // genericGet
 
   /**
    * Patch JSON to server asynchronous
@@ -64,14 +59,13 @@ module.exports = function(config) {
     return new Promise((resolve, reject) => {
       request
       .patch(route)
-      .proxy(PROXY_URL)
       .set('Authorization', TOKEN)
       .send(obj)
       .end((error, res) => {
         resolve(res);
       });
     });
-  }
+  } // genericPatch
 
   /**
    * Post JSON to server asynchronous
@@ -84,14 +78,13 @@ module.exports = function(config) {
     return new Promise((resolve, reject) => {
       request
       .post(route)
-      .proxy(PROXY_URL)
       .set('Authorization', TOKEN)
       .send(obj)
       .end((error, res) => {
         resolve(res);
       });
     });
-  }
+  } // genericPost
 
   function refocusConnectSocket(app, token) {
     const socket = io.connect(SERVER, {
@@ -169,7 +162,7 @@ module.exports = function(config) {
        // Connected, let's sign-up for to receive messages for this room
        console.log("socket disconnected")
     });
-  } // setupSocketIOClient
+  } // refocusConnectSocket
 
   /**
    * STOP GAP PROCESSES
@@ -220,120 +213,7 @@ module.exports = function(config) {
         }
       });
     }, 5000);
-  }
-
-  /**
-   * Installs a new Bot.
-   * Executes a POST request against Refocus /v1/bots route
-   *
-   */
-  function installBot(bot) {
-
-    const {
-      name,
-      url,
-      ui,
-      active = false,
-      actions = [],
-      data = [],
-      settings = []
-    } = bot;
-
-    return new Promise((resolve, reject) => {
-      request
-      .post(`${SERVER}/v1/bots`)
-      .proxy(PROXY_URL)
-      .set('Content-Type', 'multipart/form-data')
-      .set('Authorization', TOKEN)
-      .field('name', name)
-      .field('url', url)
-      .field('active', active)
-      .field('actions', JSON.stringify(actions))
-      .field('data', JSON.stringify(data))
-      .field('settings', JSON.stringify(settings))
-      .attach('ui', ui)
-      .set('Accept', 'application/json')
-      .end((err, res) => {
-        if (!res) {
-          console.log('Failed to install a bot. Check if Refocus server is running');
-          return;
-        }
-        const ok = (res.status === 200) || (res.status === 201);
-        if (err || !ok) {
-          const [ errorMessage ] = res.body.errors;
-          if (errorMessage) {
-            if (errorMessage.message === 'name must be unique') {
-              reject('duplicate');
-            }
-          }
-          reject(err || !ok);
-        } else {
-          //Need to save this after install
-          console.log('Socket Authorization Token: ' + res.body.token);
-          resolve(res);
-        }
-      });
-    });
-  }  // installBot
-
-  /**
-   * Updates existing Bot.
-   * Executes a PUT request against Refocus /v1/bots route
-   *
-   */
-  function updateBot(bot) {
-
-    const {
-      name,
-      url,
-      ui,
-      active = false,
-      actions = [],
-      data = [],
-      settings = []
-    } = bot;
-
-    return new Promise((resolve, reject) => {
-      request
-      .put(`${SERVER}/v1/bots/${name}`)
-      .proxy(PROXY_URL)
-      .set('Content-Type', 'multipart/form-data')
-      .set('Authorization', TOKEN)
-      .field('name', name)
-      .field('url', url)
-      .field('active', active)
-      .field('actions', JSON.stringify(actions))
-      .field('data', JSON.stringify(data))
-      .field('settings', JSON.stringify(settings))
-      .attach('ui', ui)
-      .set('Accept', 'application/json')
-      .end((err, res) => {
-        if (!res) {
-          console.log('Failed to update a bot. Check if Refocus server is running');
-          reject();
-        } else {
-          const ok = (res.status === 200) || (res.status === 201);
-          if (err || !ok) {
-            if(!res.status == 404) {
-              console.log(`error: ${JSON.stringify(err)} res: ${JSON.stringify(res)}`);
-              const [ errorMessage ] = res.body.errors;
-              if (errorMessage) {
-                if (errorMessage.type === 'SequelizeValidationError') {
-                  reject('validation error');
-                }
-              }
-            } else {
-              console.log(`${bot.name} does not exist so cannot update, will try to install instead.`);
-            }
-
-            reject(err || !ok);
-          } else {
-            resolve(res);
-          }
-        }
-      });
-    });
-  } // updateBot
+  } // refocusConnectPolling
 
   return {
 
@@ -345,7 +225,7 @@ module.exports = function(config) {
      */
     findRoom: function(id){
       return genericGet(SERVER+API+ROOMS_ROUTE+'/'+id);
-    },
+    }, // findRoom
 
     /**
      * Update room settings
@@ -359,7 +239,7 @@ module.exports = function(config) {
         "settings": settings,
       };
       return genericPatch(SERVER+API+ROOMS_ROUTE+'/'+id, patch);
-    },
+    }, // updateSettings
 
       /**
      * Find bot by id/name
@@ -369,7 +249,7 @@ module.exports = function(config) {
      */
     findBot: function(id){
       return genericGet(SERVER+API+BOTS_ROUTE+'/'+id);
-    },
+    }, // findBot
 
     /**
      * Find bot action by id/name
@@ -379,7 +259,7 @@ module.exports = function(config) {
      */
     findBotAction: function(id){
       return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+id);
-    },
+    }, // findBotAction
 
     /**
      * Find bot action by room, bot, and name
@@ -397,7 +277,7 @@ module.exports = function(config) {
       } else {
         return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/bots/'+bot+'/name/'+name+'/action');
       }
-    },
+    }, // getBotActions
 
     /**
      * Create bot action by id/name
@@ -407,7 +287,7 @@ module.exports = function(config) {
      */
     createBotAction: function(botAction){
       return genericPost(SERVER+API+BOTACTIONS_ROUTE+'/', botAction);
-    },
+    }, // createBotAction
 
     /**
      * Update bot action response
@@ -423,7 +303,7 @@ module.exports = function(config) {
       };
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject);
-    },
+    }, // respondBotAction
 
     /**
      * Create bot data
@@ -443,7 +323,7 @@ module.exports = function(config) {
       };
 
       return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData);
-    },
+    }, // createBotData
 
     /**
      * Find bot data by id/name
@@ -453,8 +333,7 @@ module.exports = function(config) {
      */
     findBotData: function(id){
       return genericGet(SERVER+API+BOTDATA_ROUTE+'/'+id);
-    },
-
+    }, // findBotData
 
     /**
      * Find bot data by room, bot, and name
@@ -472,7 +351,7 @@ module.exports = function(config) {
       } else {
         return genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/name/'+name+'/data');
       }
-    },
+    }, // getBotData
 
     /**
      * Update bot data by id/name
@@ -485,9 +364,8 @@ module.exports = function(config) {
       const newBotData = {
         "value": botData
       };
-
       return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData);
-    },
+    }, // changeBotData
 
     /**
      * Abstraction from polling
@@ -500,45 +378,6 @@ module.exports = function(config) {
       } else {
         refocusConnectSocket(app, token);
       }
-    },
-
-    /**
-     *  Installs or updates a bot depending on whether it has been
-     *  installed before or not.
-     *
-     *  @param packageJSON {JSON} - Contains information such as actions, names, url etc
-     */
-    installOrUpdateBot: function(packageJSON) {
-      const { metadata: { actions, data, settings }, name, url } = packageJSON;
-      const bot = { name, url, actions, data, settings, ui, active: true };
-
-      // try to update a bot
-      // this function is more common then installing a new bot
-      // therefore executed first
-      updateBot(bot)
-      .then(res => {
-        console.log(`bot ${name} successfully updated on: ${SERVER}`);
-      })
-      .catch(error => {
-        // err not found indicate that bot doesnt exist yet
-        if (error.status == 404) {
-          // installs a new bot in refocus
-          installBot(bot)
-          .then(res => {
-            console.log(`bot ${name} successfully installed on: ${SERVER}`);
-          })
-          .catch(error => {
-            console.log(`unable to install bot ${name} on: ${SERVER}`);
-            console.log(`Details: ${JSON.stringify(error)}`);
-            process.exit(1);
-          });
-        }
-        else {
-          console.log(`Something went wrong while updating ${name} on: ${SERVER}`);
-          console.log(`Details: ${JSON.stringify(error)}`);
-          process.exit(1);
-        }
-      });
-    }
+    }, // refocusConnect
   };
 };
