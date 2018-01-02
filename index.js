@@ -17,7 +17,9 @@
 
 const moment = require('moment');
 const request = require('superagent');
-const requestProxy = require('superagent-proxy');
+if (isServer()) {
+  const requestProxy = require('superagent-proxy');
+}
 const io = require('socket.io-client');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
@@ -27,12 +29,16 @@ const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
 const ui = 'web/dist/bot.zip';
 
+function isServer() {
+  return process.env.APP_ENV !== 'BROWSER';
+}
+
 module.exports = function(config) {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
   let PROXY_URL = undefined;
 
-  if (config.httpProxy) {
+  if (config.httpProxy && isServer()) {
     requestProxy(request);
     PROXY_URL = config.httpProxy;
   }
@@ -46,7 +52,7 @@ module.exports = function(config) {
   function genericGet(route){
     return new Promise((resolve, reject) => {
       let req = request.get(route);
-      if (PROXY_URL) req.proxy(PROXY_URL);
+      if (PROXY_URL && isServer()) req.proxy(PROXY_URL);
       req
       .set('Authorization', TOKEN)
       .end((error, res) => {
@@ -65,7 +71,7 @@ module.exports = function(config) {
   function genericPatch(route, obj){
     return new Promise((resolve, reject) => {
       let req = request.patch(route);
-      if (PROXY_URL) req.proxy(PROXY_URL);
+      if (PROXY_URL && isServer()) req.proxy(PROXY_URL);
       req
       .set('Authorization', TOKEN)
       .send(obj)
@@ -85,7 +91,7 @@ module.exports = function(config) {
   function genericPost(route, obj){
     return new Promise((resolve, reject) => {
       let req = request.post(route);
-      if (PROXY_URL) req.proxy(PROXY_URL);
+      if (PROXY_URL && isServer()) req.proxy(PROXY_URL);
       req
       .set('Authorization', TOKEN)
       .send(obj)
@@ -243,7 +249,7 @@ module.exports = function(config) {
 
     return new Promise((resolve, reject) => {
       let req = request.post(`${SERVER}/v1/bots`);
-      if (PROXY_URL) req.proxy(PROXY_URL);
+      if (PROXY_URL && isServer()) req.proxy(PROXY_URL);
       req
       .set('Content-Type', 'multipart/form-data')
       .set('Authorization', TOKEN)
@@ -297,7 +303,7 @@ module.exports = function(config) {
 
     return new Promise((resolve, reject) => {
       let req = request.put(`${SERVER}/v1/bots/${name}`);
-      if (PROXY_URL) req.proxy(PROXY_URL);
+      if (PROXY_URL && isServer()) req.proxy(PROXY_URL);
       req
       .set('Content-Type', 'multipart/form-data')
       .set('Authorization', TOKEN)
