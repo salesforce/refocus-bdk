@@ -1,12 +1,10 @@
 {
   "name": "@salesforce/refocus-bdk",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Utilities used by Refocus Bots to communicate with Refocus.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
+  "main": "refocus-bdk-server.js",
+  "browser": "refocus-bdk-client.js",
+  "author": "kfoster@salesforce.com kamil@salesforce.com",
   "license": "ISC",
   "dependencies": {
     "moment": "^2.19.2",
