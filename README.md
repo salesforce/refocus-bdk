@@ -5,7 +5,7 @@ This is the repository for the refocus-bdk. The bdk (bot developement kit) conta
 These instructions will enable you to have a copy of this project up and running on your local machine for development and testing purposes.
 
 ### Prerequisites
-* [Node.js](https://nodejs.org/en/) 
+* [Node.js](https://nodejs.org/en/)
 
 ### Usage
 * When a developer wants to create a bot for IMC V2, they need to be added as a collaborator (read/write) to the @salesforce/refocus-bdk module, because it is a private module. This means that they need to have an account with npm. This can be created [here](https://www.npmjs.com/).
@@ -50,3 +50,12 @@ If you have any ideas on how this project could be improved, please feel free. T
 * Commit changes to your own branch.
 * Push your work back up to your fork.
 * Submit a Pull Request so we can review it!
+
+## Release History
+
+Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-versioning#semver-for-publishers)
+
+* 1.0.1 Basic utilities, polling for actions, data and settings, basic support for sockets - actions only.
+* 1.0.2 Bot auto-installation (or update) functionality.
+* 1.0.3 Full sockets support. Toggle switch between polling and sockets.
+* 1.1.1 Client & server side code separation. Basic proxy support for REST API requests via superagent.
