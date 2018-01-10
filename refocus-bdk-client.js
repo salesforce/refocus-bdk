@@ -34,15 +34,6 @@ module.exports = function(config) {
   const TOKEN = config.token;
 
   /**
-   * Get the current room ID from window
-   */
-  function getRoomId(){
-    return window.location.pathname.split('rooms/').length > 1 ?
-      parseInt(window.location.pathname.split('rooms/')[1]) :
-      1;
-  }
-
-  /**
    * Get JSON from server asynchronous
    *
    * @param url {String} - URL for route
@@ -227,6 +218,14 @@ module.exports = function(config) {
   } // refocusConnectPolling
 
   return {
+    /**
+     * Get the current room ID from window
+     */
+    getRoomId: function getRoomId(){
+      return window.location.pathname.split('rooms/').length > 1 ?
+        parseInt(window.location.pathname.split('rooms/')[1]) :
+        1;
+    }, // getRoomId
 
     /**
      * Find room by id/name
