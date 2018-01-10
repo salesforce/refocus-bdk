@@ -331,7 +331,24 @@ module.exports = function(config) {
         "response": response,
       };
 
-      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject);
+      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
+        .then((instance) => {
+          const eventLog = {
+            log: instance.dataValues.botId +
+              ' succesfully performed ' +
+              instance.dataValues.name,
+            context: {
+              'type': 'Event',
+              'name': instance.dataValues.name,
+              'response': instance.dataValues.response,
+            },
+            roomId: instance.dataValues.roomId,
+            botId: instance.dataValues.botId,
+            botActionId: instance.dataValues.id,
+            userId: instance.dataValues.userId,
+          };
+          return genericPost(SERVER+API+EVENTS_ROUTE, eventLog);
+        });
     }, // respondBotAction
 
     /**

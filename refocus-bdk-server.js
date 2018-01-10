@@ -421,14 +421,48 @@ module.exports = function(config) {
      * @param response {Object} - Response object
      * @returns {Promise} - BotAction response
      */
-    respondBotAction: function(id, response){
+    respondBotAction: function(id, response, context){
+      let responseObject = {
+        "isPending": false,
+        "response": response,
+      };
+
+      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
+        .then((instance) => {
+          const eventLog = context ? context :
+          {
+            log: instance.dataValues.botId +
+              ' succesfully performed ' +
+              instance.dataValues.name,
+            context: {
+              'type': 'Event',
+              'name': instance.dataValues.name,
+              'response': instance.dataValues.response,
+            },
+            roomId: instance.dataValues.roomId,
+            botId: instance.dataValues.botId,
+            botActionId: instance.dataValues.id,
+            userId: instance.dataValues.userId,
+          };
+          return genericPost(SERVER+API+EVENTS_ROUTE, eventLog);
+        });
+    }, // respondBotAction
+
+    /**
+     * Update bot action response
+     *
+     * @param id {String} - ID of bot action
+     * @param response {Object} - Response object
+     * @returns {Promise} - BotAction response
+     */
+    respondBotActionNoLog: function(id, response){
       let responseObject = {
         "isPending": false,
         "response": response,
       };
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject);
-    }, // respondBotAction
+    }, // respondBotActionNoLog
 
     /**
      * Create bot data
