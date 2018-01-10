@@ -282,6 +282,25 @@ module.exports = function(config) {
     }, // getBotActions
 
     /**
+     * Access user that is part of the room window
+     * user object comes from Refocus view/rooms/index.pug
+     */
+    getUserName: function(){
+      const _user = JSON.parse(user.replace(/&quot;/g, '"'));
+      return _user.name;
+    }, // getUserName
+
+    getUserId(){
+      const _user = JSON.parse(user.replace(/&quot;/g, '"'));
+      return _user.id;
+    }, // getUserId
+
+    getUserEmail(){
+      const _user = JSON.parse(user.replace(/&quot;/g, '"'));
+      return _user.email;
+    }, // getUserEmail
+
+    /**
      * Create bot action by id/name
      *
      * @param botAction {Object} - botAction object
