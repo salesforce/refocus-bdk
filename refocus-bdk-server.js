@@ -492,6 +492,35 @@ module.exports = function(config) {
     }, // changeBotData
 
     /**
+     * Find events by room
+     *
+     * @param room {String} - ID of room
+     */
+    getEvents: function(room){
+      return genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room);
+    }, // getEvents
+
+    /**
+     * Create an event
+     *
+     * @param room {Integer} - Room Id
+     * @param msg {String} - Log String
+     * @param context {Object} - JSON context
+     * @returns {Promise} - Event response
+     */
+    createEvents: function(room, msg, context){
+      const events = {};
+      events = {
+        log: msg,
+        roomId: room
+      };
+      if (context) {
+        events.context = context;
+      }
+      return genericPost(SERVER+API+EVENTS_ROUTE, events);
+    }, // createEvents
+
+    /**
      * Abstraction from polling
      *
      * @param app {Express} - App stream so we can push events to the server
