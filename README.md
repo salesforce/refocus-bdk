@@ -29,6 +29,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 
 ### Available Functions
 * installOrUpdateBot
+* getRoomId
 * findRoom
 * updateSettings
 * findBot
@@ -45,6 +46,8 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * getUserName
 * getUserId
 * getUserEmail
+* createEvents
+* getEvents
 
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
@@ -63,3 +66,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.0.3 Full sockets support. Toggle switch between polling and sockets.
 * 1.1.1 Client & server side code separation. Basic proxy support for REST API requests via superagent.
 * 1.1.2 Fix minor bug of missing dependencies and adds get user information functions added .tgz files to git ignore
+* 1.2.0 Added Events routes and get room ID

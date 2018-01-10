@@ -218,6 +218,14 @@ module.exports = function(config) {
   } // refocusConnectPolling
 
   return {
+    /**
+     * Get the current room ID from window
+     */
+    getRoomId: function getRoomId(){
+      return window.location.pathname.split('rooms/').length > 1 ?
+        parseInt(window.location.pathname.split('rooms/')[1]) :
+        1;
+    }, // getRoomId
 
     /**
      * Find room by id/name
@@ -386,6 +394,34 @@ module.exports = function(config) {
       };
       return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData);
     }, // changeBotData
+
+    /**
+     * Find events by room
+     *
+     * @param room {String} - ID of room
+     */
+    getEvents: function(room){
+      return genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room);
+    }, // getEvents
+
+    /**
+     * Create an event
+     *
+     * @param room {Integer} - Room Id
+     * @param msg {String} - Log String
+     * @param context {Object} - JSON context
+     * @returns {Promise} - Event response
+     */
+    createEvents: function(room, msg, context){
+      const events = {
+        log: msg,
+        roomId: room
+      };
+      if (context) {
+        events.context = context;
+      }
+      return genericPost(SERVER+API+EVENTS_ROUTE, events);
+    }, // createEvents
 
     /**
      * Abstraction from polling
