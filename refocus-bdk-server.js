@@ -509,8 +509,7 @@ module.exports = function(config) {
      * @returns {Promise} - Event response
      */
     createEvents: function(room, msg, context){
-      const events = {};
-      events = {
+      const events = {
         log: msg,
         roomId: room
       };
