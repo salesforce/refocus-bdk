@@ -283,6 +283,7 @@ module.exports = function(config) {
 
     /**
      * Access user that is part of the room window
+     * user object comes from Refocus view/rooms/index.pug
      */
     getUserName: function(){
       const _user = JSON.parse(user.replace(/&quot;/g, '"'));
