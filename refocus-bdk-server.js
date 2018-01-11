@@ -419,9 +419,10 @@ module.exports = function(config) {
      *
      * @param id {String} - ID of bot action
      * @param response {Object} - Response object
+     * @param userLog {Object} - Manually created log
      * @returns {Promise} - BotAction response
      */
-    respondBotAction: function(id, response, context){
+    respondBotAction: function(id, response, userLog){
       let responseObject = {
         "isPending": false,
         "response": response,
@@ -429,27 +430,32 @@ module.exports = function(config) {
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
         .then((instance) => {
-          const eventLog = context ? context :
-          {
-            log: instance.dataValues.botId +
+          let eventLog = {};
+          if (userLog) {
+            eventLog = userLog;
+          } else {
+            eventLog = {
+              log: instance.body.botId +
               ' succesfully performed ' +
-              instance.dataValues.name,
-            context: {
-              'type': 'Event',
-              'name': instance.dataValues.name,
-              'response': instance.dataValues.response,
-            },
-            roomId: instance.dataValues.roomId,
-            botId: instance.dataValues.botId,
-            botActionId: instance.dataValues.id,
-            userId: instance.dataValues.userId,
-          };
+              instance.body.name,
+              context: {
+                'type': 'Event',
+              },
+            }
+          }
+
+          eventLog.context.name = instance.body.name;
+          eventLog.context.response = instance.body.response;
+          eventLog.roomId = instance.body.roomId;
+          eventLog.botId = instance.body.botId;
+          eventLog.botActionId = instance.body.id;
+          eventLog.userId = instance.body.userId;
           return genericPost(SERVER+API+EVENTS_ROUTE, eventLog);
         });
     }, // respondBotAction
 
     /**
-     * Update bot action response
+     * Update bot action response with no event log
      *
      * @param id {String} - ID of bot action
      * @param response {Object} - Response object

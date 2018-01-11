@@ -37,6 +37,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * getBotActions
 * createBotAction
 * respondBotAction
+* respondBotActionNoLog
 * createBotData
 * findBotData
 * getBotData
