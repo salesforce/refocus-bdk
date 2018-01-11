@@ -323,10 +323,21 @@ module.exports = function(config) {
      *
      * @param id {String} - ID of bot action
      * @param response {Object} - Response object
-     * @param userLog {Object} - Manually created log
+     * @param eventLog {Object} - (Optional) If an bot wants to override
+     *   the log and/or context of the Event created by respondBotAction
+     *   then they should send this paramater an object with the desired log
+     *   and context.
+     *   i.e)
+     *     {
+     *        log: 'A long message',
+     *        context: {
+     *          type: 'Debug'
+     *        }
+     *     }
+     *
      * @returns {Promise} - BotAction response
      */
-    respondBotAction: function(id, response, userLog){
+    respondBotAction: function(id, response, eventLog){
       let responseObject = {
         "isPending": false,
         "response": response,
@@ -334,11 +345,11 @@ module.exports = function(config) {
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
         .then((instance) => {
-          let eventLog = {};
-          if (userLog) {
-            eventLog = userLog;
+          let eventObject = {};
+          if (eventLog) {
+            eventObject = eventLog;
           } else {
-            eventLog = {
+            eventObject = {
               log: instance.body.botId +
               ' succesfully performed ' +
               instance.body.name,
@@ -348,13 +359,14 @@ module.exports = function(config) {
             }
           }
 
-          eventLog.context.name = instance.body.name;
-          eventLog.context.response = instance.body.response;
-          eventLog.roomId = instance.body.roomId;
-          eventLog.botId = instance.body.botId;
-          eventLog.botActionId = instance.body.id;
-          eventLog.userId = instance.body.userId;
-          return genericPost(SERVER+API+EVENTS_ROUTE, eventLog);
+          eventObject.context = eventObject.context ? eventObject.context : {};
+          eventObject.context.name = instance.body.name;
+          eventObject.context.response = instance.body.response;
+          eventObject.roomId = instance.body.roomId;
+          eventObject.botId = instance.body.botId;
+          eventObject.botActionId = instance.body.id;
+          eventObject.userId = instance.body.userId;
+          return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
         });
     }, // respondBotAction
 
