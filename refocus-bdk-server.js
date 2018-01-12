@@ -419,16 +419,68 @@ module.exports = function(config) {
      *
      * @param id {String} - ID of bot action
      * @param response {Object} - Response object
+     * @param eventLog {Object} - (Optional) If an bot wants to override
+     *   the log and/or context of the Event created by respondBotAction
+     *   then they should send this paramater an object with the desired log
+     *   and context.
+     *   i.e)
+     *     {
+     *        log: 'A long message',
+     *        context: {
+     *          type: 'Debug'
+     *        }
+     *     }
+     *
      * @returns {Promise} - BotAction response
      */
-    respondBotAction: function(id, response){
+    respondBotAction: function(id, response, eventLog){
+      let responseObject = {
+        "isPending": false,
+        "response": response,
+      };
+
+      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
+        .then((instance) => {
+          let eventObject = {};
+          if (eventLog) {
+            eventObject = eventLog;
+          } else {
+            eventObject = {
+              log: instance.body.botId +
+              ' succesfully performed ' +
+              instance.body.name,
+              context: {
+                'type': 'Event',
+              },
+            }
+          }
+
+          eventObject.context = eventObject.context ? eventObject.context : {};
+          eventObject.context.name = instance.body.name;
+          eventObject.context.response = instance.body.response;
+          eventObject.roomId = instance.body.roomId;
+          eventObject.botId = instance.body.botId;
+          eventObject.botActionId = instance.body.id;
+          eventObject.userId = instance.body.userId;
+          return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
+        });
+    }, // respondBotAction
+
+    /**
+     * Update bot action response with no event log
+     *
+     * @param id {String} - ID of bot action
+     * @param response {Object} - Response object
+     * @returns {Promise} - BotAction response
+     */
+    respondBotActionNoLog: function(id, response){
       let responseObject = {
         "isPending": false,
         "response": response,
       };
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject);
-    }, // respondBotAction
+    }, // respondBotActionNoLog
 
     /**
      * Create bot data
