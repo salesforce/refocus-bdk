@@ -315,6 +315,11 @@ module.exports = function(config) {
      * @returns {Promise} - Bot Action response
      */
     createBotAction: function(botAction){
+      try{
+        botAction.userId = this.getUserId();
+      } catch(error){
+        console.log("Create bot action bdk",error)
+      }
       return genericPost(SERVER+API+BOTACTIONS_ROUTE+'/', botAction);
     }, // createBotAction
 
