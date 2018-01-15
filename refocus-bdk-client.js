@@ -472,6 +472,11 @@ module.exports = function(config) {
       if (context) {
         events.context = context;
       }
+      try{
+        events.userId = this.getUserId();
+      } catch(error){
+        console.log("Create bot event bdk",error)
+      }
       return genericPost(SERVER+API+EVENTS_ROUTE, events);
     }, // createEvents
 
