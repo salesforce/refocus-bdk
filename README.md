@@ -69,3 +69,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.1.2 Fix minor bug of missing dependencies and adds get user information functions added .tgz files to git ignore
 * 1.2.0 Added Events routes and get room ID
 * 1.2.1 Create event log with respondBotAction
+* 1.2.2 Automatically try add user Id to action and events
