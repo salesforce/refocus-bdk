@@ -396,9 +396,11 @@ module.exports = function(config) {
 
           // Create list of events that are in the room
           userEvents.forEach((event) => {
-            const entry = event.context.user;
-            entry.active = event.context.isActive;
-            output.push(entry);
+            if (event.context.isActive) {
+              const entry = event.context.user;
+              entry.active = event.context.isActive;
+              output.push(entry);
+            }
           });
           return output;
         });
