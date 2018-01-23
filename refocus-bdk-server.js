@@ -404,7 +404,7 @@ module.exports = function(config) {
           });
           return output;
         });
-    }, // getAllUsers
+    }, // getActiveUsers
 
       /**
      * Find bot by id/name
