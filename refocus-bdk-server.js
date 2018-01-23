@@ -381,7 +381,7 @@ module.exports = function(config) {
             // Sort in decreasing value
             .sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)))
             .filter((event) => {
-              if (event.context) && (event.context.type)) {
+              if ((event.context) && (event.context.type)) {
                 if (event.context.type === 'User') {
                   // Only get unqiue users
                   if (!users.includes(event.context.user.id)) {
