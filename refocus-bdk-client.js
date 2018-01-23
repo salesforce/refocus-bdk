@@ -251,43 +251,7 @@ module.exports = function(config) {
       return genericPatch(SERVER+API+ROOMS_ROUTE+'/'+id, patch);
     }, // updateSettings
 
-      /**
-     * Find bot by id/name
-     *
-     * @param id {String} - ID of bot
-     * @returns {Promise} - Bot response
-     */
-    findBot: function(id){
-      return genericGet(SERVER+API+BOTS_ROUTE+'/'+id);
-    }, // findBot
 
-    /**
-     * Find bot action by id/name
-     *
-     * @param id {String} - ID of bot action
-     * @returns {Promise} - Bot Action response
-     */
-    findBotAction: function(id){
-      return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+id);
-    }, // findBotAction
-
-    /**
-     * Find bot action by room, bot, and name
-     *
-     * @param room {String} - ID of room
-     * @param bot {String} - ID of bot
-     * @param name {String} - Name of bot action
-     * @returns {Promise} - Bot Action response
-     */
-    getBotActions: function(room, bot, name){
-      if (!bot) {
-        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/action');
-      } else if (!name) {
-        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/bots/'+bot+'/action');
-      } else {
-        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/bots/'+bot+'/name/'+name+'/action');
-      }
-    }, // getBotActions
 
     /**
      * Access user that is part of the room window
@@ -345,6 +309,44 @@ module.exports = function(config) {
           return output;
         });
     }, // getAllUsers
+
+    /**
+     * Find bot by id/name
+     *
+     * @param id {String} - ID of bot
+     * @returns {Promise} - Bot response
+     */
+    findBot: function(id){
+      return genericGet(SERVER+API+BOTS_ROUTE+'/'+id);
+    }, // findBot
+
+    /**
+     * Find bot action by id/name
+     *
+     * @param id {String} - ID of bot action
+     * @returns {Promise} - Bot Action response
+     */
+    findBotAction: function(id){
+      return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+id);
+    }, // findBotAction
+
+    /**
+     * Find bot action by room, bot, and name
+     *
+     * @param room {String} - ID of room
+     * @param bot {String} - ID of bot
+     * @param name {String} - Name of bot action
+     * @returns {Promise} - Bot Action response
+     */
+    getBotActions: function(room, bot, name){
+      if (!bot) {
+        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/action');
+      } else if (!name) {
+        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/bots/'+bot+'/action');
+      } else {
+        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/bots/'+bot+'/name/'+name+'/action');
+      }
+    }, // getBotActions
 
     /**
      * Create bot action by id/name
