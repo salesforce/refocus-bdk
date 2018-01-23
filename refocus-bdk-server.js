@@ -544,6 +544,33 @@ module.exports = function(config) {
     }, // changeBotData
 
     /**
+     * Upsert bot data
+     *
+     * @param room {String} - ID of room.
+     * @param bot {String} - ID of bot.
+     * @param name {String} - Name of bot data.
+     * @param botData {Object} - botData object.
+     * @returns {Promise} - Bot Data response.
+     */
+    upsertBotData: function(room, bot, name, botData){
+      const newBotData = {
+        "value": botData
+      };
+
+      this.getBotData(room)
+        .then((data) => {
+          const _data = data.body
+            .filter((bd) => bd.name === name)[0];
+
+          if (!_data) {
+            return this.createBotData(room, bot, name, botData);
+          } else {
+            return this.changeBotData(_data.id, botData);
+          }
+        });
+    }, // upsertBotData
+
+    /**
      * Find events by room
      *
      * @param room {String} - ID of room
