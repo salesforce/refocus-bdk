@@ -305,7 +305,7 @@ module.exports = function(config) {
           userEvents.forEach((event) => {
             if (event.context.isActive) {
               const entry = event.context.user;
-              entry.active = event.context.isActive;
+              entry.isActive = event.context.isActive;
               output[event.context.user.id] = entry;
             }
           });
