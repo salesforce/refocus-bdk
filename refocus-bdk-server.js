@@ -371,7 +371,7 @@ module.exports = function(config) {
      * entries
      *
      * @param {Integer} room - ID of the room to get events from
-     * @returns {Promise} - An array of the users currently in the room
+     * @returns {Promise} - An object of the users currently in the room
      */
     getActiveUsers: (room) => {
       return genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room)
@@ -392,14 +392,15 @@ module.exports = function(config) {
               }
               return false;
             });
-          const output = [];
+
+          const output = {};
 
           // Create list of events that are in the room
           userEvents.forEach((event) => {
             if (event.context.isActive) {
               const entry = event.context.user;
               entry.active = event.context.isActive;
-              output.push(entry);
+              output[event.context.id] = entry;
             }
           });
           return output;
