@@ -400,7 +400,7 @@ module.exports = function(config) {
             if (event.context.isActive) {
               const entry = event.context.user;
               entry.active = event.context.isActive;
-              output[event.context.id] = entry;
+              output[event.context.user.id] = entry;
             }
           });
           return output;
