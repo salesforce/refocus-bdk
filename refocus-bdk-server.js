@@ -196,7 +196,7 @@ module.exports = (config) => {
     });
 
     socket.on('disconnect', () => {
-      // Connected,s let's sign-up for to receive messages for this room
+      // Connected, let's sign-up for to receive messages for this room
       console.log("Socket Disconnected");
     });
   } // refocusConnectSocket
