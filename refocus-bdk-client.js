@@ -251,7 +251,69 @@ module.exports = function(config) {
       return genericPatch(SERVER+API+ROOMS_ROUTE+'/'+id, patch);
     }, // updateSettings
 
-      /**
+
+
+    /**
+     * Access user that is part of the room window
+     * user object comes from Refocus view/rooms/index.pug
+     */
+    getUserName: function(){
+      const _user = JSON.parse(user.replace(/&quot;/g, '"'));
+      return _user.name;
+    }, // getUserName
+
+    getUserId(){
+      const _user = JSON.parse(user.replace(/&quot;/g, '"'));
+      return _user.id;
+    }, // getUserId
+
+    getUserEmail(){
+      const _user = JSON.parse(user.replace(/&quot;/g, '"'));
+      return _user.email;
+    }, // getUserEmail
+
+    /**
+     * Determine which users are active in a room by parsing the event
+     * entries
+     *
+     * @param {Integer} room - ID of the room to get events from
+     * @returns {Promise} - An object of the users currently in the room
+     */
+    getActiveUsers: (room) => {
+      return genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room)
+        .then((events) => {
+          const users = [];
+          const userEvents = events.body
+            // Sort in decreasing value
+            .sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)))
+            .filter((event) => {
+              if ((event.context) && (event.context.type)) {
+                if (event.context.type === 'User') {
+                  // Only get unqiue users
+                  if (!users.includes(event.context.user.id)) {
+                    users.push(event.context.user.id);
+                    return true;
+                  }
+                }
+              }
+              return false;
+            });
+
+          const output = {};
+
+          // Create list of events that are in the room
+          userEvents.forEach((event) => {
+            if (event.context.isActive) {
+              const entry = event.context.user;
+              entry.isActive = event.context.isActive;
+              output[event.context.user.id] = entry;
+            }
+          });
+          return output;
+        });
+    }, // getActiveUsers
+
+    /**
      * Find bot by id/name
      *
      * @param id {String} - ID of bot
@@ -288,25 +350,6 @@ module.exports = function(config) {
         return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/bots/'+bot+'/name/'+name+'/action');
       }
     }, // getBotActions
-
-    /**
-     * Access user that is part of the room window
-     * user object comes from Refocus view/rooms/index.pug
-     */
-    getUserName: function(){
-      const _user = JSON.parse(user.replace(/&quot;/g, '"'));
-      return _user.name;
-    }, // getUserName
-
-    getUserId(){
-      const _user = JSON.parse(user.replace(/&quot;/g, '"'));
-      return _user.id;
-    }, // getUserId
-
-    getUserEmail(){
-      const _user = JSON.parse(user.replace(/&quot;/g, '"'));
-      return _user.email;
-    }, // getUserEmail
 
     /**
      * Create bot action by id/name
