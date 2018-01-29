@@ -286,6 +286,47 @@ module.exports = (config) => {
     }, // updateSettings
 
     /**
+     * Determine which users are active in a room by parsing the event
+     * entries
+     *
+     * @param {Integer} room - ID of the room to get events from
+     * @returns {Promise} - An object of the users currently in the room
+     */
+    getActiveUsers: (room) => {
+      return genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room)
+        .then((events) => {
+          const users = [];
+          const userEvents = events.body
+            // Sort in decreasing value
+            .sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)))
+            .filter((event) => {
+              if ((event.context) && (event.context.type)) {
+                if (event.context.type === 'User') {
+                  // Only get unqiue users
+                  if (!users.includes(event.context.user.id)) {
+                    users.push(event.context.user.id);
+                    return true;
+                  }
+                }
+              }
+              return false;
+            });
+
+          const output = {};
+
+          // Create list of events that are in the room
+          userEvents.forEach((event) => {
+            if (event.context.isActive) {
+              const entry = event.context.user;
+              entry.isActive = event.context.isActive;
+              output[event.context.user.id] = entry;
+            }
+          });
+          return output;
+        });
+    }, // getActiveUsers
+
+    /**
      * Find bot by id/name
      *
      * @param {String} id - ID of bot
