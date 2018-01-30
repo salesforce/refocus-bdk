@@ -553,21 +553,15 @@ module.exports = (config) => {
      * @param botData {Object} - botData object.
      * @returns {Promise} - Bot Data response.
      */
-    upsertBotData: function(room, bot, name, botData){
-      const newBotData = {
-        "value": botData
-      };
-
+    upsertBotData: (room, bot, name, botData) => {
       this.getBotData(room)
         .then((data) => {
           const _data = data.body
-            .filter((bd) => bd.name === name)[0];
-
-          if (!_data) {
-            return this.createBotData(room, bot, name, botData);
-          } else {
+            .filter((bd) => bd.name === name)[ZERO];
+          if (_data) {
             return this.changeBotData(_data.id, botData);
           }
+          return this.createBotData(room, bot, name, botData);
         });
     }, // upsertBotData
 
