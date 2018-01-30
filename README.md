@@ -50,6 +50,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * getUserEmail
 * createEvents
 * getEvents
+* getActiveUsers
 
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
@@ -71,3 +72,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.2.0 Added Events routes and get room ID
 * 1.2.1 Create event log with respondBotAction
 * 1.2.2 Automatically try add user Id to action and events
+* 1.3.0 Add active users function
