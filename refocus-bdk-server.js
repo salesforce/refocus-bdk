@@ -636,27 +636,33 @@ module.exports = (config) => {
     /**
      * Upsert bot data
      *
-     * @param room {String} - ID of room.
-     * @param bot {String} - ID of bot.
-     * @param name {String} - Name of bot data.
-     * @param botData {Object} - botData object.
+     * @param {String} room - ID of room.
+     * @param {String} bot - ID of bot.
+     * @param {String} name - Name of bot data.
+     * @param {Object} botData - botData object.
      * @returns {Promise} - Bot Data response.
      */
-    upsertBotData: function(room, bot, name, botData){
-      const newBotData = {
-        "value": botData
+    upsertBotData: (room, bot, name, botData) => {
+      const changeBotData = {
+        'value': botData
       };
 
-      this.getBotData(room)
+      const newBotData = {
+        name,
+        'roomId': parseInt(room, 10),
+        'botId': bot,
+        'value': botData
+      };
+
+      genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/data')
         .then((data) => {
           const _data = data.body
-            .filter((bd) => bd.name === name)[0];
-
-          if (!_data) {
-            return this.createBotData(room, bot, name, botData);
-          } else {
-            return this.changeBotData(_data.id, botData);
+            .filter((bd) => bd.name === name)[ZERO];
+          if (_data) {
+            return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+_data.id,
+              changeBotData);
           }
+          return genericPost(SERVER+API+BOTDATA_ROUTE+'/', newBotData);
         });
     }, // upsertBotData
 
