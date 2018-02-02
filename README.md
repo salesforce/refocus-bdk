@@ -72,3 +72,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.2.1 Create event log with respondBotAction
 * 1.2.2 Automatically try add user Id to action and events
 * 1.3.0 Add active users function
+* 1.3.1 Fix for TypeError: this.getUserId is not a function
