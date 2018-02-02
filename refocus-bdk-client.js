@@ -406,7 +406,7 @@ module.exports = (config) => {
      */
     createBotAction: (botAction) => {
       try {
-        botAction.userId = this.getUserId();
+        botAction.userId = _user.id;
       } catch (error) {
         console.log('Create bot action bdk', error);
       }
@@ -571,7 +571,7 @@ module.exports = (config) => {
         events.context = context;
       }
       try {
-        events.userId = this.getUserId();
+        events.userId = _user.id;
       } catch (error) {
         console.log('BDK Event Errors: ', error);
       }
