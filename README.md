@@ -42,6 +42,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * findBotData
 * getBotData
 * changeBotData
+* upsertBotData
 * refocusConnectPolling
 * refocusConnect
 * getUserName

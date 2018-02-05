@@ -545,6 +545,39 @@ module.exports = (config) => {
     }, // changeBotData
 
     /**
+     * Upsert bot data
+     *
+     * @param {String} room - ID of room.
+     * @param {String} bot - ID of bot.
+     * @param {String} name - Name of bot data.
+     * @param {Object} botData - botData object.
+     * @returns {Promise} - Bot Data response.
+     */
+    upsertBotData: (room, bot, name, botData) => {
+      const changeBotData = {
+        'value': botData
+      };
+
+      const newBotData = {
+        name,
+        'roomId': parseInt(room, 10),
+        'botId': bot,
+        'value': botData
+      };
+
+      genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/data')
+        .then((data) => {
+          const _data = data.body
+            .filter((bd) => bd.name === name)[ZERO];
+          if (_data) {
+            return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+_data.id,
+              changeBotData);
+          }
+          return genericPost(SERVER+API+BOTDATA_ROUTE+'/', newBotData);
+        });
+    }, // upsertBotData
+
+    /**
      * Find events by room
      *
      * @param {String} room - ID of room
