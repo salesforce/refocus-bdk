@@ -356,15 +356,15 @@ module.exports = (config) => {
      */
     getBotActions: (room, bot, name) => {
       if (!bot) {
-        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room);
+        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/action');
       } else if (!name) {
         return genericGet(
-          SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room+'&botId='+bot
+          SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/bots/'+bot+'/action'
         );
       }
       return genericGet(
-        SERVER+API+BOTACTIONS_ROUTE
-        +'?roomId='+room+'&botId='+bot+'&name='+name
+        SERVER+API+BOTACTIONS_ROUTE+
+        '/'+room+'/bots/'+bot+'/name/'+name+'/action'
       );
     }, // getBotActions
 
@@ -526,7 +526,7 @@ module.exports = (config) => {
       }
 
       return genericGet(
-        SERVER+API+BOTDATA_ROUTE+'?roomId='+room+'&botId='+bot+'&name='+name
+        SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/name/'+name+'/data'
       );
     }, // getBotData
 
