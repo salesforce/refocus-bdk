@@ -210,7 +210,7 @@ module.exports = (config) => {
    *
    * @param {Express} app - App stream so we can push events to the server
    */
-  function refocusConnectPolling(app){
+  function refocusConnectPolling(app, options){
     setInterval(() => {
       genericGet(SERVER+API+ROOMS_ROUTE+'/')
         .then((rooms) => {
@@ -224,7 +224,7 @@ module.exports = (config) => {
             }
           });
         });
-      genericGet(SERVER+API+BOTACTIONS_ROUTE+'/')
+      genericGet(SERVER+API+BOTACTIONS_ROUTE+options)
         .then((botActions) => {
           botActions.body.forEach((botAction) => {
             const duration =
@@ -236,7 +236,7 @@ module.exports = (config) => {
             }
           });
         });
-      genericGet(SERVER+API+BOTDATA_ROUTE+'/')
+      genericGet(SERVER+API+BOTDATA_ROUTE+options)
         .then((botData) => {
           botData.body.forEach((bd) => {
             const duration =
@@ -246,7 +246,7 @@ module.exports = (config) => {
             }
           });
         });
-      genericGet(SERVER+API+EVENTS_ROUTE+'/')
+      genericGet(SERVER+API+EVENTS_ROUTE+options)
         .then((events) => {
           const eventData = events.body;
           if (eventData.length > ZERO) {
@@ -480,15 +480,15 @@ module.exports = (config) => {
      */
     getBotActions: (room, bot, name) => {
       if (!bot) {
-        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/action');
+        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room);
       } else if (!name) {
         return genericGet(
-          SERVER+API+BOTACTIONS_ROUTE+'/'+room+'/bots/'+bot+'/action'
+          SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room+'&botId='+bot
         );
       }
       return genericGet(
-        SERVER+API+BOTACTIONS_ROUTE+
-        '/'+room+'/bots/'+bot+'/name/'+name+'/action'
+        SERVER+API+BOTACTIONS_ROUTE
+        +'?roomId='+room+'&botId='+bot+'&name='+name
       );
     }, // getBotActions
 
@@ -615,7 +615,7 @@ module.exports = (config) => {
       }
 
       return genericGet(
-        SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/name/'+name+'/data'
+        SERVER+API+BOTDATA_ROUTE+'?roomId='+room+'&botId='+bot+'&name='+name
       );
     }, // getBotData
 
@@ -701,9 +701,20 @@ module.exports = (config) => {
      * @param {Express} app - App stream so we can push events to the server
      * @param {String} token - Socket Token needed to connect to Refocus socket
      */
-    refocusConnect: (app, token) => {
+    refocusConnect: (app, token, botName) => {
       if (process.env.USE_POLLING) {
-        refocusConnectPolling(app);
+        if (botName) {
+          genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName)
+            .then((bots) => {
+              if (bots.length > 0) {
+                refocusConnectPolling(app, '?botId=' + bots[0].id);
+              } else {
+                refocusConnectPolling(app, '?botId=' + '/');
+              }
+            })
+        } else {
+          refocusConnectPolling(app, '/');
+        }
       } else {
         refocusConnectSocket(app, token);
       }
