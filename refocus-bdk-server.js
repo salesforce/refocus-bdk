@@ -34,6 +34,34 @@ const POLLING_REFRESH = 5000;
 const ONE = 1;
 const ZERO = 0;
 
+const winston = require('winston');
+const fs = require('fs');
+const env = process.env.NODE_ENV || 'development';
+const logDir = 'log';
+// Create the log directory if it does not exist
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir);
+}
+const tsFormat = () => (new Date()).toLocaleTimeString();
+const logger = new (winston.Logger)({
+  transports: [
+    new (winston.transports.Console)({
+      timestamp: tsFormat,
+      prettyPrint: true,
+      colorize: true,
+      level: 'info'
+    }),
+    new (require('winston-daily-rotate-file'))({
+      filename: `${logDir}/-results.log`,
+      timestamp: tsFormat,
+      datePattern: 'yyyy-MM-dd',
+      prepend: true,
+      level: env === 'development' ? 'verbose' : 'info'
+    })
+  ]
+});
+
+
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
