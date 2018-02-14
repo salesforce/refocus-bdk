@@ -74,3 +74,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.2.2 Automatically try add user Id to action and events
 * 1.3.0 Add active users function
 * 1.3.1 Fix for TypeError: this.getUserId is not a function
+* 1.3.2 Limit polling to be bot specific
