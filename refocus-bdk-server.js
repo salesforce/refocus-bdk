@@ -224,7 +224,7 @@ module.exports = (config) => {
       //       }
       //     });
       //   });
-      genericGet(SERVER+API+BOTACTIONS_ROUTE+options)
+      genericGet(SERVER+API+BOTACTIONS_ROUTE+options+'&isPending=true')
         .then((botActions) => {
           botActions.body.forEach((botAction) => {
             const duration =
