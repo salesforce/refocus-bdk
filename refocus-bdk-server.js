@@ -706,10 +706,10 @@ module.exports = (config) => {
         if (botName) {
           genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName)
             .then((bots) => {
-              if (bots.length > 0) {
-                refocusConnectPolling(app, '?botId=' + bots[0].id);
+              if (bots.body.length > 0) {
+                refocusConnectPolling(app, '?botId=' + bots.body[0].id);
               } else {
-                refocusConnectPolling(app, '?botId=' + '/');
+                refocusConnectPolling(app, '/');
               }
             })
         } else {
