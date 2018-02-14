@@ -212,18 +212,18 @@ module.exports = (config) => {
    */
   function refocusConnectPolling(app, options){
     setInterval(() => {
-      genericGet(SERVER+API+ROOMS_ROUTE+'/')
-        .then((rooms) => {
-          rooms.body.forEach((room) => {
-            const duration =
-              moment.duration(
-                moment().diff(moment(room.updatedAt))
-              ).asSeconds();
-            if (duration < POLLING_DELAY) {
-              app.emit('refocus.room.settings', room);
-            }
-          });
-        });
+      // genericGet(SERVER+API+ROOMS_ROUTE+'/')
+      //   .then((rooms) => {
+      //     rooms.body.forEach((room) => {
+      //       const duration =
+      //         moment.duration(
+      //           moment().diff(moment(room.updatedAt))
+      //         ).asSeconds();
+      //       if (duration < POLLING_DELAY) {
+      //         app.emit('refocus.room.settings', room);
+      //       }
+      //     });
+      //   });
       genericGet(SERVER+API+BOTACTIONS_ROUTE+options)
         .then((botActions) => {
           botActions.body.forEach((botAction) => {
@@ -236,31 +236,31 @@ module.exports = (config) => {
             }
           });
         });
-      genericGet(SERVER+API+BOTDATA_ROUTE+options)
-        .then((botData) => {
-          botData.body.forEach((bd) => {
-            const duration =
-              moment.duration(moment().diff(moment(bd.updatedAt))).asSeconds();
-            if (duration < POLLING_DELAY) {
-              app.emit('refocus.bot.data', bd);
-            }
-          });
-        });
-      genericGet(SERVER+API+EVENTS_ROUTE+options)
-        .then((events) => {
-          const eventData = events.body;
-          if (eventData.length > ZERO) {
-            const duration =
-              moment.duration(
-                moment().diff(
-                  moment(eventData[eventData.length - ONE].updatedAt)
-                )
-              ).asSeconds();
-            if (duration < POLLING_DELAY) {
-              app.emit('refocus.events', eventData[eventData.length - ONE]);
-            }
-          }
-        });
+      // genericGet(SERVER+API+BOTDATA_ROUTE+options)
+      //   .then((botData) => {
+      //     botData.body.forEach((bd) => {
+      //       const duration =
+      //         moment.duration(moment().diff(moment(bd.updatedAt))).asSeconds();
+      //       if (duration < POLLING_DELAY) {
+      //         app.emit('refocus.bot.data', bd);
+      //       }
+      //     });
+      //   });
+      // genericGet(SERVER+API+EVENTS_ROUTE+options)
+      //   .then((events) => {
+      //     const eventData = events.body;
+      //     if (eventData.length > ZERO) {
+      //       const duration =
+      //         moment.duration(
+      //           moment().diff(
+      //             moment(eventData[eventData.length - ONE].updatedAt)
+      //           )
+      //         ).asSeconds();
+      //       if (duration < POLLING_DELAY) {
+      //         app.emit('refocus.events', eventData[eventData.length - ONE]);
+      //       }
+      //     }
+      //   });
     }, POLLING_REFRESH);
   } // refocusConnectPolling
 

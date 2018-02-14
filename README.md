@@ -76,3 +76,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.3.1 Fix for TypeError: this.getUserId is not a function
 * 1.3.2 Limit polling to be bot specific
 * 1.3.3 Polling Bug Fix
+* 1.3.4 Removed unused polling in backend
