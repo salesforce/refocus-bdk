@@ -66,14 +66,22 @@ function debugMessage(type, msg, obj){
     false;
 
   if ((!filter) || (msg.toLowerCase().includes(filter))) {
-     if ((level) &&
-         (level.includes(type.toLowerCase())) &&
-         obj) {
-       console.log(('%c'+ type) + ':', 'color: '+ logColors[type], msg, obj);
+    if ((level) &&
+        (level.includes(type.toLowerCase())) &&
+        obj) {
+      console.log(
+        `%c ${moment().format('YYYY-MM-DD hh:mm:ss').trim()}` + `%c ${type}` + ':',
+        'color: black', 'color: '+ logColors[type],
+        msg, obj
+      );
      } else if ((level) &&
-         (level.includes(type.toLowerCase()))) {
-       console.log(('%c'+ type) + ':', 'color: '+ logColors[type], msg);
-     }
+        (level.includes(type.toLowerCase()))) {
+      console.log(
+        `%c ${moment().format('YYYY-MM-DD hh:mm:ss').trim()}` + `%c ${type}` + ':',
+        'color: black', 'color: '+ logColors[type],
+        msg,
+      );
+    }
   }
 } // debugMessage
 
