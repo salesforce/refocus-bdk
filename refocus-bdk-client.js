@@ -33,6 +33,50 @@ const POLLING_REFRESH = 5000;
 const ONE = 1;
 const ZERO = 0;
 
+/**
+ * Returns console.logs depending on the URL parameters
+ * {URL}?CONSOLE_LOG_LEVEL={logLevel}&FILTER={FILTER STRING}
+ *
+ * The log level is designed to mimic WinstonJS, so level of log you 
+ * choose every level lower than that will be shown in the. Default level is info
+ * You can filter the string by text using the filter parameter
+ *
+ * @param {String} type - Type of log
+ * @param {String} msg - Message of log
+ * @param {Object} obj - Associated object of message
+ */
+const logLevels = { error: 0, warn: 1, info: 2, verbose: 3, debug: 4, silly: 5 }
+const logSev = { 0: 'error', 1: 'warn', 2: 'info', 3: 'verbose', 4: 'debug', 5: 'silly' }
+const logColors = { error: 'red', warn: 'goldenrod', info: 'green', verbose: 'purple', debug: 'blue', silly: 'grey' }
+
+function debugMessage(type, msg, obj){
+  const adr = window.location.href;
+  const q = url.parse(adr, true);
+  const qdata = q.query ? q.query : {};
+  const levelSev = qdata['CONSOLE_LOG_LEVEL'] && logLevels[qdata['CONSOLE_LOG_LEVEL']] ? 
+    logLevels[qdata['CONSOLE_LOG_LEVEL']] :
+    2;
+  let level = '';
+  for(let i=0; i <= levelSev; i++){
+    level += logSev[i] + ',';
+  }
+
+  const filter = qdata['FILTER'] ?
+    qdata['FILTER'].toLowerCase() :
+    false;
+
+  if ((!filter) || (msg.toLowerCase().includes(filter))) {
+     if ((level) &&
+         (level.includes(type.toLowerCase())) &&
+         obj) {
+       console.log(('%c'+ type) + ':', 'color: '+ logColors[type], msg, obj);
+     } else if ((level) &&
+         (level.includes(type.toLowerCase()))) {
+       console.log(('%c'+ type) + ':', 'color: '+ logColors[type], msg);
+     }
+  }
+} // debugMessage
+
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
@@ -92,163 +136,23 @@ module.exports = (config) => {
     });
   } // genericPost
 
-  /**
-   * Connect to refocuses socket connections.
-   *
-   * @param {Express} app - App stream so we can push events to the server
-   * @param {String} token - Socket Token needed to connect to Refocus socket
-   */
-  function refocusConnectSocket(app, token) {
-    const socket = io.connect(SERVER, {
-      'reconnect': true,
-      'reconnection delay': 10,
-      'transports': ['websocket'],
-      upgrade: false,
-      extraHeaders: {
-        Authorization: token
-      }
-    });
-
-    const settingsChangedEventName =
-      'refocus.internal.realtime.room.settingsChanged';
-    const initalizeEventName =
-      'refocus.internal.realtime.bot.namespace.initialize';
-    const botActionsAdd =
-      'refocus.internal.realtime.bot.action.add';
-    const botActionsUpdate =
-      'refocus.internal.realtime.bot.action.update';
-    const botDataAdd =
-      'refocus.internal.realtime.bot.data.add';
-    const botDataUpdate =
-      'refocus.internal.realtime.bot.data.update';
-    const botEventAdd =
-      'refocus.internal.realtime.bot.event.add';
-    const botEventUpdate =
-      'refocus.internal.realtime.bot.event.update';
-
-    socket.on(initalizeEventName, () => {
-      // Connected, let's sign-up for to receive messages for this room
-      console.log("Socket Initialized");
-    });
-
-    socket.on(settingsChangedEventName, (data) => {
-      // Connected, let's sign-up for to receive messages for this room
-      const eventData = JSON.parse(data);
-      const room = eventData[settingsChangedEventName];
-      app.emit('refocus.room.settings', room);
-    });
-
-    socket.on(botActionsAdd, (data) => {
-      const eventData = JSON.parse(data);
-      const action = eventData[botActionsAdd];
-      app.emit('refocus.bot.actions', action);
-    });
-
-    socket.on(botActionsUpdate, (data) => {
-      const eventData = JSON.parse(data);
-      const action = eventData[botActionsUpdate];
-      app.emit('refocus.bot.actions', action);
-    });
-
-    socket.on(botDataAdd, (data) => {
-      const eventData = JSON.parse(data);
-      const botData = eventData[botDataAdd];
-      app.emit('refocus.bot.data', botData);
-    });
-
-    socket.on(botDataUpdate, (data) => {
-      const eventData = JSON.parse(data);
-      const botData = eventData[botDataUpdate];
-      app.emit('refocus.bot.data', botData);
-    });
-
-    socket.on(botEventAdd, (data) => {
-      const eventData = JSON.parse(data);
-      const botEvent = eventData[botEventAdd];
-      app.emit('refocus.bot.data', botEvent);
-    });
-
-    socket.on(botEventUpdate, (data) => {
-      const eventData = JSON.parse(data);
-      const botEvent = eventData[botEventUpdate];
-      app.emit('refocus.bot.data', botEvent);
-    });
-
-    socket.on('connect', () => {
-      // Connected, let's sign-up for to receive messages for this room
-      console.log("Socket Connected");
-    });
-
-    socket.on('disconnect', () => {
-      // Connected, let's sign-up for to receive messages for this room
-      console.log("Socket Disconnected");
-    });
-  } // refocusConnectSocket
-
-  /**
-   * STOP GAP PROCESSES
-   * Polling function that will hit the server over and over
-   * to see if there is new updates to data or settings updates for
-   * the UI to use. This polling can be replaced with sockets for
-   * subscription based updates.
-   *
-   * @param {Express} app - App stream so we can push events to the server
-   */
-  function refocusConnectPolling(app){
-    setInterval(() => {
-      genericGet(SERVER+API+ROOMS_ROUTE+'/')
-        .then((rooms) => {
-          rooms.body.forEach((room) => {
-            const duration =
-              moment.duration(
-                moment().diff(moment(room.updatedAt))
-              ).asSeconds();
-            if (duration < POLLING_DELAY) {
-              app.emit('refocus.room.settings', room);
-            }
-          });
-        });
-      genericGet(SERVER+API+BOTACTIONS_ROUTE+'/')
-        .then((botActions) => {
-          botActions.body.forEach((botAction) => {
-            const duration =
-              moment.duration(
-                moment().diff(moment(botAction.updatedAt))
-              ).asSeconds();
-            if ((!botAction.response) && (duration < POLLING_DELAY)) {
-              app.emit('refocus.bot.actions', botAction);
-            }
-          });
-        });
-      genericGet(SERVER+API+BOTDATA_ROUTE+'/')
-        .then((botData) => {
-          botData.body.forEach((bd) => {
-            const duration =
-              moment.duration(moment().diff(moment(bd.updatedAt))).asSeconds();
-            if (duration < POLLING_DELAY) {
-              app.emit('refocus.bot.data', bd);
-            }
-          });
-        });
-      genericGet(SERVER+API+EVENTS_ROUTE+'/')
-        .then((events) => {
-          const eventData = events.body;
-          if (eventData.length > ZERO) {
-            const duration =
-              moment.duration(
-                moment().diff(
-                  moment(eventData[eventData.length - ONE].updatedAt)
-                )
-              ).asSeconds();
-            if (duration < POLLING_DELAY) {
-              app.emit('refocus.events', eventData[eventData.length - ONE]);
-            }
-          }
-        });
-    }, POLLING_REFRESH);
-  } // refocusConnectPolling
-
   return {
+    /**
+     * Define a set of log functions
+     */
+    log: {
+      error: (msg, obj) => debugMessage('error', msg, obj),
+      warn: (msg, obj) => debugMessage('warn', msg, obj),
+      info: (msg, obj) => debugMessage('info', msg, obj),
+      verbose: (msg, obj) => debugMessage('verbose', msg, obj),
+      debug: (msg, obj) => debugMessage('debug', msg, obj),
+      silly: (msg, obj) => debugMessage('silly', msg, obj),
+      realtime: (msg, obj) => {
+        const name = obj.new ? obj.new.name : obj.name;
+        debugMessage('info', 'realtime: ' + msg, name);
+        debugMessage('verbose', 'realtime: ' + msg, obj);
+      },
+    },    
 
     /**
      * Get the current room ID from window
@@ -606,7 +510,7 @@ module.exports = (config) => {
       try {
         events.userId = _user.id;
       } catch (error) {
-        console.log('BDK Event Errors: ', error);
+        debugMessage('error', 'Event User Error', error);
       }
       return genericPost(SERVER+API+EVENTS_ROUTE, events);
     }, // createEvents

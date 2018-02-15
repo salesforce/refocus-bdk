@@ -41,7 +41,8 @@ const logDir = 'log';
 const logging = process.env.BOT_LOGGING ?
   process.env.BOT_LOGGING.toLowerCase() :
   '';
-if ((logging === 'file') && (!fs.existsSync(logDir))) {
+if (((logging === 'both') || (logging === 'file')) &&
+    (!fs.existsSync(logDir))) {
   fs.mkdirSync(logDir);
 }
 const tsFormat = () => moment().format('YYYY-MM-DD hh:mm:ss').trim();
@@ -53,7 +54,7 @@ const logger = new (winston.Logger)({
       prettyPrint: true,
       colorize: true,
       silent: ((logging === '') || (logging === 'both') || (logging === 'console')) ? false : true,
-      level: process.env.BOT_LOGGING_LEVEL
+      level: process.env.CONSOLE_LOG_LEVEL ? process.env.CONSOLE_LOG_LEVEL : 'info'
     }),
     // File output
     new (require('winston-daily-rotate-file'))({
@@ -62,7 +63,7 @@ const logger = new (winston.Logger)({
       datePattern: 'yyyy-MM-dd ',
       prepend: true,
       silent: ((logging === 'both') || (logging === 'file')) ? false : true,
-      level: 'verbose'
+      level: process.env.FILE_LOG_LEVEL ? process.env.FILE_LOG_LEVEL : 'verbose'
     })
   ]
 });
@@ -72,6 +73,9 @@ module.exports = (config) => {
   const TOKEN = config.token;
   let PROXY_URL;
 
+  /**
+   * Define a set of log functions
+   */
   const log = {
     error: (msg, obj) => logger.error(msg, obj),
     warn: (msg, obj) => logger.warn(msg, obj),
@@ -619,25 +623,6 @@ module.exports = (config) => {
     }, // respondBotActionNoLog
 
     /**
-     * Create bot data
-     *
-     * @param {String} room - Id room
-     * @param {String} bot - Id of bot
-     * @param {String} botName - Name of data
-     * @param {String} botValue - Value
-     * @returns {Promise} - Bot Data response
-     */
-    createBotData: (room, bot, botName, botValue) => {
-      const botData = {
-        'name': botName,
-        'roomId': parseInt(room, 10),
-        'botId': bot,
-        'value': botValue
-      };
-      return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData);
-    }, // createBotData
-
-    /**
      * Find bot data by id/name
      *
      * @param {String} id - ID of bot data
@@ -668,6 +653,26 @@ module.exports = (config) => {
     }, // getBotData
 
     /**
+     * Create bot data
+     *
+     * @param {String} room - Id room
+     * @param {String} bot - Id of bot
+     * @param {String} botName - Name of data
+     * @param {String} botValue - Value
+     * @returns {Promise} - Bot Data response
+     */
+    createBotData: (room, bot, botName, botValue) => {
+      const botData = {
+        'name': botName,
+        'roomId': parseInt(room, 10),
+        'botId': bot,
+        'value': botValue
+      };
+      
+      return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData);
+    }, // createBotData
+
+    /**
      * Update bot data by id/name
      *
      * @param {String} id - Id of bot data
@@ -678,6 +683,7 @@ module.exports = (config) => {
       const newBotData = {
         'value': botData
       };
+
       return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData);
     }, // changeBotData
 
@@ -710,6 +716,7 @@ module.exports = (config) => {
             return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+_data.id,
               changeBotData);
           }
+          logger.warn('Bot Data not found will try to create ' + name);
           return genericPost(SERVER+API+BOTDATA_ROUTE+'/', newBotData);
         });
     }, // upsertBotData
