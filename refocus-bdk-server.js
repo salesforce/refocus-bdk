@@ -34,38 +34,53 @@ const POLLING_REFRESH = 5000;
 const ONE = 1;
 const ZERO = 0;
 
+const logging = process.env.BOT_LOGGING ? process.env.BOT_LOGGING.toLowerCase() : '';
 const winston = require('winston');
 const fs = require('fs');
-const env = process.env.NODE_ENV || 'development';
 const logDir = 'log';
-// Create the log directory if it does not exist
-if (!fs.existsSync(logDir)) {
+
+if ((logging === 'file') && (!fs.existsSync(logDir))) {
   fs.mkdirSync(logDir);
 }
-const tsFormat = () => (new Date()).toLocaleTimeString();
+const tsFormat = () => moment().format('YYYY-MM-DD hh:mm:ss').trim();
 const logger = new (winston.Logger)({
   transports: [
     new (winston.transports.Console)({
       timestamp: tsFormat,
       prettyPrint: true,
       colorize: true,
-      level: 'info'
+      silent: ((logging === '') || (logging === 'both') || (logging === 'console')) ? false : true,
+      level: process.env.BOT_LOGGING_LEVEL
     }),
     new (require('winston-daily-rotate-file'))({
       filename: `${logDir}/-results.log`,
       timestamp: tsFormat,
-      datePattern: 'yyyy-MM-dd',
+      datePattern: 'yyyy-MM-dd ',
       prepend: true,
-      level: env === 'development' ? 'verbose' : 'info'
+      silent: ((logging === 'both') || (logging === 'file')) ? false : true,
+      level: 'verbose'
     })
   ]
 });
-
 
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
   let PROXY_URL;
+
+  const log = {
+    error: (msg, obj) => logger.error(msg, obj),
+    warn: (msg, obj) => logger.warn(msg, obj),
+    info: (msg, obj) => logger.info(msg, obj),
+    verbose: (msg, obj) => logger.verbose(msg, obj),
+    debug: (msg, obj) => logger.debug(msg, obj),
+    silly: (msg, obj) => logger.silly(msg, obj),
+    realtime: (msg, obj) => {
+      const name = obj.new ? obj.new.name : obj.name;
+      logger.info('realtime: ' + msg, name);
+      logger.verbose('realtime: ' + msg, obj);
+    },
+  };
 
   if (config.httpProxy) {
     requestProxy(request);
@@ -142,7 +157,7 @@ module.exports = (config) => {
    * @param {Express} app - App stream so we can push events to the server
    * @param {String} token - Socket Token needed to connect to Refocus socket
    */
-  function refocusConnectSocket(app, token) {
+  function refocusConnectSocket(app, token, botId) {
     const socket = io.connect(SERVER, {
       'reconnect': true,
       'reconnection delay': 10,
@@ -171,61 +186,67 @@ module.exports = (config) => {
       'refocus.internal.realtime.bot.event.update';
 
     socket.on(initalizeEventName, () => {
-      // Connected, let's sign-up for to receive messages for this room
-      console.log("Socket Initialized");
+      logger.info("Socket Initialized");
     });
 
     socket.on(settingsChangedEventName, (data) => {
-      // Connected, let's sign-up for to receive messages for this room
       const eventData = JSON.parse(data);
       const room = eventData[settingsChangedEventName];
       app.emit('refocus.room.settings', room);
+      log.realtime('Room Settings', room);
     });
 
     socket.on(botActionsAdd, (data) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsAdd];
-      app.emit('refocus.bot.actions', action);
+      if((!botId) || ((action.botId === botId) && (action.isPending))) {
+        app.emit('refocus.bot.actions', action);
+        log.realtime('Bot Action', action);
+      }
     });
 
     socket.on(botActionsUpdate, (data) => {
       const eventData = JSON.parse(data);
-      const action = eventData[botActionsUpdate];
-      app.emit('refocus.bot.actions', action);
+      const action = eventData[botActionsUpdate].new;
+      if((!botId) || ((action.botId === botId) && (action.isPending))) {
+        app.emit('refocus.bot.actions', action);
+        log.realtime('Bot Action', action);
+      }
     });
 
     socket.on(botDataAdd, (data) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataAdd];
-      app.emit('refocus.bot.data', botData);
+      if((!botId) || (botData.botId === botId)) {
+        app.emit('refocus.bot.data', botData);
+        log.realtime('Bot Data', botData);
+      }
     });
 
     socket.on(botDataUpdate, (data) => {
       const eventData = JSON.parse(data);
-      const botData = eventData[botDataUpdate];
-      app.emit('refocus.bot.data', botData);
+      const botData = eventData[botDataUpdate].new;
+      if((!botId) || (botData.botId === botId)) {
+        app.emit('refocus.bot.data', botData);
+        log.realtime('Bot Data', botData);
+      }
     });
 
     socket.on(botEventAdd, (data) => {
       const eventData = JSON.parse(data);
       const botEvent = eventData[botEventAdd];
-      app.emit('refocus.bot.data', botEvent);
-    });
-
-    socket.on(botEventUpdate, (data) => {
-      const eventData = JSON.parse(data);
-      const botEvent = eventData[botEventUpdate];
-      app.emit('refocus.bot.data', botEvent);
+      if((!botId) || (botEvent.botId === botId)) {
+        app.emit('refocus.events', botEvent);
+        log.realtime('Room Events', botEvent);
+      }
     });
 
     socket.on('connect', () => {
-      // Connected, let's sign-up for to receive messages for this room
-      console.log("Socket Connected");
+      logger.info("Socket Connected");
     });
 
     socket.on('disconnect', () => {
-      // Connected, let's sign-up for to receive messages for this room
-      console.log("Socket Disconnected");
+     logger.info("Socket Disconnected");
     });
   } // refocusConnectSocket
 
@@ -259,8 +280,9 @@ module.exports = (config) => {
               moment.duration(
                 moment().diff(moment(botAction.updatedAt))
               ).asSeconds();
-            if ((!botAction.response) && (duration < POLLING_DELAY)) {
+            if ((botAction.isPending) && (!botAction.response) && (duration < POLLING_DELAY)) {
               app.emit('refocus.bot.actions', botAction);
+              log.realtime('Bot Action', botAction);
             }
           });
         });
@@ -327,7 +349,7 @@ module.exports = (config) => {
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (!res) {
-            console.log(
+            logger.info(
               'Failed to install a bot. Check if Refocus server is running'
             );
             return;
@@ -343,7 +365,7 @@ module.exports = (config) => {
             reject(err || !ok);
           } else {
             // Need to save this after install
-            console.log('Socket Authorization Token: ' + res.body.token);
+            logger.info('Socket Authorization Token: ' + res.body.token);
             resolve(res);
           }
         });
@@ -385,13 +407,13 @@ module.exports = (config) => {
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (!res) {
-            console.log('Failed to update a bot. Check if Refocus server is running');
+            logger.error('Failed to update a bot. Check if Refocus server is running');
             reject();
           } else {
             const ok = (res.status === 200) || (res.status === 201);
             if (err || !ok) {
               if (!res.status == 404) {
-                console.log(`error: ${JSON.stringify(err)} res: ${JSON.stringify(res)}`);
+                logger.error(`error: ${JSON.stringify(err)} res: ${JSON.stringify(res)}`);
                 const [errorMessage] = res.body.errors;
                 if (errorMessage) {
                   if (errorMessage.type === 'SequelizeValidationError') {
@@ -399,7 +421,7 @@ module.exports = (config) => {
                   }
                 }
               } else {
-                console.log(`${bot.name} does not exist so cannot update, will try to install instead.`);
+                logger.warn(`${bot.name} does not exist so cannot update, will try to install instead.`);
               }
 
               reject(err || !ok);
@@ -412,6 +434,7 @@ module.exports = (config) => {
   } // updateBot
 
   return {
+    log: log,
 
     /**
      * Find room by id/name
@@ -730,21 +753,28 @@ module.exports = (config) => {
      * @param {String} token - Socket Token needed to connect to Refocus socket
      */
     refocusConnect: (app, token, botName) => {
-      if (process.env.USE_POLLING) {
-        if (botName) {
-          genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName)
-            .then((bots) => {
-              if (bots.body.length > 0) {
-                refocusConnectPolling(app, '?botId=' + bots.body[0].id);
-              } else {
-                refocusConnectPolling(app, '/');
-              }
-            })
-        } else {
-          refocusConnectPolling(app, '/');
-        }
+      let botId = '';
+      let botRoute = '/';
+      if (botName) {
+        genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName)
+          .then((bots) => {
+            if (bots.body.length > 0) {
+              botId = bots.body[0].id;
+              botRoute = '?botId=' + botId;
+            }
+
+            if (process.env.USE_POLLING) {
+              refocusConnectPolling(app, botRoute);
+            } else {
+              refocusConnectSocket(app, token, botId);
+            }
+          })
       } else {
-        refocusConnectSocket(app, token);
+        if (process.env.USE_POLLING) {
+          refocusConnectPolling(app, botRoute);
+        } else {
+          refocusConnectSocket(app, token);
+        }
       }
     }, // refocusConnect
 
@@ -764,7 +794,7 @@ module.exports = (config) => {
       // therefore executed first
       updateBot(bot)
         .then(() => {
-          console.log(`bot ${name} successfully updated on: ${SERVER}`);
+          logger.info(`${name} successfully updated on: ${SERVER}`);
         })
         .catch((error) => {
           // err not found indicate that bot doesnt exist yet
@@ -772,18 +802,18 @@ module.exports = (config) => {
             // installs a new bot in refocus
             installBot(bot)
               .then(() => {
-                console.log(`bot ${name} successfully installed on: ${SERVER}`);
+                logger.info(`${name} successfully installed on: ${SERVER}`);
               })
               .catch((installError) => {
-                console.log(`unable to install bot ${name} on: ${SERVER}`);
-                console.log(`Details: ${JSON.stringify(installError)}`);
+                logger.error(`unable to install bot ${name} on: ${SERVER}`);
+                logger.error(`Details: ${JSON.stringify(installError)}`);
                 process.exit(ONE);
               });
           } else {
-            console.log(
+            logger.error(
               `Something went wrong while updating ${name} on: ${SERVER}`
             );
-            console.log(`Details: ${error}`);
+            logger.error(`Details: ${error}`);
             process.exit(ONE);
           }
         });
