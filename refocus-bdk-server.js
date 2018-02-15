@@ -34,17 +34,20 @@ const POLLING_REFRESH = 5000;
 const ONE = 1;
 const ZERO = 0;
 
-const logging = process.env.BOT_LOGGING ? process.env.BOT_LOGGING.toLowerCase() : '';
+// Create logger
 const winston = require('winston');
 const fs = require('fs');
 const logDir = 'log';
-
+const logging = process.env.BOT_LOGGING ?
+  process.env.BOT_LOGGING.toLowerCase() :
+  '';
 if ((logging === 'file') && (!fs.existsSync(logDir))) {
   fs.mkdirSync(logDir);
 }
 const tsFormat = () => moment().format('YYYY-MM-DD hh:mm:ss').trim();
 const logger = new (winston.Logger)({
   transports: [
+    // Console output 
     new (winston.transports.Console)({
       timestamp: tsFormat,
       prettyPrint: true,
@@ -52,6 +55,7 @@ const logger = new (winston.Logger)({
       silent: ((logging === '') || (logging === 'both') || (logging === 'console')) ? false : true,
       level: process.env.BOT_LOGGING_LEVEL
     }),
+    // File output
     new (require('winston-daily-rotate-file'))({
       filename: `${logDir}/-results.log`,
       timestamp: tsFormat,
@@ -199,46 +203,36 @@ module.exports = (config) => {
     socket.on(botActionsAdd, (data) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsAdd];
-      if((!botId) || ((action.botId === botId) && (action.isPending))) {
-        app.emit('refocus.bot.actions', action);
-        log.realtime('Bot Action', action);
-      }
+      app.emit('refocus.bot.actions', action);
+      log.realtime('Bot Action', action);
     });
 
     socket.on(botActionsUpdate, (data) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsUpdate].new;
-      if((!botId) || ((action.botId === botId) && (action.isPending))) {
-        app.emit('refocus.bot.actions', action);
-        log.realtime('Bot Action', action);
-      }
+      app.emit('refocus.bot.actions', action);
+      log.realtime('Bot Action', action);
     });
 
     socket.on(botDataAdd, (data) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataAdd];
-      if((!botId) || (botData.botId === botId)) {
-        app.emit('refocus.bot.data', botData);
-        log.realtime('Bot Data', botData);
-      }
+      app.emit('refocus.bot.data', botData);
+      log.realtime('Bot Data', botData);
     });
 
     socket.on(botDataUpdate, (data) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataUpdate].new;
-      if((!botId) || (botData.botId === botId)) {
-        app.emit('refocus.bot.data', botData);
-        log.realtime('Bot Data', botData);
-      }
+      app.emit('refocus.bot.data', botData);
+      log.realtime('Bot Data', botData);
     });
 
     socket.on(botEventAdd, (data) => {
       const eventData = JSON.parse(data);
       const botEvent = eventData[botEventAdd];
-      if((!botId) || (botEvent.botId === botId)) {
-        app.emit('refocus.events', botEvent);
-        log.realtime('Room Events', botEvent);
-      }
+      app.emit('refocus.events', botEvent);
+      log.realtime('Room Events', botEvent);
     });
 
     socket.on('connect', () => {
@@ -246,7 +240,7 @@ module.exports = (config) => {
     });
 
     socket.on('disconnect', () => {
-     logger.info("Socket Disconnected");
+      logger.info("Socket Disconnected");
     });
   } // refocusConnectSocket
 
@@ -434,6 +428,9 @@ module.exports = (config) => {
   } // updateBot
 
   return {
+    /**
+    * Export logger
+    */
     log: log,
 
     /**
