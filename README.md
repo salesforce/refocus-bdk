@@ -21,6 +21,13 @@ These instructions will enable you to have a copy of this project up and running
 * When Heroku tries to install your modules upon deploy, it will be able to authenticate correctly and install @salesforce/refocus-bdk.
 * By default this package uses a socket connection to get updates from Refocus. However if desiered, polling can be used to get updates instead by setting an environment variable ```USE_POLLING = true```.
 
+### Env Variables
+Note: If you want to test this locally you will need some environment variables:
+* ```USE_POLLING``` - If you want polling set this to true, else default to sockets
+* ```BOT_LOGGING``` - If you want to enable logging to a log file set this to "file", if you want to set logging to a console log then set this to "console", if you want to have both set this to "both", if you want neither logging set this to "none", defaults to "console"
+* ```CONSOLE_LOG_LEVEL``` - Set the level of console out you want to see, defaults to 'info'. All levels include error, warn, info, verbose, debug, silly see [WinstonJS](https://github.com/winstonjs/winston/tree/2.4.0) for more details
+* ```FILE_LOG_LEVEL``` - Set the level of logging you want in your log file, defaults to 'verbose'. All levels include error, warn, info, verbose, debug, silly see [WinstonJS](https://github.com/winstonjs/winston/tree/2.4.0) for more details
+
 ### Coding Example
 ```javascript
 const bdk = require('@salesforce/refocus-bdk')(config);
@@ -51,6 +58,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * createEvents
 * getEvents
 * getActiveUsers
+* log
 
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
@@ -78,3 +86,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.3.3 Polling Bug Fix
 * 1.3.4 Removed unused polling in backend
 * 1.3.5 Polling only for active Bot Actions
+* 1.4.0 Add WinstonJS logs and custom logs for client side
