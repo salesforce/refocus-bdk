@@ -37,8 +37,9 @@ const ZERO = 0;
 /**
  * Returns console.logs depending on the URL parameters
  * {URL}?CONSOLE_LOG_LEVEL={logLevel}&FILTER={FILTER STRING}
+ * or {URL}?log={logLevel}&filter={filter string}
  *
- * The log level is designed to mimic WinstonJS, so level of log you 
+ * The log level is designed to mimic WinstonJS, so level of log you
  * choose every level lower than that will be shown in the. Default level is info
  * You can filter the string by text using the filter parameter
  *
@@ -54,9 +55,9 @@ function debugMessage(type, msg, obj){
   const adr = window.location.href;
   const q = url.parse(adr, true);
   const qdata = q.query ? q.query : {};
-  const levelSev = qdata['CONSOLE_LOG_LEVEL'] && logLevels[qdata['CONSOLE_LOG_LEVEL']] ? 
-    logLevels[qdata['CONSOLE_LOG_LEVEL']] :
-    2;
+  const loggerQueryParam = qdata['CONSOLE_LOG_LEVEL'] || qdata['log'];
+  const levelSev = loggerQueryParam && logLevels[loggerQueryParam] ?
+    logLevels[loggerQueryParam] : 2;
   let level = '';
   for(let i=0; i <= levelSev; i++){
     level += logSev[i] + ',';
@@ -161,7 +162,7 @@ module.exports = (config) => {
         debugMessage('info', 'realtime: ' + msg, name);
         debugMessage('verbose', 'realtime: ' + msg, obj);
       },
-    },    
+    },
 
     /**
      * Get the current room ID from window
