@@ -121,9 +121,9 @@ module.exports = (config) => {
       req
         .set('Authorization', TOKEN)
         .end((error, res) => {
-          log.silly(`Generic Get. Res: ${res}`);
+          log.silly('Generic Get. ', res);
           if (error) {
-            log.error(`Res: ${res} Error: ${error}`);
+            log.error('Error: ', { error, res });
           }
           resolve(res);
         });
@@ -144,9 +144,9 @@ module.exports = (config) => {
         .set('Authorization', TOKEN)
         .send(obj)
         .end((error, res) => {
-          log.silly(`Generic Patch. Res: ${res}`);
+          log.silly('Generic Patch. ', res);
           if (error) {
-            log.error(`Res: ${res} Error: ${error}`);
+            log.error('Error: ', { error, res });
           }
           resolve(res);
         });
@@ -167,9 +167,9 @@ module.exports = (config) => {
         .set('Authorization', TOKEN)
         .send(obj)
         .end((error, res) => {
-          log.silly(`Generic Post. Res: ${res}`);
+          log.silly('Generic Post. ', res);
           if (error) {
-            log.error(`Error: ${error}`);
+            log.error('Error: ', { error, res });
           }
           resolve(res);
         });
@@ -196,8 +196,9 @@ module.exports = (config) => {
      * @returns {Promise} - Room response
      */
     findRoom: (id) => {
-      log.debug(`Find Room ${id}. Route: ${SERVER}${API}${ROOMS_ROUTE}/${id}`);
-      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${id}}`);
+      log.debug('Find Room ',
+        { id, route: `${SERVER}${API}${ROOMS_ROUTE}/${id}` });
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${id}`);
     }, // findRoom
 
     /**
@@ -265,7 +266,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot response
      */
     findBot: (id) => {
-      log.debug(`Find Bot ${id}. Route: ${SERVER}${API}${BOTS_ROUTE}/${id}`);
+      log.debug('Find Bot ',
+        { id, route: `${SERVER}${API}${BOTS_ROUTE}/${id}` });
       return genericGet(`${SERVER}${API}${BOTS_ROUTE}/${id}`);
     }, // findBot
 
@@ -276,8 +278,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Action response
      */
     findBotAction: (id) => {
-      log.debug(`Find Bot Action ${id}.
-        Route: ${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`);
+      log.debug('Find Bot Action ',
+        { id, route: `${SERVER}${API}${BOTACTIONS_ROUTE}/${id}` });
       return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`);
     }, // findBotAction
 
@@ -290,7 +292,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Action response
      */
     getBotActions: (room, bot, name) => {
-      log.debug(`Getting Bot Actions for Room ${room} Bot ${bot} Name ${name}`);
+      log.debug('Getting Bot Actions for Room',
+        { room, bot, name });
       if (!bot) {
         return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}`);
       } else if (!name) {
@@ -347,7 +350,7 @@ module.exports = (config) => {
       } catch (error) {
         log.error('Create bot action bdk', error);
       }
-      return genericPost(SERVER+API+BOTACTIONS_ROUTE+'/', botAction);
+      return genericPost(`${SERVER}${API}${BOTACTIONS_ROUTE}/${botAction}`);
     }, // createBotAction
 
     /**
@@ -370,13 +373,14 @@ module.exports = (config) => {
      * @returns {Promise} - BotAction response
      */
     respondBotAction: (id, res, eventLog) => {
-      log.debug(`Updating Bot Action Id: ${id} Res: ${res} Event: ${eventLog}`);
+      log.debug('Updating Bot Action with Event Log ', { id, res, eventLog });
       const responseObject = {
         'isPending': false,
         'response': res,
       };
 
-      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
+      return genericPatch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
+        responseObject)
         .then((instance) => {
           let eventObject = {};
           if (eventLog) {
@@ -399,7 +403,7 @@ module.exports = (config) => {
           eventObject.botId = instance.body.botId;
           eventObject.botActionId = instance.body.id;
           eventObject.userId = instance.body.userId;
-          return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
+          return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, eventObject);
         });
     }, // respondBotAction
 
@@ -411,13 +415,14 @@ module.exports = (config) => {
      * @returns {Promise} - BotAction response
      */
     respondBotActionNoLog: (id, res) => {
-      log.debug(`Updating Bot Action Id: ${id} Res: ${res}. No Event Log`);
+      log.debug('Updating Bot Action. No Event Log ', { id, res });
       const responseObject = {
         'isPending': false,
         'response': res,
       };
 
-      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject);
+      return genericPatch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
+        responseObject);
     }, // respondBotActionNoLog
 
     /**
@@ -437,7 +442,7 @@ module.exports = (config) => {
         'value': botValue
       };
       log.debug('Creating Bot Data', botData);
-      return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData);
+      return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData);
     }, // createBotData
 
     /**
@@ -448,7 +453,7 @@ module.exports = (config) => {
      */
     findBotData: (id) => {
       log.debug('Getting Bot Data ', id);
-      return genericGet(SERVER+API+BOTDATA_ROUTE+'/'+id);
+      return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`);
     }, // findBotData
 
     /**
@@ -460,15 +465,14 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     getBotData: (room, bot, name) => {
-      log.debug(`Getting Bot Data. Room ${room} Bot ${bot} Name ${name}`);
+      log.debug('Getting Bot Data. ', { room, bot, name });
       if (!bot) {
-        return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}/${room}/data`);
+        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${room}/data`);
       } if (!name) {
-        return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}/
+        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/
           ${room}/bots/${bot}/data`);
       }
-
-      return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}
         ?roomId=${room}&botId=${bot}&name=${name}`);
     }, // getBotData
 
@@ -480,7 +484,7 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     changeBotData: (id, botData) => {
-      log.debug(`Updating Bot Data. Id ${id} Bot Data ${botData}`);
+      log.debug('Updating Bot Data. ', { id, botData });
       const newBotData = {
         'value': botData
       };
@@ -543,8 +547,7 @@ module.exports = (config) => {
      * @returns {Promise} - Event response
      */
     createEvents: (room, msg, context) => {
-      log.debug(`Creating a new Event for Room ${room} Msg ${msg}
-        Context ${context}`);
+      log.debug('Creating a new Event. ', { room, msg, context });
       const events = {
         log: msg,
         roomId: room
@@ -559,5 +562,6 @@ module.exports = (config) => {
       }
       return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events);
     }, // createEvents
+    log,
   };
 };

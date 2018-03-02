@@ -88,3 +88,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.3.5 Polling only for active Bot Actions
 * 1.4.0 Add WinstonJS logs and custom logs for client side
 * 1.4.1 Support a new URL parameter to enable logging `{url}?log={logLevel}`
+* 1.4.2 Various level logging for requests and linting
