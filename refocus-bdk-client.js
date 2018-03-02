@@ -350,7 +350,7 @@ module.exports = (config) => {
       } catch (error) {
         log.error('Create bot action bdk', error);
       }
-      return genericPost(`${SERVER}${API}${BOTACTIONS_ROUTE}/${botAction}`);
+      return genericPost(`${SERVER}${API}${BOTACTIONS_ROUTE}`, botAction);
     }, // createBotAction
 
     /**
