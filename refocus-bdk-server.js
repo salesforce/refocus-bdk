@@ -573,14 +573,14 @@ module.exports = (config) => {
      *
      * @returns {Promise} - BotAction response
      */
-    respondBotAction: (id, res, eventLog, attachmentURL) => {
+    respondBotAction: (id, res, eventLog, parametersOverride) => {
       const responseObject = {
         'isPending': false,
         'response': res,
       };
 
-      if (attachmentURL) {
-        responseObject.parameters = [{ value: attachmentURL, name: 'dropZoneBotAttachment' }];
+      if (parametersOverride) {
+        responseObject.parameters = parametersOverride;
       }
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
