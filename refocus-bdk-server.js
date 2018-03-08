@@ -48,7 +48,7 @@ if (((logging === 'both') || (logging === 'file')) &&
 const tsFormat = () => moment().format('YYYY-MM-DD hh:mm:ss').trim();
 const logger = new (winston.Logger)({
   transports: [
-    // Console output 
+    // Console output
     new (winston.transports.Console)({
       timestamp: tsFormat,
       prettyPrint: true,
@@ -570,14 +570,19 @@ module.exports = (config) => {
      *          type: 'Debug'
      *        }
      *     }
-     *
+     * @param {array} parametersOverride - allows for parameters to be sent
+     *   to over ride the parameters previously in action
      * @returns {Promise} - BotAction response
      */
-    respondBotAction: (id, res, eventLog) => {
+    respondBotAction: (id, res, eventLog, parametersOverride) => {
       const responseObject = {
         'isPending': false,
         'response': res,
       };
+
+      if (parametersOverride) {
+        responseObject.parameters = parametersOverride;
+      }
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
         .then((instance) => {
@@ -668,7 +673,7 @@ module.exports = (config) => {
         'botId': bot,
         'value': botValue
       };
-      
+
       return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData);
     }, // createBotData
 
