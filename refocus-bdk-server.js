@@ -16,7 +16,6 @@
  * Optimized for non-DOM based javascript execution environment.
  *
  */
-'use strict';
 
 const moment = require('moment');
 const request = require('superagent');
@@ -31,20 +30,32 @@ const EVENTS_ROUTE = '/events';
 const ui = 'web/dist/bot.zip';
 const POLLING_DELAY = 8;
 const POLLING_REFRESH = 5000;
-const ONE = 1;
-const ZERO = 0;
+const START_OF_ARRAY = 0;
+const STATUS_CODE_OK = 200;
+const STATUS_CODE_CREATED = 201;
+const STATUS_CODE_NOT_FOUND = 404;
 
 // Create logger
 const winston = require('winston');
 const fs = require('fs');
 const logDir = 'log';
-const logging = process.env.BOT_LOGGING ?
-  process.env.BOT_LOGGING.toLowerCase() :
-  '';
+const winstonDailyRotateFile = require('winston-daily-rotate-file');
+
+/* eslint-disable no-process-env */
+const logging =
+  process.env.BOT_LOGGING ? process.env.BOT_LOGGING.toLowerCase() : '';
+const CONSOLE_LOG_LEVEL = process.env.CONSOLE_LOG_LEVEL || 'info';
+const FILE_LOG_LEVEL = process.env.FILE_LOG_LEVEL || 'verbose';
+const USE_POLLING = process.env.USE_POLLING;
+/* eslint-enable no-process-env */
+
+/* eslint no-sync: ["error", { allowAtRootLevel: true }] */
 if (((logging === 'both') || (logging === 'file')) &&
     (!fs.existsSync(logDir))) {
   fs.mkdirSync(logDir);
 }
+/* eslint func-style: ["error", "declaration",
+  { "allowArrowFunctions": true }] */
 const tsFormat = () => moment().format('YYYY-MM-DD hh:mm:ss').trim();
 const logger = new (winston.Logger)({
   transports: [
@@ -53,17 +64,18 @@ const logger = new (winston.Logger)({
       timestamp: tsFormat,
       prettyPrint: true,
       colorize: true,
-      silent: ((logging === '') || (logging === 'both') || (logging === 'console')) ? false : true,
-      level: process.env.CONSOLE_LOG_LEVEL ? process.env.CONSOLE_LOG_LEVEL : 'info'
+      silent: !(((logging === '') || (logging === 'both') ||
+        (logging === 'console'))),
+      level: CONSOLE_LOG_LEVEL
     }),
     // File output
-    new (require('winston-daily-rotate-file'))({
+    new (winstonDailyRotateFile)({
       filename: `${logDir}/-results.log`,
       timestamp: tsFormat,
       datePattern: 'yyyy-MM-dd ',
       prepend: true,
-      silent: ((logging === 'both') || (logging === 'file')) ? false : true,
-      level: process.env.FILE_LOG_LEVEL ? process.env.FILE_LOG_LEVEL : 'verbose'
+      silent: !(((logging === 'both') || (logging === 'file'))),
+      level: FILE_LOG_LEVEL
     })
   ]
 });
@@ -165,7 +177,7 @@ module.exports = (config) => {
    * @param {Express} app - App stream so we can push events to the server
    * @param {String} token - Socket Token needed to connect to Refocus socket
    */
-  function refocusConnectSocket(app, token, botId) {
+  function refocusConnectSocket(app, token) {
     const socket = io.connect(SERVER, {
       'reconnect': true,
       'reconnection delay': 10,
@@ -190,11 +202,9 @@ module.exports = (config) => {
       'refocus.internal.realtime.bot.data.update';
     const botEventAdd =
       'refocus.internal.realtime.bot.event.add';
-    const botEventUpdate =
-      'refocus.internal.realtime.bot.event.update';
 
     socket.on(initalizeEventName, () => {
-      logger.info("Socket Initialized");
+      logger.info('Socket Initialized');
     });
 
     socket.on(settingsChangedEventName, (data) => {
@@ -240,11 +250,11 @@ module.exports = (config) => {
     });
 
     socket.on('connect', () => {
-      logger.info("Socket Connected");
+      logger.info('Socket Connected');
     });
 
     socket.on('disconnect', () => {
-      logger.info("Socket Disconnected");
+      logger.info('Socket Disconnected');
     });
   } // refocusConnectSocket
 
@@ -256,21 +266,10 @@ module.exports = (config) => {
    * subscription based updates.
    *
    * @param {Express} app - App stream so we can push events to the server
+   * @param {Object} options - Request options
    */
   function refocusConnectPolling(app, options){
     setInterval(() => {
-      // genericGet(SERVER+API+ROOMS_ROUTE+'/')
-      //   .then((rooms) => {
-      //     rooms.body.forEach((room) => {
-      //       const duration =
-      //         moment.duration(
-      //           moment().diff(moment(room.updatedAt))
-      //         ).asSeconds();
-      //       if (duration < POLLING_DELAY) {
-      //         app.emit('refocus.room.settings', room);
-      //       }
-      //     });
-      //   });
       genericGet(SERVER+API+BOTACTIONS_ROUTE+options+'&isPending=true')
         .then((botActions) => {
           botActions.body.forEach((botAction) => {
@@ -278,37 +277,13 @@ module.exports = (config) => {
               moment.duration(
                 moment().diff(moment(botAction.updatedAt))
               ).asSeconds();
-            if ((botAction.isPending) && (!botAction.response) && (duration < POLLING_DELAY)) {
+            if ((botAction.isPending) && (!botAction.response) &&
+               (duration < POLLING_DELAY)) {
               app.emit('refocus.bot.actions', botAction);
               log.realtime('Bot Action', botAction);
             }
           });
         });
-      // genericGet(SERVER+API+BOTDATA_ROUTE+options)
-      //   .then((botData) => {
-      //     botData.body.forEach((bd) => {
-      //       const duration =
-      //         moment.duration(moment().diff(moment(bd.updatedAt))).asSeconds();
-      //       if (duration < POLLING_DELAY) {
-      //         app.emit('refocus.bot.data', bd);
-      //       }
-      //     });
-      //   });
-      // genericGet(SERVER+API+EVENTS_ROUTE+options)
-      //   .then((events) => {
-      //     const eventData = events.body;
-      //     if (eventData.length > ZERO) {
-      //       const duration =
-      //         moment.duration(
-      //           moment().diff(
-      //             moment(eventData[eventData.length - ONE].updatedAt)
-      //           )
-      //         ).asSeconds();
-      //       if (duration < POLLING_DELAY) {
-      //         app.emit('refocus.events', eventData[eventData.length - ONE]);
-      //       }
-      //     }
-      //   });
     }, POLLING_REFRESH);
   } // refocusConnectPolling
 
@@ -330,7 +305,7 @@ module.exports = (config) => {
     } = bot;
 
     return new Promise((resolve, reject) => {
-      let req = request.post(`${SERVER}/v1/bots`);
+      const req = request.post(`${SERVER}/v1/bots`);
       if (PROXY_URL) {
         req.proxy(PROXY_URL);
       }
@@ -352,7 +327,8 @@ module.exports = (config) => {
             );
             return;
           }
-          const ok = (res.status === 200) || (res.status === 201);
+          const ok = (res.status === STATUS_CODE_OK) ||
+            (res.status === STATUS_CODE_CREATED);
           if (err || !ok) {
             const [errorMessage] = res.body.errors;
             if (errorMessage) {
@@ -405,37 +381,39 @@ module.exports = (config) => {
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (!res) {
-            logger.error('Failed to update a bot. Check if Refocus server is running');
-            reject();
-          } else {
-            const ok = (res.status === 200) || (res.status === 201);
-            if (err || !ok) {
-              if (!res.status == 404) {
-                logger.error(`error: ${JSON.stringify(err)} res: ${JSON.stringify(res)}`);
-                const [errorMessage] = res.body.errors;
-                if (errorMessage) {
-                  if (errorMessage.type === 'SequelizeValidationError') {
-                    reject('validation error');
-                  }
-                }
-              } else {
-                logger.warn(`${bot.name} does not exist so cannot update, will try to install instead.`);
-              }
-
-              reject(err || !ok);
-            } else {
-              resolve(res);
-            }
+            logger.error('Failed to update Bot ', name);
+            logger.error('Check if Refocus server is running');
+            return reject();
           }
+          const ok = (res.status === STATUS_CODE_OK) ||
+            (res.status === STATUS_CODE_CREATED);
+          if (err || !ok) {
+            if (!res.status === STATUS_CODE_NOT_FOUND) {
+              logger.error('Error while updating Bot', { res, err });
+              const [errorMessage] = res.body.errors;
+              if (errorMessage) {
+                if (errorMessage.type === 'SequelizeValidationError') {
+                  reject('validation error');
+                }
+              }
+            } else {
+              logger.warn(`${bot.name} does not exist so cannot update,
+                will try to install instead.`);
+            }
+
+            return reject(err || !ok);
+          }
+          return resolve(res);
         });
     });
   } // updateBot
 
   return {
+
     /**
     * Export logger
     */
-    log: log,
+    log,
 
     /**
      * Find room by id/name
@@ -539,8 +517,8 @@ module.exports = (config) => {
         );
       }
       return genericGet(
-        SERVER+API+BOTACTIONS_ROUTE
-        +'?roomId='+room+'&botId='+bot+'&name='+name
+        SERVER+API+BOTACTIONS_ROUTE+
+        '?roomId='+room+'&botId='+bot+'&name='+name
       );
     }, // getBotActions
 
@@ -713,10 +691,10 @@ module.exports = (config) => {
         'value': botData
       };
 
-      genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/data')
+      return genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/data')
         .then((data) => {
           const _data = data.body
-            .filter((bd) => bd.name === name)[ZERO];
+            .filter((bd) => bd.name === name)[START_OF_ARRAY];
           if (_data) {
             return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+_data.id,
               changeBotData);
@@ -760,6 +738,7 @@ module.exports = (config) => {
      *
      * @param {Express} app - App stream so we can push events to the server
      * @param {String} token - Socket Token needed to connect to Refocus socket
+     * @param {String} botName - name of a Bot
      */
     refocusConnect: (app, token, botName) => {
       let botId = '';
@@ -767,23 +746,21 @@ module.exports = (config) => {
       if (botName) {
         genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName)
           .then((bots) => {
-            if (bots.body.length > 0) {
-              botId = bots.body[0].id;
+            if (bots && bots.body && bots.body.length) {
+              botId = bots.body[START_OF_ARRAY].id;
               botRoute = '?botId=' + botId;
             }
 
-            if (process.env.USE_POLLING) {
+            if (USE_POLLING) {
               refocusConnectPolling(app, botRoute);
             } else {
               refocusConnectSocket(app, token, botId);
             }
-          })
+          });
+      } else if (USE_POLLING) {
+        refocusConnectPolling(app, botRoute);
       } else {
-        if (process.env.USE_POLLING) {
-          refocusConnectPolling(app, botRoute);
-        } else {
-          refocusConnectSocket(app, token);
-        }
+        refocusConnectSocket(app, token);
       }
     }, // refocusConnect
 
@@ -807,23 +784,24 @@ module.exports = (config) => {
         })
         .catch((error) => {
           // err not found indicate that bot doesnt exist yet
-          if (error.status === 404) {
+          if (error && error.status === STATUS_CODE_NOT_FOUND) {
             // installs a new bot in refocus
             installBot(bot)
               .then(() => {
                 logger.info(`${name} successfully installed on: ${SERVER}`);
               })
               .catch((installError) => {
-                logger.error(`unable to install bot ${name} on: ${SERVER}`);
-                logger.error(`Details: ${JSON.stringify(installError)}`);
-                process.exit(ONE);
+                logger.error(`Unable to install bot ${name} on: ${SERVER}`);
+                logger.error('Details: ', installError);
+                throw new Error(`Unable to install bot ${name} on: ${SERVER}`);
               });
           } else {
             logger.error(
               `Something went wrong while updating ${name} on: ${SERVER}`
             );
-            logger.error(`Details: ${error}`);
-            process.exit(ONE);
+            logger.error('Details: ', error);
+            throw new Error(`Something went wrong while updating
+              ${name} on: ${SERVER}`);
           }
         });
     } // installOrUpdateBot
