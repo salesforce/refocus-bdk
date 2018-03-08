@@ -570,7 +570,8 @@ module.exports = (config) => {
      *          type: 'Debug'
      *        }
      *     }
-     *
+     * @param {array} parametersOverride - allows for parameters to be sent
+     *   to over ride the parameters previously in action
      * @returns {Promise} - BotAction response
      */
     respondBotAction: (id, res, eventLog, parametersOverride) => {
