@@ -16,12 +16,12 @@
  * Optimized for a browser execution environment.
  *
  */
-'use strict';
 
 const moment = require('moment');
 const url = require('url');
 const request = require('superagent');
-const io = require('socket.io-client');
+// user is a global object provided by the Refocus server
+// eslint-disable-next-line no-undef
 const _user = JSON.parse(user.replace(/&quot;/g, '"'));
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
@@ -29,58 +29,59 @@ const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
-const POLLING_DELAY = 8;
-const POLLING_REFRESH = 5000;
 const ONE = 1;
 const ZERO = 0;
 
 /**
  * Returns console.logs depending on the URL parameters
  * {URL}?CONSOLE_LOG_LEVEL={logLevel}&FILTER={FILTER STRING}
- * or {URL}?log={logLevel}&filter={filter string}
+ * or {URL}?log={logLevel}&FILTER={FILTER STRING}
  *
  * The log level is designed to mimic WinstonJS, so level of log you
- * choose every level lower than that will be shown in the. Default level is info
- * You can filter the string by text using the filter parameter
+ * choose every level lower than that will be shown in the. Default level
+ * is info. You can filter the string by text using the filter parameter
  *
  * @param {String} type - Type of log
  * @param {String} msg - Message of log
  * @param {Object} obj - Associated object of message
  */
-const logLevels = { error: 0, warn: 1, info: 2, verbose: 3, debug: 4, silly: 5 }
-const logSev = { 0: 'error', 1: 'warn', 2: 'info', 3: 'verbose', 4: 'debug', 5: 'silly' }
-const logColors = { error: 'red', warn: 'goldenrod', info: 'green', verbose: 'purple', debug: 'blue', silly: 'grey' }
+const logLevels = { error: 0, warn: 1, info: 2, verbose: 3,
+  debug: 4, silly: 5 };
+const logSev = { 0: 'error', 1: 'warn', 2: 'info', 3: 'verbose',
+  4: 'debug', 5: 'silly' };
+const logColors = { error: 'red', warn: 'goldenrod', info: 'green',
+  verbose: 'purple', debug: 'blue', silly: 'grey' };
 
-function debugMessage(type, msg, obj){
+function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
   const adr = window.location.href;
   const q = url.parse(adr, true);
   const qdata = q.query ? q.query : {};
-  const loggerQueryParam = qdata['CONSOLE_LOG_LEVEL'] || qdata['log'];
+  const loggerQueryParam = qdata.CONSOLE_LOG_LEVEL || qdata.log;
   const levelSev = loggerQueryParam && logLevels[loggerQueryParam] ?
-    logLevels[loggerQueryParam] : 2;
+    logLevels[loggerQueryParam] : logSev.info;
   let level = '';
-  for(let i=0; i <= levelSev; i++){
+  for (let i=0; i <= levelSev; i++) {
     level += logSev[i] + ',';
   }
 
-  const filter = qdata['FILTER'] ?
-    qdata['FILTER'].toLowerCase() :
+  const filter = qdata.FILTER ?
+    qdata.FILTER.toLowerCase() :
     false;
 
   if ((!filter) || (msg.toLowerCase().includes(filter))) {
     if ((level) &&
         (level.includes(type.toLowerCase())) &&
         obj) {
-      console.log(
-        `%c ${moment().format('YYYY-MM-DD hh:mm:ss').trim()}` + `%c ${type}` + ':',
-        'color: black', 'color: '+ logColors[type],
+      console.log( // eslint-disable-line no-console
+        `%c ${moment().format('YYYY-MM-DD hh:mm:ss').trim()}` + `%c ${type}`+
+        ':', 'color: black', 'color: '+ logColors[type],
         msg, obj
       );
-     } else if ((level) &&
+    } else if ((level) &&
         (level.includes(type.toLowerCase()))) {
-      console.log(
-        `%c ${moment().format('YYYY-MM-DD hh:mm:ss').trim()}` + `%c ${type}` + ':',
-        'color: black', 'color: '+ logColors[type],
+      console.log( // eslint-disable-line no-console
+        `%c ${moment().format('YYYY-MM-DD hh:mm:ss').trim()}` + `%c ${type}` +
+        ':', 'color: black', 'color: '+ logColors[type],
         msg,
       );
     }
@@ -90,6 +91,23 @@ function debugMessage(type, msg, obj){
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
+
+  /**
+   * Define a set of log functions
+   */
+  const log = {
+    error: (msg, obj) => debugMessage('error', msg, obj),
+    warn: (msg, obj) => debugMessage('warn', msg, obj),
+    info: (msg, obj) => debugMessage('info', msg, obj),
+    verbose: (msg, obj) => debugMessage('verbose', msg, obj),
+    debug: (msg, obj) => debugMessage('debug', msg, obj),
+    silly: (msg, obj) => debugMessage('silly', msg, obj),
+    realtime: (msg, obj) => {
+      const name = obj.new ? obj.new.name : obj.name;
+      debugMessage('info', 'realtime: ' + msg, name);
+      debugMessage('verbose', 'realtime: ' + msg, obj);
+    },
+  };
 
   /**
    * Get JSON from server asynchronous
@@ -103,6 +121,10 @@ module.exports = (config) => {
       req
         .set('Authorization', TOKEN)
         .end((error, res) => {
+          log.silly('Generic Get. ', res);
+          if (error) {
+            log.error('Error: ', { error, res });
+          }
           resolve(res);
         });
     });
@@ -122,6 +144,10 @@ module.exports = (config) => {
         .set('Authorization', TOKEN)
         .send(obj)
         .end((error, res) => {
+          log.silly('Generic Patch. ', res);
+          if (error) {
+            log.error('Error: ', { error, res });
+          }
           resolve(res);
         });
     });
@@ -141,28 +167,16 @@ module.exports = (config) => {
         .set('Authorization', TOKEN)
         .send(obj)
         .end((error, res) => {
+          log.silly('Generic Post. ', res);
+          if (error) {
+            log.error('Error: ', { error, res });
+          }
           resolve(res);
         });
     });
   } // genericPost
 
   return {
-    /**
-     * Define a set of log functions
-     */
-    log: {
-      error: (msg, obj) => debugMessage('error', msg, obj),
-      warn: (msg, obj) => debugMessage('warn', msg, obj),
-      info: (msg, obj) => debugMessage('info', msg, obj),
-      verbose: (msg, obj) => debugMessage('verbose', msg, obj),
-      debug: (msg, obj) => debugMessage('debug', msg, obj),
-      silly: (msg, obj) => debugMessage('silly', msg, obj),
-      realtime: (msg, obj) => {
-        const name = obj.new ? obj.new.name : obj.name;
-        debugMessage('info', 'realtime: ' + msg, name);
-        debugMessage('verbose', 'realtime: ' + msg, obj);
-      },
-    },
 
     /**
      * Get the current room ID from window
@@ -182,7 +196,9 @@ module.exports = (config) => {
      * @returns {Promise} - Room response
      */
     findRoom: (id) => {
-      return genericGet(SERVER+API+ROOMS_ROUTE+'/'+id);
+      log.debug('Find Room ',
+        { id, route: `${SERVER}${API}${ROOMS_ROUTE}/${id}` });
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${id}`);
     }, // findRoom
 
     /**
@@ -196,7 +212,8 @@ module.exports = (config) => {
       const patch = {
         'settings': newSettings,
       };
-      return genericPatch(SERVER+API+ROOMS_ROUTE+'/'+id, patch);
+      log.debug('Updating Settings ', newSettings);
+      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${id}`, patch);
     }, // updateSettings
 
     /**
@@ -207,7 +224,8 @@ module.exports = (config) => {
      * @returns {Promise} - An object of the users currently in the room
      */
     getActiveUsers: (room) => {
-      return genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room)
+      log.debug('Requesting active users for room ', room);
+      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`)
         .then((events) => {
           const users = [];
           const userEvents = events.body
@@ -236,6 +254,7 @@ module.exports = (config) => {
               output[event.context.user.id] = entry;
             }
           });
+          log.debug('Active users ', output);
           return output;
         });
     }, // getActiveUsers
@@ -247,7 +266,9 @@ module.exports = (config) => {
      * @returns {Promise} - Bot response
      */
     findBot: (id) => {
-      return genericGet(SERVER+API+BOTS_ROUTE+'/'+id);
+      log.debug('Find Bot ',
+        { id, route: `${SERVER}${API}${BOTS_ROUTE}/${id}` });
+      return genericGet(`${SERVER}${API}${BOTS_ROUTE}/${id}`);
     }, // findBot
 
     /**
@@ -257,7 +278,9 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Action response
      */
     findBotAction: (id) => {
-      return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+id);
+      log.debug('Find Bot Action ',
+        { id, route: `${SERVER}${API}${BOTACTIONS_ROUTE}/${id}` });
+      return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`);
     }, // findBotAction
 
     /**
@@ -269,16 +292,18 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Action response
      */
     getBotActions: (room, bot, name) => {
+      log.debug('Getting Bot Actions for Room',
+        { room, bot, name });
       if (!bot) {
-        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room);
+        return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}`);
       } else if (!name) {
         return genericGet(
-          SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room+'&botId='+bot
+          `${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}&botId=${bot}`
         );
       }
       return genericGet(
-        SERVER+API+BOTACTIONS_ROUTE
-        +'?roomId='+room+'&botId='+bot+'&name='+name
+        `${SERVER}${API}${BOTACTIONS_ROUTE}
+        ?roomId=${room}&botId=${bot}&name=${name}`
       );
     }, // getBotActions
 
@@ -319,12 +344,13 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Action response
      */
     createBotAction: (botAction) => {
+      log.debug('Creating Bot Action ', botAction);
       try {
         botAction.userId = _user.id;
       } catch (error) {
-        console.log('Create bot action bdk', error);
+        log.error('Create bot action bdk', error);
       }
-      return genericPost(SERVER+API+BOTACTIONS_ROUTE+'/', botAction);
+      return genericPost(`${SERVER}${API}${BOTACTIONS_ROUTE}`, botAction);
     }, // createBotAction
 
     /**
@@ -347,12 +373,14 @@ module.exports = (config) => {
      * @returns {Promise} - BotAction response
      */
     respondBotAction: (id, res, eventLog) => {
+      log.debug('Updating Bot Action with Event Log ', { id, res, eventLog });
       const responseObject = {
         'isPending': false,
         'response': res,
       };
 
-      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
+      return genericPatch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
+        responseObject)
         .then((instance) => {
           let eventObject = {};
           if (eventLog) {
@@ -375,7 +403,7 @@ module.exports = (config) => {
           eventObject.botId = instance.body.botId;
           eventObject.botActionId = instance.body.id;
           eventObject.userId = instance.body.userId;
-          return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
+          return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, eventObject);
         });
     }, // respondBotAction
 
@@ -387,12 +415,14 @@ module.exports = (config) => {
      * @returns {Promise} - BotAction response
      */
     respondBotActionNoLog: (id, res) => {
+      log.debug('Updating Bot Action. No Event Log ', { id, res });
       const responseObject = {
         'isPending': false,
         'response': res,
       };
 
-      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject);
+      return genericPatch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
+        responseObject);
     }, // respondBotActionNoLog
 
     /**
@@ -411,7 +441,8 @@ module.exports = (config) => {
         'botId': bot,
         'value': botValue
       };
-      return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData);
+      log.debug('Creating Bot Data', botData);
+      return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData);
     }, // createBotData
 
     /**
@@ -421,7 +452,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     findBotData: (id) => {
-      return genericGet(SERVER+API+BOTDATA_ROUTE+'/'+id);
+      log.debug('Getting Bot Data ', id);
+      return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`);
     }, // findBotData
 
     /**
@@ -433,15 +465,15 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     getBotData: (room, bot, name) => {
+      log.debug('Getting Bot Data. ', { room, bot, name });
       if (!bot) {
-        return genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/data');
+        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${room}/data`);
       } if (!name) {
-        return genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/data');
+        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/
+          ${room}/bots/${bot}/data`);
       }
-
-      return genericGet(
-        SERVER+API+BOTDATA_ROUTE+'?roomId='+room+'&botId='+bot+'&name='+name
-      );
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}
+        ?roomId=${room}&botId=${bot}&name=${name}`);
     }, // getBotData
 
     /**
@@ -452,10 +484,11 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     changeBotData: (id, botData) => {
+      log.debug('Updating Bot Data. ', { id, botData });
       const newBotData = {
         'value': botData
       };
-      return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData);
+      return genericPatch(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, newBotData);
     }, // changeBotData
 
     /**
@@ -479,15 +512,18 @@ module.exports = (config) => {
         'value': botData
       };
 
-      genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/data')
+      log.debug('Upserting new Bot Data ', newBotData);
+
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}
+        /${room}/bots/'${bot}/data`)
         .then((data) => {
           const _data = data.body
             .filter((bd) => bd.name === name)[ZERO];
           if (_data) {
-            return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+_data.id,
+            return genericPatch(`${SERVER}${API}${BOTDATA_ROUTE}/${_data.id}`,
               changeBotData);
           }
-          return genericPost(SERVER+API+BOTDATA_ROUTE+'/', newBotData);
+          return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}/`, newBotData);
         });
     }, // upsertBotData
 
@@ -498,7 +534,8 @@ module.exports = (config) => {
      * @returns {Promise} - All the events of the room
      */
     getEvents: (room) => {
-      return genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room);
+      log.debug('Get events for Room ', room);
+      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`);
     }, // getEvents
 
     /**
@@ -510,6 +547,7 @@ module.exports = (config) => {
      * @returns {Promise} - Event response
      */
     createEvents: (room, msg, context) => {
+      log.debug('Creating a new Event. ', { room, msg, context });
       const events = {
         log: msg,
         roomId: room
@@ -520,23 +558,10 @@ module.exports = (config) => {
       try {
         events.userId = _user.id;
       } catch (error) {
-        debugMessage('error', 'Event User Error', error);
+        log.error('Event User Error', error);
       }
-      return genericPost(SERVER+API+EVENTS_ROUTE, events);
+      return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events);
     }, // createEvents
-
-    /**
-     * Abstraction from polling
-     *
-     * @param {Express} app - App stream so we can push events to the server
-     * @param {String} token - Socket Token needed to connect to Refocus socket
-     */
-    refocusConnect: (app, token) => {
-      if (process.env.USE_POLLING) {
-        refocusConnectPolling(app);
-      } else {
-        refocusConnectSocket(app, token);
-      }
-    }, // refocusConnect
+    log,
   };
 };
