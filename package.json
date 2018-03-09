@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/refocus-bdk",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Utilities used by Refocus Bots to communicate with Refocus.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,6 +10,11 @@
   "browser": "refocus-bdk-client.js",
   "author": "kfoster@salesforce.com kamil@salesforce.com",
   "license": "ISC",
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  },
   "dependencies": {
     "@salesforce/refocus-bdk": "^1.0.3",
     "moment": "^2.19.2",
@@ -27,6 +32,7 @@
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "7.7.0",
+    "husky": "^0.15.0-rc.8",
     "superagent": "^3.8.1",
     "superagent-proxy": "^1.0.2"
   }
