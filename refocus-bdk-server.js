@@ -680,10 +680,6 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response.
      */
     upsertBotData: (room, bot, name, botData) => {
-      const changeBotData = {
-        'value': botData
-      };
-
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
@@ -691,17 +687,7 @@ module.exports = (config) => {
         'value': botData
       };
 
-      return genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/data')
-        .then((data) => {
-          const _data = data.body
-            .filter((bd) => bd.name === name)[START_OF_ARRAY];
-          if (_data) {
-            return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+_data.id,
-              changeBotData);
-          }
-          logger.warn('Bot Data not found will try to create ' + name);
-          return genericPost(SERVER+API+BOTDATA_ROUTE+'/', newBotData);
-        });
+      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`);
     }, // upsertBotData
 
     /**
