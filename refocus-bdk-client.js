@@ -501,10 +501,6 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response.
      */
     upsertBotData: (room, bot, name, botData) => {
-      const changeBotData = {
-        'value': botData
-      };
-
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
@@ -514,17 +510,7 @@ module.exports = (config) => {
 
       log.debug('Upserting new Bot Data ', newBotData);
 
-      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}
-        /${room}/bots/'${bot}/data`)
-        .then((data) => {
-          const _data = data.body
-            .filter((bd) => bd.name === name)[ZERO];
-          if (_data) {
-            return genericPatch(`${SERVER}${API}${BOTDATA_ROUTE}/${_data.id}`,
-              changeBotData);
-          }
-          return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}/`, newBotData);
-        });
+      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`);
     }, // upsertBotData
 
     /**
