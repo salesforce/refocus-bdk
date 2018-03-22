@@ -272,17 +272,19 @@ module.exports = (config) => {
     setInterval(() => {
       genericGet(SERVER+API+BOTACTIONS_ROUTE+options+'&isPending=true')
         .then((botActions) => {
-          botActions.body.forEach((botAction) => {
-            const duration =
-              moment.duration(
-                moment().diff(moment(botAction.updatedAt))
-              ).asSeconds();
-            if ((botAction.isPending) && (!botAction.response) &&
-               (duration < POLLING_DELAY)) {
-              app.emit('refocus.bot.actions', botAction);
-              log.realtime('Bot Action', botAction);
-            }
-          });
+          if (botActions && botActions.body) {
+            botActions.body.forEach((botAction) => {
+              const duration =
+                moment.duration(
+                  moment().diff(moment(botAction.updatedAt))
+                ).asSeconds();
+              if ((botAction.isPending) && (!botAction.response) &&
+                 (duration < POLLING_DELAY)) {
+                app.emit('refocus.bot.actions', botAction);
+                log.realtime('Bot Action', botAction);
+              }
+            });
+          }
         });
     }, POLLING_REFRESH);
   } // refocusConnectPolling
