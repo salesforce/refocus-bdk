@@ -301,6 +301,7 @@ module.exports = (config) => {
       name,
       url,
       active = false,
+      version = '1.0.0',
       actions = [],
       data = [],
       settings = []
@@ -317,6 +318,7 @@ module.exports = (config) => {
         .field('name', name)
         .field('url', url)
         .field('active', active)
+        .field('version', version)
         .field('actions', JSON.stringify(actions))
         .field('data', JSON.stringify(data))
         .field('settings', JSON.stringify(settings))
@@ -360,6 +362,7 @@ module.exports = (config) => {
       name,
       url,
       active = false,
+      version = '1.0.0',
       actions = [],
       data = [],
       settings = []
@@ -376,6 +379,7 @@ module.exports = (config) => {
         .field('name', name)
         .field('url', url)
         .field('active', active)
+        .field('version', version)
         .field('actions', JSON.stringify(actions))
         .field('data', JSON.stringify(data))
         .field('settings', JSON.stringify(settings))
