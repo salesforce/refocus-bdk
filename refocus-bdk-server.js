@@ -301,6 +301,7 @@ module.exports = (config) => {
       name,
       url,
       active = false,
+      version = '1.0.0',
       actions = [],
       data = [],
       settings = []
@@ -317,6 +318,7 @@ module.exports = (config) => {
         .field('name', name)
         .field('url', url)
         .field('active', active)
+        .field('version', version)
         .field('actions', JSON.stringify(actions))
         .field('data', JSON.stringify(data))
         .field('settings', JSON.stringify(settings))
@@ -360,6 +362,7 @@ module.exports = (config) => {
       name,
       url,
       active = false,
+      version = '1.0.0',
       actions = [],
       data = [],
       settings = []
@@ -376,6 +379,7 @@ module.exports = (config) => {
         .field('name', name)
         .field('url', url)
         .field('active', active)
+        .field('version', version)
         .field('actions', JSON.stringify(actions))
         .field('data', JSON.stringify(data))
         .field('settings', JSON.stringify(settings))
@@ -689,7 +693,8 @@ module.exports = (config) => {
         'value': botData
       };
 
-      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`);
+      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`,
+        newBotData);
     }, // upsertBotData
 
     /**
@@ -760,8 +765,10 @@ module.exports = (config) => {
      *    actions, names, url etc
      */
     installOrUpdateBot: (packageJSON) => {
-      const { metadata: { actions, data, settings }, name, url } = packageJSON;
-      const bot = { name, url, actions, data, settings, ui, active: true };
+      const { metadata: { actions, data, settings },
+        name, url, version } = packageJSON;
+      const bot = { name, url, version, actions,
+        data, settings, ui, active: true };
 
       // try to update a bot
       // this function is more common then installing a new bot

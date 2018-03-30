@@ -30,7 +30,6 @@ const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
 const ONE = 1;
-const ZERO = 0;
 
 /**
  * Returns console.logs depending on the URL parameters

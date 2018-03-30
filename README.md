@@ -92,3 +92,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.4.3 Linting check on pre-commit hook
 * 1.4.4 Using upsert route for Bot Data
 * 1.4.5 Fixed routes with string literals
+* 1.4.6 `version` field support
