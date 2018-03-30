@@ -301,8 +301,8 @@ module.exports = (config) => {
         );
       }
       return genericGet(
-        `${SERVER}${API}${BOTACTIONS_ROUTE}
-        ?roomId=${room}&botId=${bot}&name=${name}`
+        `${SERVER}${API}${BOTACTIONS_ROUTE}` +
+        `?roomId=${room}&botId=${bot}&name=${name}`
       );
     }, // getBotActions
 
@@ -468,11 +468,11 @@ module.exports = (config) => {
       if (!bot) {
         return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${room}/data`);
       } if (!name) {
-        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/
-          ${room}/bots/${bot}/data`);
+        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/` +
+          `${room}/bots/${bot}/data`);
       }
-      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}
-        ?roomId=${room}&botId=${bot}&name=${name}`);
+      return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}` +
+        `?roomId=${room}&botId=${bot}&name=${name}`);
     }, // getBotData
 
     /**
