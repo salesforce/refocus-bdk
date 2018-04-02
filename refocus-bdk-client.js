@@ -513,15 +513,56 @@ module.exports = (config) => {
     }, // upsertBotData
 
     /**
-     * Find events by room
+     * Find limited events by room
+     *
+     * @param {String} room - ID of room
+     * @param {Integer} limit - Number of results
+     * @param {Integer} offset - Offset value to get events
+     * @returns {Promise} - All the events of the room
+     */
+    getEvents: (room, limit, offset) => {
+      log.debug('Get specified events for Room ', room);
+      const limitAmount = limit || 100;
+      const offsetAmount = offset || 0;
+      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}&limit=${limitAmount}&offset=${offsetAmount}`);
+    }, // getEvents
+
+    /**
+     * Find all events by room
      *
      * @param {String} room - ID of room
      * @returns {Promise} - All the events of the room
      */
-    getEvents: (room) => {
-      log.debug('Get events for Room ', room);
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`);
-    }, // getEvents
+    getAllEvents: (room) => {
+      log.debug('Get all events for Room ', room);
+      let limit;
+      let offset; 
+      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`)
+      .then((events) => {
+        const allEvents = [];
+        const total = events.header['x-total-count'];
+        if (total > events.body.length) {
+          limit = events.body.length;
+          offset = 0;
+          while (offset < total) {
+            allEvents.push(
+              genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}&limit=${limit}&offset=${offset}`)
+            );
+            offset += limit;
+          }
+
+          return Promise.all(allEvents);
+        }        
+      })
+      .then((eventLogs) => {
+        let output = [];
+        eventLogs.forEach((eventLog) => {
+          output = output.concat(eventLog.body);
+        });
+
+        return output;
+      });
+    }, // getAllEvents
 
     /**
      * Create an event
