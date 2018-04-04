@@ -709,8 +709,8 @@ module.exports = (config) => {
       log.debug('Get specified events for Room ', room);
       const limitAmount = limit || 100;
       const offsetAmount = offset || 0;
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}
-        &limit=${limitAmount}&offset=${offsetAmount}`);
+      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+        `&limit=${limitAmount}&offset=${offsetAmount}`);
     }, // getEvents
 
     /**
@@ -732,8 +732,8 @@ module.exports = (config) => {
           offset = 0;
           while (offset < total) {
             allEvents.push(
-              genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}
-                &limit=${limit}&offset=${offset}`)
+              return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+                `&limit=${limitAmount}&offset=${offsetAmount}`);
             );
             offset += limit;
           }
