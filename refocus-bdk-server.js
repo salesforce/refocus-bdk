@@ -28,8 +28,12 @@ const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
 const ui = 'web/dist/bot.zip';
-const POLLING_DELAY = 8;
-const POLLING_REFRESH = 5000;
+/* eslint-disable no-process-env */
+const POLLING_DELAY =
+  process.env.POLLING_DELAY || 8; // Second
+const POLLING_REFRESH =
+  process.env.POLLING_REFRESH || 5000; // Milliseconds
+/* eslint-enable no-process-env */
 const START_OF_ARRAY = 0;
 const STATUS_CODE_OK = 200;
 const STATUS_CODE_CREATED = 201;
@@ -269,6 +273,7 @@ module.exports = (config) => {
    * @param {Object} options - Request options
    */
   function refocusConnectPolling(app, options){
+    let pendingActions = {};
     setInterval(() => {
       genericGet(SERVER+API+BOTACTIONS_ROUTE+options+'&isPending=true')
         .then((botActions) => {
@@ -279,9 +284,27 @@ module.exports = (config) => {
                   moment().diff(moment(botAction.updatedAt))
                 ).asSeconds();
               if ((botAction.isPending) && (!botAction.response) &&
-                 (duration < POLLING_DELAY)) {
-                app.emit('refocus.bot.actions', botAction);
-                log.realtime('Bot Action', botAction);
+                (duration < POLLING_DELAY)) {
+                if (!pendingActions.hasOwnProperty(botAction.id)) {
+                  pendingActions[botAction.id] = botAction;
+                  app.emit('refocus.bot.actions', botAction);
+                  log.realtime('Bot Action', botAction);                  
+                }
+              } else if ((botAction.isPending) && (!botAction.response) &&
+                (duration > POLLING_DELAY)) {
+                  const responseObject = {
+                    'isPending': false,
+                    'response': { 'error' : 'Polling Request Timeout' },
+                  };
+
+                  genericPatch(
+                    SERVER + API + BOTACTIONS_ROUTE + '/' + botAction.id,
+                    responseObject
+                  )
+                    .catch((error) => {
+                      logger.error(
+                        `Responding to ${botAction.id} failed: ${error}`
+                      );
               }
             });
           }
