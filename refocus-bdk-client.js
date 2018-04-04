@@ -554,7 +554,9 @@ module.exports = (config) => {
           }
 
           return Promise.all(allEvents);
-        }        
+        }
+
+        return [events];        
       })
       .then((eventLogs) => {
         let output = [];
