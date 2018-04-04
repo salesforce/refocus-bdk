@@ -337,7 +337,7 @@ module.exports = (config) => {
     }, // getUserEmail
 
     /**
-     * Access user that is part of the room window and gets name
+     * Access user that is part of the room window and gets fullName
      * user object comes from Refocus view/rooms/index.pug
      *
      * @returns {String} - User full name
