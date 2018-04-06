@@ -55,6 +55,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * getUserName
 * getUserId
 * getUserEmail
+* getUserFullName
 * createEvents
 * getEvents
 * getActiveUsers
