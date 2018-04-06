@@ -304,7 +304,8 @@ module.exports = (config) => {
       version = '1.0.0',
       actions = [],
       data = [],
-      settings = []
+      settings = [],
+      ui = ui,
     } = bot;
 
     return new Promise((resolve, reject) => {
@@ -420,6 +421,13 @@ module.exports = (config) => {
     * Export logger
     */
     log,
+
+    /**
+    * export Install and Update functions
+    * for unit testing
+    */
+    installBot,
+    updateBot,
 
     /**
      * Find room by id/name
