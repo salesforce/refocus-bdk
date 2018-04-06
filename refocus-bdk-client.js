@@ -337,6 +337,16 @@ module.exports = (config) => {
     }, // getUserEmail
 
     /**
+     * Access user that is part of the room window and gets fullName
+     * user object comes from Refocus view/rooms/index.pug
+     *
+     * @returns {String} - User full name
+     */
+    getUserFullName: () => {
+      return _user.fullName;
+    }, // getUserFullName
+
+    /**
      * Create bot action by id/name
      *
      * @param {Object} botAction - botAction object
