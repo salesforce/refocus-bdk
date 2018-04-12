@@ -30,9 +30,11 @@ const EVENTS_ROUTE = '/events';
 const ui = 'web/dist/bot.zip';
 /* eslint-disable no-process-env */
 const POLLING_DELAY =
-  process.env.POLLING_DELAY || 8; // Second
+  +process.env.POLLING_DELAY || 100; // Second
+POLLING_DELAY = POLLING_DELAY > 100 ? POLLING_DELAY : 100;
 const POLLING_REFRESH =
-  process.env.POLLING_REFRESH || 5000; // Milliseconds
+  +process.env.POLLING_REFRESH || 5000; // Milliseconds
+POLLING_REFRESH = POLLING_REFRESH > 5000 ? POLLING_REFRESH : 5000;
 /* eslint-enable no-process-env */
 const START_OF_ARRAY = 0;
 const STATUS_CODE_OK = 200;
@@ -275,6 +277,17 @@ module.exports = (config) => {
   function refocusConnectPolling(app, options){
     let pendingActions = {};
     setInterval(() => {
+      // Clear action queue 
+      for (var key in pendingActions) {
+        const timeAdded =
+          moment.duration(
+            moment().diff(moment(pendingActions[key].updatedAt))
+          ).asSeconds();
+        if (timeAdded > POLLING_DELAY) {
+          delete pendingActions[key];
+        }
+      }
+
       genericGet(SERVER+API+BOTACTIONS_ROUTE+options+'&isPending=true')
         .then((botActions) => {
           if (botActions && botActions.body) {
@@ -283,15 +296,26 @@ module.exports = (config) => {
                 moment.duration(
                   moment().diff(moment(botAction.updatedAt))
                 ).asSeconds();
-              if ((botAction.isPending) && (!botAction.response) &&
-                (duration < POLLING_DELAY)) {
+
+              // Check if an action is new
+              const IS_ACTION_NEW = (botAction.isPending) &&
+              (!botAction.response) &&
+              (duration < POLLING_DELAY);
+
+              // If an action is pending and has not been responded to yet but
+              // the action is older than our polling delay called it timed out  
+              const IS_ACTION_TIMED_OUT = (botAction.isPending) &&
+              (!botAction.response) &&
+              (duration > POLLING_DELAY);
+
+              if (IS_ACTION_NEW) {
+                // Check if its a duplicate action
                 if (!pendingActions.hasOwnProperty(botAction.id)) {
                   pendingActions[botAction.id] = botAction;
                   app.emit('refocus.bot.actions', botAction);
-                  log.realtime('Bot Action', botAction);                  
-                }
-              } else if ((botAction.isPending) && (!botAction.response) &&
-                (duration > POLLING_DELAY)) {
+                  log.realtime('Bot Action', botAction);
+                }              
+              } else if (IS_ACTION_TIMED_OUT) {
                   const responseObject = {
                     'isPending': false,
                     'response': { 'error' : 'Polling Request Timeout' },
