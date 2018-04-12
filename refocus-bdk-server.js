@@ -727,7 +727,7 @@ module.exports = (config) => {
       .then((events) => {
         const allEvents = [];
         const total = events.header['x-total-count'];
-        if (total > events.body.length) {
+        if ((events.body) && (total > events.body.length)) {
           limit = events.body.length;
           offset = 0;
           while (offset < total) {
@@ -739,7 +739,9 @@ module.exports = (config) => {
           }
 
           return Promise.all(allEvents);
-        }        
+        }
+
+        return [events];        
       })
       .then((eventLogs) => {
         let output = [];
@@ -748,6 +750,9 @@ module.exports = (config) => {
         });
 
         return output;
+      })
+      .catch((error) => {
+        return log.error('Get Events Error', error);
       });
     }, // getAllEvents
 
