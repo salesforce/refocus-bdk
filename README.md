@@ -95,3 +95,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.4.5 Fixed routes with string literals
 * 1.4.6 `version` field support
 * 1.4.7 User fullName support
+* 1.4.8 Events have user attached to their context
+
