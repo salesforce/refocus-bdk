@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -27,7 +27,7 @@ const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
-const ui = 'web/dist/bot.zip';
+const DEFAULT_UI_PATH = 'web/dist/bot.zip';
 const POLLING_DELAY = 8;
 const POLLING_REFRESH = 5000;
 const START_OF_ARRAY = 0;
@@ -304,7 +304,8 @@ module.exports = (config) => {
       version = '1.0.0',
       actions = [],
       data = [],
-      settings = []
+      settings = [],
+      ui = DEFAULT_UI_PATH,
     } = bot;
 
     return new Promise((resolve, reject) => {
@@ -365,7 +366,8 @@ module.exports = (config) => {
       version = '1.0.0',
       actions = [],
       data = [],
-      settings = []
+      settings = [],
+      ui = DEFAULT_UI_PATH,
     } = bot;
 
     return new Promise((resolve, reject) => {
@@ -420,6 +422,13 @@ module.exports = (config) => {
     * Export logger
     */
     log,
+
+    /**
+    * export Install and Update functions
+    * for unit testing
+    */
+    installBot,
+    updateBot,
 
     /**
      * Find room by id/name
@@ -768,7 +777,7 @@ module.exports = (config) => {
       const { metadata: { actions, data, settings },
         name, url, version } = packageJSON;
       const bot = { name, url, version, actions,
-        data, settings, ui, active: true };
+        data, settings, ui: DEFAULT_UI_PATH, active: true };
 
       // try to update a bot
       // this function is more common then installing a new bot
