@@ -95,4 +95,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.4.5 Fixed routes with string literals
 * 1.4.6 `version` field support
 * 1.4.7 User fullName support
-* 1.4.8 Update Bot Action polling to have a timeout
+* 1.5.0 Unit tests for installBot function. Pre-commit and pre-push hooks for linter and tests
+* 1.5.1 Update Bot Action polling to have a timeout
