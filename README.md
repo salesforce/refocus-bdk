@@ -55,6 +55,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * getUserName
 * getUserId
 * getUserEmail
+* getUserFullName
 * createEvents
 * getEvents
 * getActiveUsers
@@ -93,4 +94,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.4.4 Using upsert route for Bot Data
 * 1.4.5 Fixed routes with string literals
 * 1.4.6 `version` field support
+* 1.4.7 User fullName support
 * 1.5.0 Unit tests for installBot function. Pre-commit and pre-push hooks for linter and tests
