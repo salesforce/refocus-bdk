@@ -27,6 +27,7 @@ const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
+const USERS_ROUTE = '/users';
 const ui = 'web/dist/bot.zip';
 const POLLING_DELAY = 8;
 const POLLING_REFRESH = 5000;
@@ -571,6 +572,7 @@ module.exports = (config) => {
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
         .then((instance) => {
           let eventObject = {};
+          let userObj = {};
           if (eventLog) {
             eventObject = eventLog;
           } else {
@@ -591,6 +593,24 @@ module.exports = (config) => {
           eventObject.botId = instance.body.botId;
           eventObject.botActionId = instance.body.id;
           eventObject.userId = instance.body.userId;
+
+          if (instance.body.userId) {
+            genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId)
+              .then((userRes, err) => {
+                if (err) {
+                  return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
+                }
+
+                userObj = {
+                  fullName: userRes.body.fullName,
+                  name: userRes.body.name
+                };
+
+                eventObject.context.user = userObj;
+                return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
+              });
+          }
+
           return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
         });
     }, // respondBotAction
