@@ -130,10 +130,13 @@ const botWithUI = {
   settings
 };
 
+const respondBotActionResponse = {};
+
 module.exports = {
   actions,
   data,
   settings,
   bot,
   botWithUI,
+  respondBotActionResponse,
 };

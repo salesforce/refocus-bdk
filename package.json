@@ -3,7 +3,7 @@
   "version": "1.5.1",
   "description": "Utilities used by Refocus Bots to communicate with Refocus.",
   "scripts": {
-    "test": "mocha tests",
+    "test": "mocha tests/refocus-bdk-server",
     "lint": "eslint --ext=js --ext=jsx ."
   },
   "main": "refocus-bdk-server.js",
