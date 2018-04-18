@@ -41,7 +41,7 @@ describe('BDK Client Events: ', () => {
     bdkClient.__set__('genericGet', () => {
       return new Promise((resolve) => {
         resolve({ header: { 'x-total-count': total },
-          body: ['test', 'test', 'test'] });
+          body: ['test'] });
       });
     });
     bdkClient.__get__('module.exports')(config).getAllEvents('1')
@@ -73,7 +73,7 @@ describe('BDK Server Events: ', () => {
     bdkServer.__set__('genericGet', () => {
       return new Promise((resolve) => {
         resolve({ header: { 'x-total-count': total },
-          body: ['test', 'test', 'test'] });
+          body: ['test'] });
       });
     });
     bdkServer.__get__('module.exports')(config).getAllEvents('1')
