@@ -29,6 +29,8 @@ const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
+const DEFAULT_LIMIT = 100;
+const NO_OFFSET = 0;
 const ONE = 1;
 
 /**
@@ -87,6 +89,76 @@ function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
   }
 } // debugMessage
 
+/**
+ * Get JSON from server asynchronous
+ *
+ * @param {String} route - URL for route
+ * @param {String} apiToken - Refocus API Token
+ * @returns {Promise} - Route response
+ */
+function genericGet(route, apiToken){
+  return new Promise((resolve) => {
+    const req = request.get(route);
+    req
+      .set('Authorization', apiToken)
+      .end((error, res) => {
+        debugMessage('silly', 'Generic Get. ', res);
+        if (error) {
+          debugMessage('error', 'Error: ', { error, res });
+        }
+        resolve(res);
+      });
+  });
+} // genericGet
+
+/**
+ * Patch JSON to server asynchronous
+ *
+ * @param {String} route - URL for route
+ * @param  {JSON} obj - the payload needed for route
+ * @param {String} apiToken - Refocus API Token
+ * @returns {Promise} - Route response
+ */
+function genericPatch(route, obj, apiToken){
+  return new Promise((resolve) => {
+    const req = request.patch(route);
+    req
+      .set('Authorization', apiToken)
+      .send(obj)
+      .end((error, res) => {
+        debugMessage('silly', 'Generic Patch. ', res);
+        if (error) {
+          debugMessage('error', 'Error: ', { error, res });
+        }
+        resolve(res);
+      });
+  });
+} // genericPatch
+
+/**
+ * Post JSON to server asynchronous
+ *
+ * @param {String} route - URL for route
+ * @param {JSON} obj - the payload needed for route
+ * @param {String} apiToken - Refocus API Token
+ * @returns {Promise} - Route response
+ */
+function genericPost(route, obj, apiToken){
+  return new Promise((resolve) => {
+    const req = request.post(route);
+    req
+      .set('Authorization', apiToken)
+      .send(obj)
+      .end((error, res) => {
+        debugMessage('silly', 'Generic Post. ', res);
+        if (error) {
+          debugMessage('error', 'Error: ', { error, res });
+        }
+        resolve(res);
+      });
+  });
+} // genericPost
+
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
   const TOKEN = config.token;
@@ -107,73 +179,6 @@ module.exports = (config) => {
       debugMessage('verbose', 'realtime: ' + msg, obj);
     },
   };
-
-  /**
-   * Get JSON from server asynchronous
-   *
-   * @param {String} route - URL for route
-   * @returns {Promise} - Route response
-   */
-  function genericGet(route){
-    return new Promise((resolve) => {
-      const req = request.get(route);
-      req
-        .set('Authorization', TOKEN)
-        .end((error, res) => {
-          log.silly('Generic Get. ', res);
-          if (error) {
-            log.error('Error: ', { error, res });
-          }
-          resolve(res);
-        });
-    });
-  } // genericGet
-
-  /**
-   * Patch JSON to server asynchronous
-   *
-   * @param {String} route - URL for route
-   * @param  {JSON} obj - the payload needed for route
-   * @returns {Promise} - Route response
-   */
-  function genericPatch(route, obj){
-    return new Promise((resolve) => {
-      const req = request.patch(route);
-      req
-        .set('Authorization', TOKEN)
-        .send(obj)
-        .end((error, res) => {
-          log.silly('Generic Patch. ', res);
-          if (error) {
-            log.error('Error: ', { error, res });
-          }
-          resolve(res);
-        });
-    });
-  } // genericPatch
-
-  /**
-   * Post JSON to server asynchronous
-   *
-   * @param {String} route - URL for route
-   * @param {JSON} obj - the payload needed for route
-   * @returns {Promise} - Route response
-   */
-  function genericPost(route, obj){
-    return new Promise((resolve) => {
-      const req = request.post(route);
-      req
-        .set('Authorization', TOKEN)
-        .send(obj)
-        .end((error, res) => {
-          log.silly('Generic Post. ', res);
-          if (error) {
-            log.error('Error: ', { error, res });
-          }
-          resolve(res);
-        });
-    });
-  } // genericPost
 
   return {
 
@@ -197,7 +202,7 @@ module.exports = (config) => {
     findRoom: (id) => {
       log.debug('Find Room ',
         { id, route: `${SERVER}${API}${ROOMS_ROUTE}/${id}` });
-      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${id}`);
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${id}`, TOKEN);
     }, // findRoom
 
     /**
@@ -212,7 +217,7 @@ module.exports = (config) => {
         'settings': newSettings,
       };
       log.debug('Updating Settings ', newSettings);
-      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${id}`, patch);
+      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${id}`, patch, TOKEN);
     }, // updateSettings
 
     /**
@@ -224,7 +229,7 @@ module.exports = (config) => {
      */
     getActiveUsers: (room) => {
       log.debug('Requesting active users for room ', room);
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`)
+      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`, TOKEN)
         .then((events) => {
           const users = [];
           const userEvents = events.body
@@ -267,7 +272,7 @@ module.exports = (config) => {
     findBot: (id) => {
       log.debug('Find Bot ',
         { id, route: `${SERVER}${API}${BOTS_ROUTE}/${id}` });
-      return genericGet(`${SERVER}${API}${BOTS_ROUTE}/${id}`);
+      return genericGet(`${SERVER}${API}${BOTS_ROUTE}/${id}`, TOKEN);
     }, // findBot
 
     /**
@@ -279,7 +284,7 @@ module.exports = (config) => {
     findBotAction: (id) => {
       log.debug('Find Bot Action ',
         { id, route: `${SERVER}${API}${BOTACTIONS_ROUTE}/${id}` });
-      return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`);
+      return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`, TOKEN);
     }, // findBotAction
 
     /**
@@ -294,15 +299,17 @@ module.exports = (config) => {
       log.debug('Getting Bot Actions for Room',
         { room, bot, name });
       if (!bot) {
-        return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}`);
+        return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}`,
+          TOKEN);
       } else if (!name) {
         return genericGet(
-          `${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}&botId=${bot}`
+          `${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}&botId=${bot}`,
+          TOKEN
         );
       }
       return genericGet(
         `${SERVER}${API}${BOTACTIONS_ROUTE}` +
-        `?roomId=${room}&botId=${bot}&name=${name}`
+        `?roomId=${room}&botId=${bot}&name=${name}`, TOKEN
       );
     }, // getBotActions
 
@@ -389,7 +396,7 @@ module.exports = (config) => {
       };
 
       return genericPatch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
-        responseObject)
+        responseObject, TOKEN)
         .then((instance) => {
           let eventObject = {};
           if (eventLog) {
@@ -412,7 +419,8 @@ module.exports = (config) => {
           eventObject.botId = instance.body.botId;
           eventObject.botActionId = instance.body.id;
           eventObject.userId = instance.body.userId;
-          return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, eventObject);
+          return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, eventObject,
+            TOKEN);
         });
     }, // respondBotAction
 
@@ -431,7 +439,7 @@ module.exports = (config) => {
       };
 
       return genericPatch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
-        responseObject);
+        responseObject, TOKEN);
     }, // respondBotActionNoLog
 
     /**
@@ -451,7 +459,7 @@ module.exports = (config) => {
         'value': botValue
       };
       log.debug('Creating Bot Data', botData);
-      return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData);
+      return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData, TOKEN);
     }, // createBotData
 
     /**
@@ -462,7 +470,7 @@ module.exports = (config) => {
      */
     findBotData: (id) => {
       log.debug('Getting Bot Data ', id);
-      return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`);
+      return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, TOKEN);
     }, // findBotData
 
     /**
@@ -476,13 +484,13 @@ module.exports = (config) => {
     getBotData: (room, bot, name) => {
       log.debug('Getting Bot Data. ', { room, bot, name });
       if (!bot) {
-        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${room}/data`);
+        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${room}/data`, TOKEN);
       } if (!name) {
         return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/` +
-          `${room}/bots/${bot}/data`);
+          `${room}/bots/${bot}/data`, TOKEN);
       }
       return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}` +
-        `?roomId=${room}&botId=${bot}&name=${name}`);
+        `?roomId=${room}&botId=${bot}&name=${name}`, TOKEN);
     }, // getBotData
 
     /**
@@ -497,7 +505,8 @@ module.exports = (config) => {
       const newBotData = {
         'value': botData
       };
-      return genericPatch(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, newBotData);
+      return genericPatch(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, newBotData,
+        TOKEN);
     }, // changeBotData
 
     /**
@@ -519,7 +528,7 @@ module.exports = (config) => {
 
       log.debug('Upserting new Bot Data ', newBotData);
 
-      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`);
+      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`, TOKEN);
     }, // upsertBotData
 
     /**
@@ -532,10 +541,10 @@ module.exports = (config) => {
      */
     getEvents: (room, limit, offset) => {
       log.debug('Get specified events for Room ', room);
-      const limitAmount = limit || 100;
-      const offsetAmount = offset || 0;
+      const limitAmount = limit || DEFAULT_LIMIT;
+      const offsetAmount = offset || NO_OFFSET;
       return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-        `&limit=${limitAmount}&offset=${offsetAmount}`);
+        `&limit=${limitAmount}&offset=${offsetAmount}`, TOKEN);
     }, // getEvents
 
     /**
@@ -547,38 +556,39 @@ module.exports = (config) => {
     getAllEvents: (room) => {
       log.debug('Get all events for Room ', room);
       let limit;
-      let offset; 
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`)
-      .then((events) => {
-        const allEvents = [];
-        const total = events.header['x-total-count'];
-        if ((events.body) && (total > events.body.length)) {
-          limit = events.body.length;
-          offset = 0;
-          while (offset < total) {
-            allEvents.push(
-              return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-                `&limit=${limitAmount}&offset=${offsetAmount}`);
-            );
-            offset += limit;
+      let offset;
+      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`,
+        TOKEN)
+        .then((events) => {
+          const allEvents = [];
+          const total = events.header['x-total-count'];
+          if ((events.body) && (total > events.body.length)) {
+            limit = events.body.length;
+            offset = NO_OFFSET;
+            while (offset < total) {
+              allEvents.push(
+                genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+                  `&limit=${limit}&offset=${offset}`, TOKEN)
+              );
+              offset += limit;
+            }
+
+            return Promise.all(allEvents);
           }
 
-          return Promise.all(allEvents);
-        }
+          return [events];
+        })
+        .then((eventLogs) => {
+          let output = [];
+          eventLogs.forEach((eventLog) => {
+            output = output.concat(eventLog.body);
+          });
 
-        return [events];        
-      })
-      .then((eventLogs) => {
-        let output = [];
-        eventLogs.forEach((eventLog) => {
-          output = output.concat(eventLog.body);
+          return output;
+        })
+        .catch((error) => {
+          return log.error('Get Events Error', error);
         });
-
-        return output;
-      })
-      .catch((error) => {
-        return log.error('Get Events Error', error);
-      });
     }, // getAllEvents
 
     /**
@@ -603,7 +613,7 @@ module.exports = (config) => {
       } catch (error) {
         log.error('Event User Error', error);
       }
-      return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events);
+      return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN);
     }, // createEvents
     log,
   };
