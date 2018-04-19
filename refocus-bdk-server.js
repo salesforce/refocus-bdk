@@ -29,7 +29,6 @@ const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
 const MIN_POLLING_DELAY = 100;
 const MIN_POLLING_REFRESH = 5000;
-
 /* eslint-disable no-process-env */
 /* eslint-disable no-implicit-coercion*/
 let POLLING_DELAY =
