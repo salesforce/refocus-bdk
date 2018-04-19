@@ -10,7 +10,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 const _ = require('lodash');
 const config = { refocusUrl: 'zzz', token: 'dummy' };
-const bdk = require('../../refocus-bdk-server')(config);
+const bdk = require('../refocus-bdk-server')(config);
 const { bot, botWithUI } = require('./utils');
 
 describe('New Bot Installation: ', () => {
