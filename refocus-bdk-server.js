@@ -635,6 +635,7 @@ module.exports = (config) => {
       }
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject)
+        /* eslint-disable consistent-return */
         .then((instance) => {
           let eventObject = {};
           let userObj = {};
@@ -674,9 +675,9 @@ module.exports = (config) => {
                 eventObject.context.user = userObj;
                 return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
               });
+          } else {
+            return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
           }
-
-          return genericPost(SERVER+API+EVENTS_ROUTE, eventObject);
         });
     }, // respondBotAction
 
