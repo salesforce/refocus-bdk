@@ -549,6 +549,11 @@ module.exports = (config) => {
       };
       if (context) {
         events.context = context;
+        events.context.user = _user;
+      } else {
+        events.context = {
+          user: _user
+        };
       }
       try {
         events.userId = _user.id;

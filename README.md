@@ -98,3 +98,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.5.0 Unit tests for installBot function. Pre-commit and pre-push hooks for linter and tests
 * 1.5.1 Update Bot Action polling to have a timeout
 * 1.5.2 Bug fixes
+* 1.5.3 Events have user attached to their context
