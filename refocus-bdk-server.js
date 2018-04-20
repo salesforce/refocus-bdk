@@ -675,7 +675,8 @@ module.exports = (config) => {
           eventObject.userId = instance.body.userId;
 
           if (instance.body.userId) {
-            genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId)
+            genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId,
+              PROXY_URL, TOKEN)
               .then((userRes, err) => {
                 if (err) {
                   return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
