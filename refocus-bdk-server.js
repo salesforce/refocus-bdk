@@ -27,14 +27,20 @@ const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
+const MIN_POLLING_DELAY = 100;
+const MIN_POLLING_REFRESH = 5000;
 /* eslint-disable no-process-env */
-const POLLING_DELAY =
-  +process.env.POLLING_DELAY || 100; // Second
-POLLING_DELAY = POLLING_DELAY > 100 ? POLLING_DELAY : 100;
-const POLLING_REFRESH =
-  +process.env.POLLING_REFRESH || 5000; // Milliseconds
-POLLING_REFRESH = POLLING_REFRESH > 5000 ? POLLING_REFRESH : 5000;
+/* eslint-disable no-implicit-coercion*/
+let POLLING_DELAY =
+  +process.env.POLLING_DELAY || MIN_POLLING_DELAY; // Second
+POLLING_DELAY = POLLING_DELAY > MIN_POLLING_DELAY ?
+  POLLING_DELAY : MIN_POLLING_DELAY;
+let POLLING_REFRESH =
+  +process.env.POLLING_REFRESH || MIN_POLLING_REFRESH; // Milliseconds
+POLLING_REFRESH = POLLING_REFRESH > MIN_POLLING_REFRESH ?
+  POLLING_REFRESH : MIN_POLLING_REFRESH;
 /* eslint-enable no-process-env */
+/* eslint-enable no-implicit-coercion*/
 const DEFAULT_UI_PATH = 'web/dist/bot.zip';
 const START_OF_ARRAY = 0;
 const STATUS_CODE_OK = 200;
@@ -275,16 +281,18 @@ module.exports = (config) => {
    * @param {Object} options - Request options
    */
   function refocusConnectPolling(app, options){
-    let pendingActions = {};
+    const pendingActions = {};
     setInterval(() => {
-      // Clear action queue 
-      for (var key in pendingActions) {
-        const timeAdded =
-          moment.duration(
-            moment().diff(moment(pendingActions[key].updatedAt))
-          ).asSeconds();
-        if (timeAdded > POLLING_DELAY) {
-          delete pendingActions[key];
+      // Clear action queue
+      for (const key in pendingActions) {
+        if (pendingActions.hasOwnProperty(key)) {
+          const timeAdded =
+            moment.duration(
+              moment().diff(moment(pendingActions[key].updatedAt))
+            ).asSeconds();
+          if (timeAdded > POLLING_DELAY) {
+            delete pendingActions[key];
+          }
         }
       }
 
@@ -303,7 +311,7 @@ module.exports = (config) => {
               (duration < POLLING_DELAY);
 
               // If an action is pending and has not been responded to yet but
-              // the action is older than our polling delay called it timed out  
+              // the action is older than our polling delay called it timed out
               const IS_ACTION_TIMED_OUT = (botAction.isPending) &&
               (!botAction.response) &&
               (duration > POLLING_DELAY);
@@ -314,21 +322,22 @@ module.exports = (config) => {
                   pendingActions[botAction.id] = botAction;
                   app.emit('refocus.bot.actions', botAction);
                   log.realtime('Bot Action', botAction);
-                }              
+                }
               } else if (IS_ACTION_TIMED_OUT) {
-                  const responseObject = {
-                    'isPending': false,
-                    'response': { 'error' : 'Polling Request Timeout' },
-                  };
+                const responseObject = {
+                  'isPending': false,
+                  'response': { 'error': 'Polling Request Timeout' },
+                };
 
-                  genericPatch(
-                    SERVER + API + BOTACTIONS_ROUTE + '/' + botAction.id,
-                    responseObject
-                  )
-                    .catch((error) => {
-                      logger.error(
-                        `Responding to ${botAction.id} failed: ${error}`
-                      );
+                genericPatch(
+                  SERVER + API + BOTACTIONS_ROUTE + '/' + botAction.id,
+                  responseObject
+                )
+                  .catch((error) => {
+                    logger.error(
+                      `Responding to ${botAction.id} failed: ${error}`
+                    );
+                  });
               }
             });
           }
@@ -370,7 +379,7 @@ module.exports = (config) => {
         .field('actions', JSON.stringify(actions))
         .field('data', JSON.stringify(data))
         .field('settings', JSON.stringify(settings))
-        .attach('ui', DEFAULT_UI_PATH)
+        .attach('ui', ui)
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (!res) {
@@ -432,7 +441,7 @@ module.exports = (config) => {
         .field('actions', JSON.stringify(actions))
         .field('data', JSON.stringify(data))
         .field('settings', JSON.stringify(settings))
-        .attach('ui', DEFAULT_UI_PATH)
+        .attach('ui', ui)
         .set('Accept', 'application/json')
         .end((err, res) => {
           if (!res) {
