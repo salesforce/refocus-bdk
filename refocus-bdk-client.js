@@ -83,7 +83,7 @@ function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
       console.log( // eslint-disable-line no-console
         `%c ${moment().format('YYYY-MM-DD hh:mm:ss').trim()}` + `%c ${type}` +
         ':', 'color: black', 'color: '+ logColors[type],
-        msg,
+        msg
       );
     }
   }
