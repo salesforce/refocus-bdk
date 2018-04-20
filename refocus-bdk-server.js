@@ -28,9 +28,21 @@ const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
 const USERS_ROUTE = '/users';
+const MIN_POLLING_DELAY = 100;
+const MIN_POLLING_REFRESH = 5000;
+/* eslint-disable no-process-env */
+/* eslint-disable no-implicit-coercion*/
+let POLLING_DELAY =
+  +process.env.POLLING_DELAY || MIN_POLLING_DELAY; // Second
+POLLING_DELAY = POLLING_DELAY > MIN_POLLING_DELAY ?
+  POLLING_DELAY : MIN_POLLING_DELAY;
+let POLLING_REFRESH =
+  +process.env.POLLING_REFRESH || MIN_POLLING_REFRESH; // Milliseconds
+POLLING_REFRESH = POLLING_REFRESH > MIN_POLLING_REFRESH ?
+  POLLING_REFRESH : MIN_POLLING_REFRESH;
+/* eslint-enable no-process-env */
+/* eslint-enable no-implicit-coercion*/
 const DEFAULT_UI_PATH = 'web/dist/bot.zip';
-const POLLING_DELAY = 8;
-const POLLING_REFRESH = 5000;
 const START_OF_ARRAY = 0;
 const STATUS_CODE_OK = 200;
 const STATUS_CODE_CREATED = 201;
@@ -270,7 +282,21 @@ module.exports = (config) => {
    * @param {Object} options - Request options
    */
   function refocusConnectPolling(app, options){
+    const pendingActions = {};
     setInterval(() => {
+      // Clear action queue
+      for (const key in pendingActions) {
+        if (pendingActions.hasOwnProperty(key)) {
+          const timeAdded =
+            moment.duration(
+              moment().diff(moment(pendingActions[key].updatedAt))
+            ).asSeconds();
+          if (timeAdded > POLLING_DELAY) {
+            delete pendingActions[key];
+          }
+        }
+      }
+
       genericGet(SERVER+API+BOTACTIONS_ROUTE+options+'&isPending=true')
         .then((botActions) => {
           if (botActions && botActions.body) {
@@ -279,10 +305,40 @@ module.exports = (config) => {
                 moment.duration(
                   moment().diff(moment(botAction.updatedAt))
                 ).asSeconds();
-              if ((botAction.isPending) && (!botAction.response) &&
-                 (duration < POLLING_DELAY)) {
-                app.emit('refocus.bot.actions', botAction);
-                log.realtime('Bot Action', botAction);
+
+              // Check if an action is new
+              const IS_ACTION_NEW = (botAction.isPending) &&
+              (!botAction.response) &&
+              (duration < POLLING_DELAY);
+
+              // If an action is pending and has not been responded to yet but
+              // the action is older than our polling delay called it timed out
+              const IS_ACTION_TIMED_OUT = (botAction.isPending) &&
+              (!botAction.response) &&
+              (duration > POLLING_DELAY);
+
+              if (IS_ACTION_NEW) {
+                // Check if its a duplicate action
+                if (!pendingActions.hasOwnProperty(botAction.id)) {
+                  pendingActions[botAction.id] = botAction;
+                  app.emit('refocus.bot.actions', botAction);
+                  log.realtime('Bot Action', botAction);
+                }
+              } else if (IS_ACTION_TIMED_OUT) {
+                const responseObject = {
+                  'isPending': false,
+                  'response': { 'error': 'Polling Request Timeout' },
+                };
+
+                genericPatch(
+                  SERVER + API + BOTACTIONS_ROUTE + '/' + botAction.id,
+                  responseObject
+                )
+                  .catch((error) => {
+                    logger.error(
+                      `Responding to ${botAction.id} failed: ${error}`
+                    );
+                  });
               }
             });
           }
