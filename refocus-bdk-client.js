@@ -366,7 +366,8 @@ module.exports = (config) => {
       } catch (error) {
         log.error('Create bot action bdk', error);
       }
-      return genericPost(`${SERVER}${API}${BOTACTIONS_ROUTE}`, botAction);
+      return genericPost(`${SERVER}${API}${BOTACTIONS_ROUTE}`, botAction,
+        TOKEN);
     }, // createBotAction
 
     /**
@@ -607,6 +608,11 @@ module.exports = (config) => {
       };
       if (context) {
         events.context = context;
+        events.context.user = _user;
+      } else {
+        events.context = {
+          user: _user
+        };
       }
       try {
         events.userId = _user.id;
