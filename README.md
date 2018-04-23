@@ -101,3 +101,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.5.2 Bug fixes
 * 1.5.3 Events have user attached to their context
 * 1.5.4 Get all events
+* 1.5.5 Duplicate events created
