@@ -341,7 +341,7 @@ module.exports = (config) => {
 
                 genericPatch(
                   SERVER + API + BOTACTIONS_ROUTE + '/' + botAction.id,
-                  responseObject, TOKEN
+                  responseObject, PROXY_URL, TOKEN
                 )
                   .catch((error) => {
                     logger.error(
@@ -694,7 +694,8 @@ module.exports = (config) => {
                   PROXY_URL, TOKEN);
               });
           } else {
-            return genericPost(SERVER+API+EVENTS_ROUTE, eventObject, TOKEN);
+            return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
+              PROXY_URL, TOKEN);
           }
         });
     }, // respondBotAction
