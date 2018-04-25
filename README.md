@@ -103,4 +103,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.5.4 Get all events
 * 1.5.5 Duplicate events created
 * 1.5.6 Fix missing tokens
-* 1.5.7 Add Users
+* 1.5.7 Added Get Users Route
