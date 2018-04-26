@@ -29,6 +29,7 @@ const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
+const USERS_ROUTE = '/users';
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
 const ONE = 1;
@@ -219,6 +220,17 @@ module.exports = (config) => {
       log.debug('Updating Settings ', newSettings);
       return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${id}`, patch, TOKEN);
     }, // updateSettings
+
+    /**
+     * Get users
+     *
+     * @param {String} id - ID of User
+     * @returns {Promise} - User response
+     */
+    getUser: (id) => {
+      log.debug('Getting User ', id);
+      return genericGet(`${SERVER}${API}${USERS_ROUTE}/${id}`, TOKEN);
+    }, // getUser
 
     /**
      * Determine which users are active in a room by parsing the event
