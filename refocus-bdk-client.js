@@ -350,7 +350,7 @@ module.exports = (config) => {
      * @returns {String} - User full name
      */
     getUserFullName: () => {
-      return _user.fullName;
+      return _user.fullName ? _user.fullName : _user.name;
     }, // getUserFullName
 
     /**
