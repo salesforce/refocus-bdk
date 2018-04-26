@@ -522,6 +522,18 @@ module.exports = (config) => {
     }, // updateSettings
 
     /**
+     * Get users
+     *
+     * @param {String} id - ID of User
+     * @returns {Promise} - User response
+     */
+    getUser: (id) => {
+      log.debug('Getting User ', id);
+      return genericGet(`${SERVER}${API}${USERS_ROUTE}/${id}`,
+        PROXY_URL, TOKEN);
+    }, // getUser
+
+    /**
      * Determine which users are active in a room by parsing the event
      * entries
      *
