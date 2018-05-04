@@ -22,7 +22,8 @@ const url = require('url');
 const request = require('superagent');
 // user is a global object provided by the Refocus server
 // eslint-disable-next-line no-undef
-const _user = JSON.parse(user.replace(/&quot;/g, '"'));
+const _user = JSON.parse(user.replace(/&quot;/g, '"')
+  .replace(/apos;/g, "'"));// eslint-disable-line
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
 const BOTACTIONS_ROUTE = '/botActions';
