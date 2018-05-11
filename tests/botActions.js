@@ -56,13 +56,11 @@ describe('BDK Server botActions: ', () => {
         resolve({ body: { isPending: false, userId: 'testUserId' } });
       });
     });
-
     bdkServer.__set__('genericGet', () => {
       return new Promise((resolve) => {
         resolve({ body: { fullName: 'testFullName' } });
       });
     });
-
     bdkServer.__set__('genericPost', () => {
       return new Promise((resolve) => {
         resolve({ body: {
