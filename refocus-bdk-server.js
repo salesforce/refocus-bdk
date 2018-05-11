@@ -662,7 +662,6 @@ module.exports = (config) => {
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject,
         PROXY_URL, TOKEN)
-        /* eslint-disable consistent-return */
         .then((instance) => {
           let eventObject = {};
           let userObj = {};
