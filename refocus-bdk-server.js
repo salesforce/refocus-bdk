@@ -662,7 +662,6 @@ module.exports = (config) => {
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject,
         PROXY_URL, TOKEN)
-        /* eslint-disable consistent-return */
         .then((instance) => {
           let eventObject = {};
           let userObj = {};
@@ -688,7 +687,7 @@ module.exports = (config) => {
           eventObject.userId = instance.body.userId;
 
           if (instance.body.userId) {
-            genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId,
+            return genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId,
               PROXY_URL, TOKEN)
               .then((userRes, err) => {
                 if (err) {
@@ -705,10 +704,10 @@ module.exports = (config) => {
                 return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
                   PROXY_URL, TOKEN);
               });
-          } else {
-            return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
-              PROXY_URL, TOKEN);
           }
+
+          return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
+            PROXY_URL, TOKEN);
         });
     }, // respondBotAction
 

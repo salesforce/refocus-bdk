@@ -130,10 +130,22 @@ const botWithUI = {
   settings
 };
 
+const botActionsArray = [
+  {
+    isPending: true,
+    name: 'testActionName'
+  },
+  {
+    isPending: false,
+    name: 'testActionName'
+  }
+];
+
 module.exports = {
   actions,
   data,
   settings,
   bot,
+  botActionsArray,
   botWithUI,
 };
