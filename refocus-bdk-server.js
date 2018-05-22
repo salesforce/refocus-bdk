@@ -21,6 +21,7 @@ const moment = require('moment');
 const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const io = require('socket.io-client');
+const u = require('./utilities.js');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
 const BOTACTIONS_ROUTE = '/botActions';
@@ -772,13 +773,19 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     createBotData: (room, bot, botName, botValue) => {
+      let newData = botValue;
+      if (newData && typeof newData === 'object') {
+        newData = u.escapeAndStringify(newData);
+      }
+
       const botData = {
         'name': botName,
         'roomId': parseInt(room, 10),
         'botId': bot,
-        'value': botValue
+        'value': newData
       };
 
+      logger.info('Creating botData: ', botData);
       return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData,
         PROXY_URL, TOKEN);
     }, // createBotData
@@ -791,10 +798,15 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     changeBotData: (id, botData) => {
+      let newData = botData;
+      if (newData && typeof newData === 'object') {
+        newData = u.escapeAndStringify(newData);
+      }
       const newBotData = {
-        'value': botData
+        'value': newData
       };
 
+      logger.info('Updating botData: ', newBotData);
       return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData,
         PROXY_URL, TOKEN);
     }, // changeBotData
@@ -809,13 +821,18 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response.
      */
     upsertBotData: (room, bot, name, botData) => {
+      let newData = botData;
+      if (newData && typeof newData === 'object') {
+        newData = u.escapeAndStringify(newData);
+      }
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
         'botId': bot,
-        'value': botData
+        'value': newData
       };
 
+      logger.info('Upserting new botData: ', newBotData);
       return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`,
         newBotData, PROXY_URL, TOKEN);
     }, // upsertBotData
