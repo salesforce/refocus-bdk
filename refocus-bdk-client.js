@@ -462,7 +462,7 @@ module.exports = (config) => {
      * @param {String} room - Id room
      * @param {String} bot - Id of bot
      * @param {String} botName - Name of data
-     * @param {String/JSON} botValue - Value
+     * @param {String/Object} botValue - Value
      * @returns {Promise} - Bot Data response
      */
     createBotData: (room, bot, botName, botValue) => {
@@ -516,7 +516,7 @@ module.exports = (config) => {
      * Update bot data by id/name
      *
      * @param {String} id - Id of bot data
-     * @param {Object} botData - botData object
+     * @param {String/Object} botData - botData object
      * @returns {Promise} - Bot Data response
      */
     changeBotData: (id, botData) => {
@@ -539,7 +539,7 @@ module.exports = (config) => {
      * @param {String} room - ID of room.
      * @param {String} bot - ID of bot.
      * @param {String} name - Name of bot data.
-     * @param {Object} botData - botData object.
+     * @param {String/Object} botData - botData object.
      * @returns {Promise} - Bot Data response.
      */
     upsertBotData: (room, bot, name, botData) => {
