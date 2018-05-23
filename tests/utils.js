@@ -150,6 +150,7 @@ const easyJSON = {
 const complicatedJSON = {
   blah: `blah !@£$%^& "hi" ${'var name'} {}[]::;;||\\><//?><*();`,
   includesTabs: '       \n 12345 aaa AAA ||',
+  complex: `"""""""""""""" {} ||\\'''''%%%${'var'}"""+=0---00`
 };
 
 module.exports = {
