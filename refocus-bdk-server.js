@@ -768,24 +768,24 @@ module.exports = (config) => {
      *
      * @param {String} room - Id room
      * @param {String} bot - Id of bot
-     * @param {String} botName - Name of data
+     * @param {String} name - Name of data
      * @param {String/Object} botValue - Value
      * @returns {Promise} - Bot Data response
      */
-    createBotData: (room, bot, botName, botValue) => {
+    createBotData: (room, bot, name, botValue) => {
       let newData = botValue;
       if (newData && typeof newData === 'object') {
         newData = u.escapeAndStringify(newData);
       }
 
       const botData = {
-        'name': botName,
+        name,
         'roomId': parseInt(room, 10),
         'botId': bot,
         'value': newData
       };
 
-      logger.info('Creating botData: ', botData);
+      logger.info('Creating botData: ', name);
       return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData,
         PROXY_URL, TOKEN);
     }, // createBotData
@@ -806,7 +806,7 @@ module.exports = (config) => {
         'value': newData
       };
 
-      logger.info('Updating botData: ', newBotData);
+      logger.info('Updating botData: ', id);
       return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData,
         PROXY_URL, TOKEN);
     }, // changeBotData
@@ -832,7 +832,7 @@ module.exports = (config) => {
         'value': newData
       };
 
-      logger.info('Upserting new botData: ', newBotData);
+      logger.info('Upserting new botData: ', name);
       return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`,
         newBotData, PROXY_URL, TOKEN);
     }, // upsertBotData
