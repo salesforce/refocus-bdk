@@ -17,7 +17,6 @@ function escapeAndStringify(obj) {
   return JSON.stringify(objCopy);
 }
 
-
 /**
  * Safely unescape and parse a stringified object
  *
