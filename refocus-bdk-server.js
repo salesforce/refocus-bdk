@@ -21,6 +21,7 @@ const moment = require('moment');
 const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const io = require('socket.io-client');
+const u = require('./utilities.js');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
 const BOTACTIONS_ROUTE = '/botActions';
@@ -662,7 +663,6 @@ module.exports = (config) => {
 
       return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject,
         PROXY_URL, TOKEN)
-        /* eslint-disable consistent-return */
         .then((instance) => {
           let eventObject = {};
           let userObj = {};
@@ -688,7 +688,7 @@ module.exports = (config) => {
           eventObject.userId = instance.body.userId;
 
           if (instance.body.userId) {
-            genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId,
+            return genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId,
               PROXY_URL, TOKEN)
               .then((userRes, err) => {
                 if (err) {
@@ -705,10 +705,10 @@ module.exports = (config) => {
                 return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
                   PROXY_URL, TOKEN);
               });
-          } else {
-            return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
-              PROXY_URL, TOKEN);
           }
+
+          return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
+            PROXY_URL, TOKEN);
         });
     }, // respondBotAction
 
@@ -768,18 +768,24 @@ module.exports = (config) => {
      *
      * @param {String} room - Id room
      * @param {String} bot - Id of bot
-     * @param {String} botName - Name of data
-     * @param {String} botValue - Value
+     * @param {String} name - Name of data
+     * @param {String/Object} botValue - Value
      * @returns {Promise} - Bot Data response
      */
-    createBotData: (room, bot, botName, botValue) => {
+    createBotData: (room, bot, name, botValue) => {
+      let newData = botValue;
+      if (newData && typeof newData === 'object') {
+        newData = u.escapeAndStringify(newData);
+      }
+
       const botData = {
-        'name': botName,
+        name,
         'roomId': parseInt(room, 10),
         'botId': bot,
-        'value': botValue
+        'value': newData
       };
 
+      logger.info('Creating botData: ', name);
       return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData,
         PROXY_URL, TOKEN);
     }, // createBotData
@@ -788,14 +794,19 @@ module.exports = (config) => {
      * Update bot data by id/name
      *
      * @param {String} id - Id of bot data
-     * @param {Object} botData - botData object
+     * @param {String/Object} botData - botData object
      * @returns {Promise} - Bot Data response
      */
     changeBotData: (id, botData) => {
+      let newData = botData;
+      if (newData && typeof newData === 'object') {
+        newData = u.escapeAndStringify(newData);
+      }
       const newBotData = {
-        'value': botData
+        'value': newData
       };
 
+      logger.info('Updating botData: ', id);
       return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData,
         PROXY_URL, TOKEN);
     }, // changeBotData
@@ -806,17 +817,22 @@ module.exports = (config) => {
      * @param {String} room - ID of room.
      * @param {String} bot - ID of bot.
      * @param {String} name - Name of bot data.
-     * @param {Object} botData - botData object.
+     * @param {String/Object} botData - botData object.
      * @returns {Promise} - Bot Data response.
      */
     upsertBotData: (room, bot, name, botData) => {
+      let newData = botData;
+      if (newData && typeof newData === 'object') {
+        newData = u.escapeAndStringify(newData);
+      }
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
         'botId': bot,
-        'value': botData
+        'value': newData
       };
 
+      logger.info('Upserting new botData: ', name);
       return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`,
         newBotData, PROXY_URL, TOKEN);
     }, // upsertBotData
