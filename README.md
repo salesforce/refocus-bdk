@@ -108,3 +108,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.5.9 botAction tests
 * 1.5.10 botData functions allow Object as a param and object is escaped before creating/patching
 * 1.5.11 Fix apostrophe issue
+* 1.6.0 Added Heartbeat function
+

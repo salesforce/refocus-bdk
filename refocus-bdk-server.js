@@ -31,6 +31,7 @@ const EVENTS_ROUTE = '/events';
 const USERS_ROUTE = '/users';
 const MIN_POLLING_DELAY = 100;
 const MIN_POLLING_REFRESH = 5000;
+const MIN_HEARTBEAT_TIMER = 60000;
 /* eslint-disable no-process-env */
 /* eslint-disable no-implicit-coercion*/
 let POLLING_DELAY =
@@ -41,6 +42,10 @@ let POLLING_REFRESH =
   +process.env.POLLING_REFRESH || MIN_POLLING_REFRESH; // Milliseconds
 POLLING_REFRESH = POLLING_REFRESH > MIN_POLLING_REFRESH ?
   POLLING_REFRESH : MIN_POLLING_REFRESH;
+let HEARTBEAT_TIMER =
+  +process.env.HEARTBEAT_TIMER || MIN_HEARTBEAT_TIMER; // Milliseconds
+HEARTBEAT_TIMER = HEARTBEAT_TIMER > MIN_HEARTBEAT_TIMER ?
+  HEARTBEAT_TIMER : MIN_HEARTBEAT_TIMER;
 /* eslint-enable no-process-env */
 /* eslint-enable no-implicit-coercion*/
 const DEFAULT_UI_PATH = 'web/dist/bot.zip';
@@ -948,6 +953,21 @@ module.exports = (config) => {
         refocusConnectSocket(app, token);
       }
     }, // refocusConnect
+
+    /**
+     *
+     * @param {JSON} packageJSON - Contains information such as
+     *    actions, names, url etc
+     */
+    startHeartBeat(packageJSON){
+      const { name } = packageJSON;
+      setInterval(() => {
+        const currentTimestamp = new Date();
+        const requestBody = { currentTimestamp }
+        genericPost(SERVER+API+BOTS_ROUTE+'/'+name+'/heartbeat', requestBody,
+        PROXY_URL, TOKEN);
+      }, HEARTBEAT_TIMER);
+    }, // heartBeat
 
     /**
      * Installs or updates a bot depending on whether it has been
