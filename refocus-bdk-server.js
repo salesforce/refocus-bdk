@@ -492,8 +492,7 @@ module.exports = (config) => {
 
   /**
     *
-    * @param {JSON} packageJSON - Contains information such as
-    *    actions, names, url etc
+    * @param {string} botName - Contains name of bot
     */
   function startHeartBeat(botName){
     setInterval(() => {
@@ -501,7 +500,7 @@ module.exports = (config) => {
       const requestBody = { currentTimestamp };
       genericPost(SERVER+API+BOTS_ROUTE+'/'+botName+'/heartbeat', requestBody,
         PROXY_URL, TOKEN);
-      }, HEARTBEAT_TIMER);
+    }, HEARTBEAT_TIMER);
   } // heartBeat
 
   return {
@@ -990,7 +989,7 @@ module.exports = (config) => {
         .then(() => {
           logger.info(`${name} successfully updated on: ${SERVER}`);
           if (!HEARTBEAT_OFF){
-            startHeartBeat(name)
+            startHeartBeat(name);
           }
         })
         .catch((error) => {
@@ -1001,7 +1000,7 @@ module.exports = (config) => {
               .then(() => {
                 logger.info(`${name} successfully installed on: ${SERVER}`);
                 if (!HEARTBEAT_OFF){
-                  startHeartBeat(name)
+                  startHeartBeat(name);
                 }
               })
               .catch((installError) => {
