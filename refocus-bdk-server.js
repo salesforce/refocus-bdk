@@ -912,7 +912,8 @@ module.exports = (config) => {
       const roomObject = {
         externalId: eId
       };
-      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`, roomObject, PROXY_URL, TOKEN);
+      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, PROXY_URL, TOKEN);
     }, // updateExternalId
 
     /**
