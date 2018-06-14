@@ -34,6 +34,8 @@ const MIN_POLLING_REFRESH = 5000;
 const MIN_HEARTBEAT_TIMER = 60000;
 /* eslint-disable no-process-env */
 /* eslint-disable no-implicit-coercion*/
+const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
+
 let POLLING_DELAY =
   +process.env.POLLING_DELAY || MIN_POLLING_DELAY; // Second
 POLLING_DELAY = POLLING_DELAY > MIN_POLLING_DELAY ?
@@ -487,6 +489,20 @@ module.exports = (config) => {
         });
     });
   } // updateBot
+
+  /**
+    *
+    * @param {JSON} packageJSON - Contains information such as
+    *    actions, names, url etc
+    */
+  function startHeartBeat(botName){
+    setInterval(() => {
+      const currentTimestamp = new Date();
+      const requestBody = { currentTimestamp };
+      genericPost(SERVER+API+BOTS_ROUTE+'/'+botName+'/heartbeat', requestBody,
+        PROXY_URL, TOKEN);
+      }, HEARTBEAT_TIMER);
+  } // heartBeat
 
   return {
 
@@ -955,21 +971,6 @@ module.exports = (config) => {
     }, // refocusConnect
 
     /**
-     *
-     * @param {JSON} packageJSON - Contains information such as
-     *    actions, names, url etc
-     */
-    startHeartBeat(packageJSON){
-      const { name } = packageJSON;
-      setInterval(() => {
-        const currentTimestamp = new Date();
-        const requestBody = { currentTimestamp }
-        genericPost(SERVER+API+BOTS_ROUTE+'/'+name+'/heartbeat', requestBody,
-        PROXY_URL, TOKEN);
-      }, HEARTBEAT_TIMER);
-    }, // heartBeat
-
-    /**
      * Installs or updates a bot depending on whether it has been
      * installed before or not.
      *
@@ -988,6 +989,9 @@ module.exports = (config) => {
       updateBot(bot)
         .then(() => {
           logger.info(`${name} successfully updated on: ${SERVER}`);
+          if (!HEARTBEAT_OFF){
+            startHeartBeat(name)
+          }
         })
         .catch((error) => {
           // err not found indicate that bot doesnt exist yet
@@ -996,6 +1000,9 @@ module.exports = (config) => {
             installBot(bot)
               .then(() => {
                 logger.info(`${name} successfully installed on: ${SERVER}`);
+                if (!HEARTBEAT_OFF){
+                  startHeartBeat(name)
+                }
               })
               .catch((installError) => {
                 logger.error(`Unable to install bot ${name} on: ${SERVER}`);
