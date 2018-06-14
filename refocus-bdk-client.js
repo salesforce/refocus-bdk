@@ -20,9 +20,11 @@
 const moment = require('moment');
 const url = require('url');
 const request = require('superagent');
+const u = require('./utilities.js');
 // user is a global object provided by the Refocus server
 // eslint-disable-next-line no-undef
-const _user = JSON.parse(user.replace(/&quot;/g, '"'));
+const _user = JSON.parse(user.replace(/&quot;/g, '"')
+  .replace(/apos;/g, "'"));// eslint-disable-line
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
 const BOTACTIONS_ROUTE = '/botActions';
@@ -461,15 +463,20 @@ module.exports = (config) => {
      * @param {String} room - Id room
      * @param {String} bot - Id of bot
      * @param {String} botName - Name of data
-     * @param {String} botValue - Value
+     * @param {String/Object} botValue - Value
      * @returns {Promise} - Bot Data response
      */
     createBotData: (room, bot, botName, botValue) => {
+      let newData = botValue;
+      if (newData && typeof newData === 'object') {
+        newData = u.escapeAndStringify(newData);
+      }
+
       const botData = {
         'name': botName,
         'roomId': parseInt(room, 10),
         'botId': bot,
-        'value': botValue
+        'value': newData
       };
       log.debug('Creating Bot Data', botData);
       return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData, TOKEN);
@@ -510,14 +517,19 @@ module.exports = (config) => {
      * Update bot data by id/name
      *
      * @param {String} id - Id of bot data
-     * @param {Object} botData - botData object
+     * @param {String/Object} botData - botData object
      * @returns {Promise} - Bot Data response
      */
     changeBotData: (id, botData) => {
-      log.debug('Updating Bot Data. ', { id, botData });
+      let newData = botData;
+      if (newData && typeof newData === 'object') {
+        newData = u.escapeAndStringify(newData);
+      }
+
       const newBotData = {
-        'value': botData
+        'value': newData
       };
+      log.debug('Updating Bot Data. ', { id, botData });
       return genericPatch(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, newBotData,
         TOKEN);
     }, // changeBotData
@@ -528,15 +540,19 @@ module.exports = (config) => {
      * @param {String} room - ID of room.
      * @param {String} bot - ID of bot.
      * @param {String} name - Name of bot data.
-     * @param {Object} botData - botData object.
+     * @param {String/Object} botData - botData object.
      * @returns {Promise} - Bot Data response.
      */
     upsertBotData: (room, bot, name, botData) => {
+      let newData = botData;
+      if (newData && typeof newData === 'object') {
+        newData = u.escapeAndStringify(newData);
+      }
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
         'botId': bot,
-        'value': botData
+        'value': newData
       };
 
       log.debug('Upserting new Bot Data ', newBotData);

@@ -105,4 +105,7 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.5.6 Fix missing tokens
 * 1.5.7 Added Get Users Route
 * 1.5.8 Default full name back to user email if no full name exists
-* 1.5.9 Update ExternalId field
+* 1.5.9 botAction tests
+* 1.5.10 botData functions allow Object as a param and object is escaped before creating/patching
+* 1.5.11 Fix apostrophe issue
+* 1.5.12 Update ExternalId field

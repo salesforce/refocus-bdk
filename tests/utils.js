@@ -130,10 +130,36 @@ const botWithUI = {
   settings
 };
 
+const botActionsArray = [
+  {
+    isPending: true,
+    name: 'testActionName'
+  },
+  {
+    isPending: false,
+    name: 'testActionName'
+  }
+];
+
+const easyJSON = {
+  name: 'Test Name',
+  age: '16',
+  phoneNumber: '123456789',
+};
+
+const complicatedJSON = {
+  blah: `blah !@£$%^& "hi" ${'var name'} {}[]::;;||\\><//?><*();`,
+  includesTabs: '       \n 12345 aaa AAA ||',
+  complex: `"""""""""""""" {} ||\\'''''%%%${'var'}"""+=0---00`
+};
+
 module.exports = {
   actions,
   data,
   settings,
   bot,
+  botActionsArray,
   botWithUI,
+  easyJSON,
+  complicatedJSON
 };
