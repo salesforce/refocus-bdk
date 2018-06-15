@@ -61,6 +61,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * getAllEvents
 * getActiveUsers
 * log
+* updateExternalId
 
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
@@ -109,3 +110,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.5.10 botData functions allow Object as a param and object is escaped before creating/patching
 * 1.5.11 Fix apostrophe issue
 * 1.5.12 Update ExternalId field
+* 1.5.13 Can pass any data type into create / update botData
