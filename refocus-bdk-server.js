@@ -938,6 +938,21 @@ module.exports = (config) => {
     }, // createEvents
 
     /**
+     * Updates Room externalId
+     *
+     * @param {Integer} eId - External Id
+     * @param {Integer} rId - Room Id
+     * @returns {Promise} - Room response
+    */
+    updateExternalId: (eId, rId) => {
+      const roomObject = {
+        externalId: eId
+      };
+      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, PROXY_URL, TOKEN);
+    }, // updateExternalId
+
+    /**
      * Abstraction from polling
      *
      * @param {Express} app - App stream so we can push events to the server

@@ -649,6 +649,22 @@ module.exports = (config) => {
       }
       return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN);
     }, // createEvents
+
+    /**
+     * Updates Room externalId
+     *
+     * @param {Integer} eId - External Id
+     * @param {Integer} rId - Room Id
+     * @returns {Promise} - Room response
+    */
+    updateExternalId: (eId, rId) => {
+      const roomObject = {
+        externalId: eId
+      };
+      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, TOKEN);
+    }, // updateExternalId
+
     log,
   };
 };
