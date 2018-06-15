@@ -27,6 +27,9 @@ Note: If you want to test this locally you will need some environment variables:
 * ```BOT_LOGGING``` - If you want to enable logging to a log file set this to "file", if you want to set logging to a console log then set this to "console", if you want to have both set this to "both", if you want neither logging set this to "none", defaults to "console"
 * ```CONSOLE_LOG_LEVEL``` - Set the level of console out you want to see, defaults to 'info'. All levels include error, warn, info, verbose, debug, silly see [WinstonJS](https://github.com/winstonjs/winston/tree/2.4.0) for more details
 * ```FILE_LOG_LEVEL``` - Set the level of logging you want in your log file, defaults to 'verbose'. All levels include error, warn, info, verbose, debug, silly see [WinstonJS](https://github.com/winstonjs/winston/tree/2.4.0) for more details
+* ```HEARTBEAT_OFF``` - Turns off bot heartbeat to refocus
+* ```HEARTBEAT_TIMER``` - how often in milliseconds the heartbeat is sent with a minimum of 1 minute
+
 
 ### Coding Example
 ```javascript
@@ -109,3 +112,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.5.10 botData functions allow Object as a param and object is escaped before creating/patching
 * 1.5.11 Fix apostrophe issue
 * 1.5.12 Update ExternalId field
+* 1.6.0 Added Heartbeat function
