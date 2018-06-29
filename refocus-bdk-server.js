@@ -437,7 +437,7 @@ module.exports = (config) => {
   function updateBot(bot) {
     const {
       name,
-      nickName,
+      nickName = '',
       url,
       active = false,
       version = '1.0.0',
