@@ -373,7 +373,7 @@ module.exports = (config) => {
   function installBot(bot) {
     const {
       name,
-      nickName,
+      nickName = '',
       url,
       active = false,
       version = '1.0.0',
