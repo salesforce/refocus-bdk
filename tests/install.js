@@ -35,6 +35,7 @@ describe('New Bot Installation: ', () => {
         expect(installedBot.name).to.equal(bot.name);
         expect(installedBot.url).to.equal(bot.url);
         expect(installedBot.version).to.equal(bot.version);
+        expect(installedBot.nickName).to.equal(bot.nickName);
         expect(installedBot.actions).to.deep.equal(bot.actions);
         done();
       })

@@ -113,6 +113,7 @@ const bot = {
   url: 'https://buritto-stand.com',
   active: true,
   version: '2.0.0',
+  nickName: 'Insert Cool Nickname Here!',
   ui: 'tests/bot.zip',
   actions,
   data,
