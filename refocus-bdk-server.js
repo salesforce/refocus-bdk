@@ -373,6 +373,7 @@ module.exports = (config) => {
   function installBot(bot) {
     const {
       name,
+      nickName,
       url,
       active = false,
       version = '1.0.0',
@@ -391,6 +392,7 @@ module.exports = (config) => {
         .set('Content-Type', 'multipart/form-data')
         .set('Authorization', TOKEN)
         .field('name', name)
+        .field('nickName', nickName)
         .field('url', url)
         .field('active', active)
         .field('version', version)
@@ -435,6 +437,7 @@ module.exports = (config) => {
   function updateBot(bot) {
     const {
       name,
+      nickName,
       url,
       active = false,
       version = '1.0.0',
@@ -456,6 +459,7 @@ module.exports = (config) => {
         .field('url', url)
         .field('active', active)
         .field('version', version)
+        .field('nickName', nickName)
         .field('actions', JSON.stringify(actions))
         .field('data', JSON.stringify(data))
         .field('settings', JSON.stringify(settings))
@@ -993,8 +997,8 @@ module.exports = (config) => {
      */
     installOrUpdateBot: (packageJSON) => {
       const { metadata: { actions, data, settings },
-        name, url, version } = packageJSON;
-      const bot = { name, url, version, actions,
+        name, url, version, nickName } = packageJSON;
+      const bot = { name, url, version, nickName, actions,
         data, settings, ui: DEFAULT_UI_PATH, active: true };
 
       // try to update a bot

@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/refocus-bdk",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Utilities used by Refocus Bots to communicate with Refocus.",
   "scripts": {
     "test": "mocha tests",
@@ -18,13 +18,14 @@
   },
   "dependencies": {
     "@salesforce/refocus-bdk": "^1.0.3",
+    "file-system": "^2.2.2",
     "moment": "^2.19.2",
     "socket.io-client": "^2.0.4",
     "superagent": "^3.8.1",
     "superagent-proxy": "^1.0.2",
     "winston": "^2.4.0",
     "winston-daily-rotate-file": "^1.7.2",
-    "file-system": "^2.2.2"
+    "yui-lint": "^0.2.0"
   },
   "devDependencies": {
     "babel-eslint": "8.2.2",
