@@ -113,4 +113,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.5.11 Fix apostrophe issue
 * 1.5.12 Update ExternalId field
 * 1.6.0 Added Heartbeat function
-* 1.6.1 Sending nickName on install/update
+* 1.6.1 Sending displayName on install/update
