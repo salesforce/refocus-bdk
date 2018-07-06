@@ -21,7 +21,7 @@ const moment = require('moment');
 const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const io = require('socket.io-client');
-const u = require('./utilities.js');
+const serialize = require('serialize-javascript');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
 const BOTACTIONS_ROUTE = '/botActions';
@@ -789,13 +789,13 @@ module.exports = (config) => {
      * @param {String} room - Id room
      * @param {String} bot - Id of bot
      * @param {String} name - Name of data
-     * @param {String/Object} botValue - Value
+     * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response
      */
-    createBotData: (room, bot, name, botValue) => {
-      let newData = botValue;
-      if (newData && typeof newData === 'object') {
-        newData = u.escapeAndStringify(newData);
+    createBotData: (room, bot, name, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
       }
 
       const botData = {
@@ -814,13 +814,13 @@ module.exports = (config) => {
      * Update bot data by id/name
      *
      * @param {String} id - Id of bot data
-     * @param {String/Object} botData - botData object
+     * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response
      */
-    changeBotData: (id, botData) => {
-      let newData = botData;
-      if (newData && typeof newData === 'object') {
-        newData = u.escapeAndStringify(newData);
+    changeBotData: (id, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
       }
       const newBotData = {
         'value': newData
@@ -837,13 +837,13 @@ module.exports = (config) => {
      * @param {String} room - ID of room.
      * @param {String} bot - ID of bot.
      * @param {String} name - Name of bot data.
-     * @param {String/Object} botData - botData object.
+     * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response.
      */
-    upsertBotData: (room, bot, name, botData) => {
-      let newData = botData;
-      if (newData && typeof newData === 'object') {
-        newData = u.escapeAndStringify(newData);
+    upsertBotData: (room, bot, name, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
       }
       const newBotData = {
         name,
