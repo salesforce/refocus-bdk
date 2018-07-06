@@ -546,6 +546,7 @@ module.exports = (config) => {
       if (newData && typeof newData !== 'string') {
         newData = serialize(newData);
       }
+
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
