@@ -557,7 +557,20 @@ module.exports = (config) => {
 
       log.debug('Upserting new Bot Data ', newBotData);
 
-      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`, TOKEN);
+      return new Promise((resolve) => {
+        const req = request.post(`${SERVER}${API}/botData/upsert`);
+        req
+          .set('Authorization', TOKEN)
+          .set('Content-Type', 'application/json')
+          .send(newBotData)
+          .end((error, res) => {
+            debugMessage('silly', 'Generic Post. ', res);
+            if (error) {
+              debugMessage('error', 'Error: ', { error, res });
+            }
+            resolve(res);
+          });
+      });
     }, // upsertBotData
 
     /**
