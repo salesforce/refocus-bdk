@@ -826,6 +826,7 @@ module.exports = (config) => {
       if (newData && typeof newData !== 'string') {
         newData = serialize(newData);
       }
+
       const newBotData = {
         'value': newData
       };
@@ -849,6 +850,7 @@ module.exports = (config) => {
       if (newData && typeof newData !== 'string') {
         newData = serialize(newData);
       }
+
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
@@ -857,8 +859,21 @@ module.exports = (config) => {
       };
 
       logger.info('Upserting new botData: ', name);
-      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`,
-        newBotData, PROXY_URL, TOKEN);
+
+      return new Promise((resolve) => {
+        const req = request.post(`${SERVER}${API}/botData/upsert`);
+        if (PROXY_URL) {
+          req.proxy(PROXY_URL);
+        }
+        req
+          .set('Authorization', TOKEN)
+          .set('Content-Type', 'application/json')
+          .send(newBotData)
+          .end((error, res) => {
+            logger.error('Upserting new botData error: ', error);
+            resolve(res);
+          });
+      });
     }, // upsertBotData
 
     /**
