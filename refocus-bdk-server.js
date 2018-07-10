@@ -858,12 +858,15 @@ module.exports = (config) => {
 
       return new Promise((resolve) => {
         const req = request.post(`${SERVER}${API}/botData/upsert`);
-        req.proxy(PROXY_URL);
+        if (PROXY_URL) {
+          req.proxy(PROXY_URL);
+        }
         req
           .set('Authorization', TOKEN)
           .set('Content-Type', 'application/json')
           .send(newBotData)
           .end((error, res) => {
+            logger.error('Upserting new botData error: ', error);
             resolve(res);
           });
       });
