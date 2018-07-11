@@ -20,7 +20,7 @@
 const moment = require('moment');
 const url = require('url');
 const request = require('superagent');
-const u = require('./utilities.js');
+const serialize = require('serialize-javascript');
 // user is a global object provided by the Refocus server
 // eslint-disable-next-line no-undef
 const _user = JSON.parse(user.replace(/&quot;/g, '"')
@@ -463,15 +463,14 @@ module.exports = (config) => {
      * @param {String} room - Id room
      * @param {String} bot - Id of bot
      * @param {String} botName - Name of data
-     * @param {String/Object} botValue - Value
+     * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response
      */
-    createBotData: (room, bot, botName, botValue) => {
-      let newData = botValue;
-      if (newData && typeof newData === 'object') {
-        newData = u.escapeAndStringify(newData);
+    createBotData: (room, bot, botName, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
       }
-
       const botData = {
         'name': botName,
         'roomId': parseInt(room, 10),
@@ -517,19 +516,18 @@ module.exports = (config) => {
      * Update bot data by id/name
      *
      * @param {String} id - Id of bot data
-     * @param {String/Object} botData - botData object
+     * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response
      */
-    changeBotData: (id, botData) => {
-      let newData = botData;
-      if (newData && typeof newData === 'object') {
-        newData = u.escapeAndStringify(newData);
+    changeBotData: (id, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
       }
-
       const newBotData = {
         'value': newData
       };
-      log.debug('Updating Bot Data. ', { id, botData });
+      log.debug('Updating Bot Data. ', { id, newBotData });
       return genericPatch(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, newBotData,
         TOKEN);
     }, // changeBotData
@@ -540,14 +538,15 @@ module.exports = (config) => {
      * @param {String} room - ID of room.
      * @param {String} bot - ID of bot.
      * @param {String} name - Name of bot data.
-     * @param {String/Object} botData - botData object.
+     * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response.
      */
-    upsertBotData: (room, bot, name, botData) => {
-      let newData = botData;
-      if (newData && typeof newData === 'object') {
-        newData = u.escapeAndStringify(newData);
+    upsertBotData: (room, bot, name, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
       }
+
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
@@ -557,7 +556,20 @@ module.exports = (config) => {
 
       log.debug('Upserting new Bot Data ', newBotData);
 
-      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`, TOKEN);
+      return new Promise((resolve) => {
+        const req = request.post(`${SERVER}${API}/botData/upsert`);
+        req
+          .set('Authorization', TOKEN)
+          .set('Content-Type', 'application/json')
+          .send(newBotData)
+          .end((error, res) => {
+            debugMessage('silly', 'Generic Post. ', res);
+            if (error) {
+              debugMessage('error', 'Error: ', { error, res });
+            }
+            resolve(res);
+          });
+      });
     }, // upsertBotData
 
     /**
