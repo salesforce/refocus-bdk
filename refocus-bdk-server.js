@@ -21,7 +21,7 @@ const moment = require('moment');
 const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const io = require('socket.io-client');
-const u = require('./utilities.js');
+const serialize = require('serialize-javascript');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
 const BOTACTIONS_ROUTE = '/botActions';
@@ -373,7 +373,7 @@ module.exports = (config) => {
   function installBot(bot) {
     const {
       name,
-      displayName = '',
+      displayName,
       url,
       active = false,
       version = '1.0.0',
@@ -388,11 +388,15 @@ module.exports = (config) => {
       if (PROXY_URL) {
         req.proxy(PROXY_URL);
       }
+
+      if (displayName) {
+        req.field('displayName', displayName);
+      }
+
       req
         .set('Content-Type', 'multipart/form-data')
         .set('Authorization', TOKEN)
         .field('name', name)
-        .field('displayName', displayName)
         .field('url', url)
         .field('active', active)
         .field('version', version)
@@ -437,7 +441,7 @@ module.exports = (config) => {
   function updateBot(bot) {
     const {
       name,
-      displayName = '',
+      displayName,
       url,
       active = false,
       version = '1.0.0',
@@ -452,6 +456,11 @@ module.exports = (config) => {
       if (PROXY_URL) {
         req.proxy(PROXY_URL);
       }
+
+      if (displayName) {
+        req.field('displayName', displayName);
+      }
+
       req
         .set('Content-Type', 'multipart/form-data')
         .set('Authorization', TOKEN)
@@ -459,7 +468,6 @@ module.exports = (config) => {
         .field('url', url)
         .field('active', active)
         .field('version', version)
-        .field('displayName', displayName)
         .field('actions', JSON.stringify(actions))
         .field('data', JSON.stringify(data))
         .field('settings', JSON.stringify(settings))
@@ -793,13 +801,13 @@ module.exports = (config) => {
      * @param {String} room - Id room
      * @param {String} bot - Id of bot
      * @param {String} name - Name of data
-     * @param {String/Object} botValue - Value
+     * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response
      */
-    createBotData: (room, bot, name, botValue) => {
-      let newData = botValue;
-      if (newData && typeof newData === 'object') {
-        newData = u.escapeAndStringify(newData);
+    createBotData: (room, bot, name, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
       }
 
       const botData = {
@@ -818,14 +826,15 @@ module.exports = (config) => {
      * Update bot data by id/name
      *
      * @param {String} id - Id of bot data
-     * @param {String/Object} botData - botData object
+     * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response
      */
-    changeBotData: (id, botData) => {
-      let newData = botData;
-      if (newData && typeof newData === 'object') {
-        newData = u.escapeAndStringify(newData);
+    changeBotData: (id, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
       }
+
       const newBotData = {
         'value': newData
       };
@@ -841,14 +850,15 @@ module.exports = (config) => {
      * @param {String} room - ID of room.
      * @param {String} bot - ID of bot.
      * @param {String} name - Name of bot data.
-     * @param {String/Object} botData - botData object.
+     * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response.
      */
-    upsertBotData: (room, bot, name, botData) => {
-      let newData = botData;
-      if (newData && typeof newData === 'object') {
-        newData = u.escapeAndStringify(newData);
+    upsertBotData: (room, bot, name, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
       }
+
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
@@ -857,8 +867,21 @@ module.exports = (config) => {
       };
 
       logger.info('Upserting new botData: ', name);
-      return genericPost(`${SERVER}${API}${ROOMS_ROUTE}/botData/upsert`,
-        newBotData, PROXY_URL, TOKEN);
+
+      return new Promise((resolve) => {
+        const req = request.post(`${SERVER}${API}/botData/upsert`);
+        if (PROXY_URL) {
+          req.proxy(PROXY_URL);
+        }
+        req
+          .set('Authorization', TOKEN)
+          .set('Content-Type', 'application/json')
+          .send(newBotData)
+          .end((error, res) => {
+            logger.error('Upserting new botData error: ', error);
+            resolve(res);
+          });
+      });
     }, // upsertBotData
 
     /**
