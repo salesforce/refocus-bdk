@@ -373,6 +373,7 @@ module.exports = (config) => {
   function installBot(bot) {
     const {
       name,
+      displayName,
       url,
       active = false,
       version = '1.0.0',
@@ -387,6 +388,11 @@ module.exports = (config) => {
       if (PROXY_URL) {
         req.proxy(PROXY_URL);
       }
+
+      if (displayName) {
+        req.field('displayName', displayName);
+      }
+
       req
         .set('Content-Type', 'multipart/form-data')
         .set('Authorization', TOKEN)
@@ -435,6 +441,7 @@ module.exports = (config) => {
   function updateBot(bot) {
     const {
       name,
+      displayName,
       url,
       active = false,
       version = '1.0.0',
@@ -449,6 +456,11 @@ module.exports = (config) => {
       if (PROXY_URL) {
         req.proxy(PROXY_URL);
       }
+
+      if (displayName) {
+        req.field('displayName', displayName);
+      }
+
       req
         .set('Content-Type', 'multipart/form-data')
         .set('Authorization', TOKEN)
@@ -1008,8 +1020,8 @@ module.exports = (config) => {
      */
     installOrUpdateBot: (packageJSON) => {
       const { metadata: { actions, data, settings },
-        name, url, version } = packageJSON;
-      const bot = { name, url, version, actions,
+        name, url, version, displayName } = packageJSON;
+      const bot = { name, url, version, displayName, actions,
         data, settings, ui: DEFAULT_UI_PATH, active: true };
 
       // try to update a bot
