@@ -117,3 +117,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.1 Can pass any data type into create / update botData
 * 1.6.2 Fix Upsert Bug
 * 1.6.3 Sending displayName on install/update
+* 1.6.4 Update room name

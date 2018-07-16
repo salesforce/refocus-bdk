@@ -980,6 +980,21 @@ module.exports = (config) => {
     }, // updateExternalId
 
     /**
+     * Updates Room name
+     *
+     * @param {Integer} name - Room name
+     * @param {Integer} rId - Room Id
+     * @returns {Promise} - Room response
+    */
+    updateRoomName: (name, rId) => {
+      const roomObject = {
+        name
+      };
+      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, PROXY_URL, TOKEN);
+    }, // updateRoomName
+
+    /**
      * Abstraction from polling
      *
      * @param {Express} app - App stream so we can push events to the server
