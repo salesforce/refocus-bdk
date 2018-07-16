@@ -982,7 +982,7 @@ module.exports = (config) => {
     /**
      * Updates Room name
      *
-     * @param {Integer} name - Room name
+     * @param {String} name - Room name
      * @param {Integer} rId - Room Id
      * @returns {Promise} - Room response
     */
