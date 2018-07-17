@@ -677,6 +677,21 @@ module.exports = (config) => {
         roomObject, TOKEN);
     }, // updateExternalId
 
+    /**
+     * Updates Room name
+     *
+     * @param {String} name - Room name
+     * @param {Integer} rId - Room Id
+     * @returns {Promise} - Room response
+    */
+    updateRoomName: (name, rId) => {
+      const roomObject = {
+        name
+      };
+      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, TOKEN);
+    }, // updateRoomName
+
     log,
   };
 };
