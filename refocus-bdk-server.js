@@ -878,7 +878,10 @@ module.exports = (config) => {
           .set('Content-Type', 'application/json')
           .send(newBotData)
           .end((error, res) => {
-            logger.error('Upserting new botData error: ', error);
+            if (error) {
+              logger.error('Upserting new botData error: ', error);
+            }
+
             resolve(res);
           });
       });
