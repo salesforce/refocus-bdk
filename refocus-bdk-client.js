@@ -35,6 +35,9 @@ const USERS_ROUTE = '/users';
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
 const ONE = 1;
+const defaultMaxEvents = 2000;
+const maxEvents = process.env.MAX_EVENTS || // eslint-disable-line
+  defaultMaxEvents;
 
 /**
  * Returns console.logs depending on the URL parameters
@@ -609,7 +612,7 @@ module.exports = (config) => {
           if ((events.body) && (total > events.body.length)) {
             limit = events.body.length;
             offset = NO_OFFSET;
-            while (offset < total) {
+            while (offset < total && offset < maxEvents) {
               allEvents.push(
                 genericGet(getRoute, TOKEN)
               );
