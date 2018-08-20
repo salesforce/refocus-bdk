@@ -602,7 +602,7 @@ module.exports = (config) => {
       log.debug('Get all events for Room ', room);
       const baseUrl =
         `${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}&sort=-createdAt`;
-      const getRoute = type ? baseUrl : `${baseUrl}&type=${type}`;
+      const getRoute = type ? `${baseUrl}&type=${type}` : baseUrl;
       let limit;
       let offset;
       return genericGet(getRoute, TOKEN)
