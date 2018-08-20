@@ -592,14 +592,17 @@ module.exports = (config) => {
      * Find all events by room
      *
      * @param {String} room - ID of room
+     * @param {String} type - Type of Event to filter by
      * @returns {Promise} - All the events of the room
      */
-    getAllEvents: (room) => {
+    getAllEvents: (room, type) => {
       log.debug('Get all events for Room ', room);
+      let getRoute =
+        `${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}&sort=-createdAt`;
+      getRoute = type ? `${getRoute}&type=${type}` : getRoute;
       let limit;
       let offset;
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`,
-        TOKEN)
+      return genericGet(getRoute, TOKEN)
         .then((events) => {
           const allEvents = [];
           const total = events.header['x-total-count'];
@@ -608,8 +611,7 @@ module.exports = (config) => {
             offset = NO_OFFSET;
             while (offset < total) {
               allEvents.push(
-                genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-                  `&limit=${limit}&offset=${offset}`, TOKEN)
+                genericGet(getRoute, TOKEN)
               );
               offset += limit;
             }
