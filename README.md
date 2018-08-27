@@ -121,3 +121,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.4 Update room name
 * 1.6.5 Only log upsert error if there is an error.
 * 1.6.6 Can filter Events by type.
+
