@@ -22,6 +22,7 @@ const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const io = require('socket.io-client');
 const serialize = require('serialize-javascript');
+const u = require('./utilities.js');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
 const BOTACTIONS_ROUTE = '/botActions';
@@ -102,76 +103,6 @@ const logger = new (winston.Logger)({
     })
   ]
 });
-
-/**
- * Get JSON from server asynchronous
- *
- * @param {String} route - URL for route
- * @param {String} proxy - Proxy URL
- * @param {String} apiToken - Refocus API Token
- * @returns {Promise} - Route response
- */
-function genericGet(route, proxy, apiToken){
-  return new Promise((resolve) => {
-    const req = request.get(route);
-    if (proxy) {
-      req.proxy(proxy);
-    }
-    req
-      .set('Authorization', apiToken)
-      .end((error, res) => {
-        resolve(res);
-      });
-  });
-} // genericGet
-
-/**
- * Patch JSON to server asynchronous
- *
- * @param {String} route - URL for route
- * @param {JSON} obj - the payload needed for route
- * @param {String} proxy - Proxy URL
- * @param {String} apiToken - Refocus API Token
- * @returns {Promise} - Route response
- */
-function genericPatch(route, obj, proxy, apiToken){
-  return new Promise((resolve) => {
-    const req = request.patch(route);
-    if (proxy) {
-      req.proxy(proxy);
-    }
-    req
-      .set('Authorization', apiToken)
-      .send(obj)
-      .end((error, res) => {
-        resolve(res);
-      });
-  });
-} // genericPatch
-
-/**
- * Post JSON to server asynchronous
- *
- * @param {String} route - URL for route
- * @param {JSON} obj - the payload needed for route
- * @param {String} proxy - Proxy URL
- * @param {String} apiToken - Refocus API Token
- * @returns {Promise} - Route response
- */
-function genericPost(route, obj, proxy, apiToken){
-  return new Promise((resolve) => {
-    const req = request.post(route);
-    if (proxy) {
-      req.proxy(proxy);
-    }
-    req
-      .set('Authorization', apiToken)
-      .send(obj)
-      .end((error, res) => {
-        resolve(res);
-      });
-  });
-} // genericPost
 
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
@@ -313,8 +244,8 @@ module.exports = (config) => {
         }
       }
 
-      genericGet(SERVER+API+BOTACTIONS_ROUTE+options+'&isPending=true',
-        PROXY_URL, TOKEN)
+      u.genericGet(SERVER+API+BOTACTIONS_ROUTE+options+'&isPending=true',
+        TOKEN, PROXY_URL)
         .then((botActions) => {
           if (botActions && botActions.body) {
             botActions.body.forEach((botAction) => {
@@ -347,9 +278,9 @@ module.exports = (config) => {
                   'response': { 'error': 'Polling Request Timeout' },
                 };
 
-                genericPatch(
+                u.genericPatch(
                   SERVER + API + BOTACTIONS_ROUTE + '/' + botAction.id,
-                  responseObject, PROXY_URL, TOKEN
+                  responseObject, TOKEN, PROXY_URL
                 )
                   .catch((error) => {
                     logger.error(
@@ -510,8 +441,8 @@ module.exports = (config) => {
     setInterval(() => {
       const currentTimestamp = new Date();
       const requestBody = { currentTimestamp };
-      genericPost(SERVER+API+BOTS_ROUTE+'/'+botName+'/heartbeat', requestBody,
-        PROXY_URL, TOKEN);
+      u.genericPost(SERVER+API+BOTS_ROUTE+'/'+botName+'/heartbeat', requestBody,
+        TOKEN, PROXY_URL);
     }, HEARTBEAT_TIMER);
   } // heartBeat
 
@@ -536,7 +467,7 @@ module.exports = (config) => {
      * @returns {Promise} - Room response
      */
     findRoom: (id) => {
-      return genericGet(SERVER+API+ROOMS_ROUTE+'/'+id, PROXY_URL, TOKEN);
+      return u.genericGet(SERVER+API+ROOMS_ROUTE+'/'+id, TOKEN, PROXY_URL);
     }, // findRoom
 
     /**
@@ -550,8 +481,8 @@ module.exports = (config) => {
       const patch = {
         'settings': newSettings,
       };
-      return genericPatch(SERVER+API+ROOMS_ROUTE+'/'+id, patch,
-        PROXY_URL, TOKEN);
+      return u.genericPatch(SERVER+API+ROOMS_ROUTE+'/'+id, patch,
+        TOKEN, PROXY_URL);
     }, // updateSettings
 
     /**
@@ -562,8 +493,8 @@ module.exports = (config) => {
      */
     getUser: (id) => {
       log.debug('Getting User ', id);
-      return genericGet(`${SERVER}${API}${USERS_ROUTE}/${id}`,
-        PROXY_URL, TOKEN);
+      return u.genericGet(`${SERVER}${API}${USERS_ROUTE}/${id}`,
+        TOKEN, PROXY_URL);
     }, // getUser
 
     /**
@@ -574,8 +505,8 @@ module.exports = (config) => {
      * @returns {Promise} - An object of the users currently in the room
      */
     getActiveUsers: (room) => {
-      return genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room,
-        PROXY_URL, TOKEN)
+      return u.genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room,
+        TOKEN, PROXY_URL)
         .then((events) => {
           const users = [];
           const userEvents = events.body
@@ -615,7 +546,7 @@ module.exports = (config) => {
      * @returns {Promise} - Bot response
      */
     findBot: (id) => {
-      return genericGet(SERVER+API+BOTS_ROUTE+'/'+id, PROXY_URL, TOKEN);
+      return u.genericGet(SERVER+API+BOTS_ROUTE+'/'+id, TOKEN, PROXY_URL);
     }, // findBot
 
     /**
@@ -625,7 +556,7 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Action response
      */
     findBotAction: (id) => {
-      return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+id, PROXY_URL, TOKEN);
+      return u.genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+id, TOKEN, PROXY_URL);
     }, // findBotAction
 
     /**
@@ -638,17 +569,17 @@ module.exports = (config) => {
      */
     getBotActions: (room, bot, name) => {
       if (!bot) {
-        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room,
-          PROXY_URL, TOKEN);
+        return u.genericGet(SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room,
+          TOKEN, PROXY_URL);
       } else if (!name) {
-        return genericGet(
+        return u.genericGet(
           SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room+'&botId='+bot,
-          PROXY_URL, TOKEN
+          TOKEN, PROXY_URL
         );
       }
-      return genericGet(
+      return u.genericGet(
         SERVER+API+BOTACTIONS_ROUTE+
-        '?roomId='+room+'&botId='+bot+'&name='+name, PROXY_URL, TOKEN
+        '?roomId='+room+'&botId='+bot+'&name='+name, TOKEN, PROXY_URL
       );
     }, // getBotActions
 
@@ -659,8 +590,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Action response
      */
     createBotAction: (botAction) => {
-      return genericPost(SERVER+API+BOTACTIONS_ROUTE+'/', botAction,
-        PROXY_URL, TOKEN);
+      return u.genericPost(SERVER+API+BOTACTIONS_ROUTE+'/', botAction,
+        TOKEN, PROXY_URL);
     }, // createBotAction
 
     /**
@@ -693,8 +624,8 @@ module.exports = (config) => {
         responseObject.parameters = parametersOverride;
       }
 
-      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject,
-        PROXY_URL, TOKEN)
+      return u.genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject,
+        TOKEN, PROXY_URL)
         .then((instance) => {
           let eventObject = {};
           let userObj = {};
@@ -720,12 +651,12 @@ module.exports = (config) => {
           eventObject.userId = instance.body.userId;
 
           if (instance.body.userId) {
-            return genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId,
-              PROXY_URL, TOKEN)
+            return u.genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId,
+              TOKEN, PROXY_URL)
               .then((userRes, err) => {
                 if (err) {
-                  return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
-                    PROXY_URL, TOKEN);
+                  return u.genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
+                    TOKEN, PROXY_URL);
                 }
 
                 userObj = {
@@ -734,13 +665,13 @@ module.exports = (config) => {
                 };
 
                 eventObject.context.user = userObj;
-                return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
-                  PROXY_URL, TOKEN);
+                return u.genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
+                  TOKEN, PROXY_URL);
               });
           }
 
-          return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
-            PROXY_URL, TOKEN);
+          return u.genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
+            TOKEN, PROXY_URL);
         });
     }, // respondBotAction
 
@@ -757,8 +688,8 @@ module.exports = (config) => {
         'response': res,
       };
 
-      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject,
-        PROXY_URL, TOKEN);
+      return u.genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject,
+        TOKEN, PROXY_URL);
     }, // respondBotActionNoLog
 
     /**
@@ -768,8 +699,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     findBotData: (id) => {
-      return genericGet(SERVER+API+BOTDATA_ROUTE+'/'+id,
-        PROXY_URL, TOKEN);
+      return u.genericGet(SERVER+API+BOTDATA_ROUTE+'/'+id,
+        TOKEN, PROXY_URL);
     }, // findBotData
 
     /**
@@ -782,16 +713,16 @@ module.exports = (config) => {
      */
     getBotData: (room, bot, name) => {
       if (!bot) {
-        return genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/data',
-          PROXY_URL, TOKEN);
+        return u.genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/data',
+          TOKEN, PROXY_URL);
       } if (!name) {
-        return genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/data',
-          PROXY_URL, TOKEN);
+        return u.genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+
+          '/data', TOKEN, PROXY_URL);
       }
 
-      return genericGet(
+      return u.genericGet(
         SERVER+API+BOTDATA_ROUTE+'?roomId='+room+'&botId='+bot+'&name='+name,
-        PROXY_URL, TOKEN
+        TOKEN, PROXY_URL
       );
     }, // getBotData
 
@@ -818,8 +749,8 @@ module.exports = (config) => {
       };
 
       logger.info('Creating botData: ', name);
-      return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData,
-        PROXY_URL, TOKEN);
+      return u.genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData,
+        TOKEN, PROXY_URL);
     }, // createBotData
 
     /**
@@ -840,8 +771,8 @@ module.exports = (config) => {
       };
 
       logger.info('Updating botData: ', id);
-      return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData,
-        PROXY_URL, TOKEN);
+      return u.genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData,
+        TOKEN, PROXY_URL);
     }, // changeBotData
 
     /**
@@ -899,8 +830,8 @@ module.exports = (config) => {
       log.debug('Get specified events for Room ', room);
       const limitAmount = limit || DEFAULT_LIMIT;
       const offsetAmount = offset || NO_OFFSET;
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-        `&limit=${limitAmount}&offset=${offsetAmount}`, PROXY_URL, TOKEN);
+      return u.genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+        `&limit=${limitAmount}&offset=${offsetAmount}`, TOKEN, PROXY_URL);
     }, // getEvents
 
     /**
@@ -913,8 +844,8 @@ module.exports = (config) => {
       log.debug('Get all events for Room ', room);
       let limit;
       let offset;
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`,
-        PROXY_URL, TOKEN)
+      return u.genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`,
+        TOKEN, PROXY_URL)
         .then((events) => {
           const allEvents = [];
           const total = events.header['x-total-count'];
@@ -923,8 +854,8 @@ module.exports = (config) => {
             offset = NO_OFFSET;
             while (offset < total) {
               allEvents.push(
-                genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-                  `&limit=${limit}&offset=${offset}`, PROXY_URL, TOKEN)
+                u.genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+                  `&limit=${limit}&offset=${offset}`, TOKEN, PROXY_URL)
               );
               offset += limit;
             }
@@ -963,8 +894,8 @@ module.exports = (config) => {
       if (context) {
         events.context = context;
       }
-      return genericPost(SERVER+API+EVENTS_ROUTE, events,
-        PROXY_URL, TOKEN);
+      return u.genericPost(SERVER+API+EVENTS_ROUTE, events,
+        TOKEN, PROXY_URL);
     }, // createEvents
 
     /**
@@ -978,8 +909,8 @@ module.exports = (config) => {
       const roomObject = {
         externalId: eId
       };
-      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
-        roomObject, PROXY_URL, TOKEN);
+      return u.genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, TOKEN, PROXY_URL);
     }, // updateExternalId
 
     /**
@@ -993,8 +924,8 @@ module.exports = (config) => {
       const roomObject = {
         name
       };
-      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
-        roomObject, PROXY_URL, TOKEN);
+      return u.genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, TOKEN, PROXY_URL);
     }, // updateRoomName
 
     /**
@@ -1008,8 +939,8 @@ module.exports = (config) => {
       let botId = '';
       let botRoute = '/';
       if (botName) {
-        genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName,
-          PROXY_URL, TOKEN)
+        u.genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName,
+          TOKEN, PROXY_URL)
           .then((bots) => {
             if (bots && bots.body && bots.body.length) {
               botId = bots.body[START_OF_ARRAY].id;

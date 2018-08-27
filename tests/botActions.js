@@ -10,7 +10,7 @@ const expect = require('chai').expect;
 const rewire = require('rewire');
 const config = { refocusUrl: 'zzz', token: 'dummy' };
 const bdkServer = rewire('../refocus-bdk-server.js');
-const { botActionsArray } = require('./utils');
+const { botActionsArray } = require('./testUtils');
 
 // Create enviornment for client code to work
 global.user = '{&quot;email&quot;:&quot;test@test.com&quot;}';

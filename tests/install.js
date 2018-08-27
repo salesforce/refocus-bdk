@@ -11,7 +11,7 @@ const sinon = require('sinon');
 const _ = require('lodash');
 const config = { refocusUrl: 'zzz', token: 'dummy' };
 const bdk = require('../refocus-bdk-server')(config);
-const { bot, botWithUI } = require('./utils');
+const { bot, botWithUI } = require('./testUtils');
 
 describe('New Bot Installation: ', () => {
   beforeEach(() => {

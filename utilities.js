@@ -1,38 +1,73 @@
-const _ = require('lodash');
+const request = require('superagent');
 
 /**
- * Safely escape and stringify a JSON object
+ * Get JSON from server asynchronous
  *
- * @param {JSON} obj - JSON object to be escaped and stringified.
- * @returns {String} - Escaped and Stringified
+ * @param {String} route - URL for route
+ * @param {String} apiToken - Refocus API Token
+ * @param {String} proxy - Proxy URL
+ * @returns {Promise} - Route response
  */
-function escapeAndStringify(obj) {
-  const objCopy = Object.assign({}, obj);
-  for (const k in objCopy) {
-    if (objCopy.hasOwnProperty(k)) {
-      objCopy[k] = _.escape(objCopy[k]);
+function genericGet(route, apiToken, proxy){
+  return new Promise((resolve) => {
+    const req = request.get(route);
+    if (proxy) {
+      req.proxy(proxy);
     }
-  }
-
-  return JSON.stringify(objCopy);
-}
+    req
+      .set('Authorization', apiToken)
+      .end((error, res) => {
+        resolve(res);
+      });
+  });
+} // genericGet
 
 /**
- * Safely unescape and parse a stringified object
+ * Patch JSON to server asynchronous
  *
- * @param {String} str - Stringified object to be parsed.
- * @returns {JSON} - Unescaped and parsed
+ * @param {String} route - URL for route
+ * @param {JSON} obj - the payload needed for route
+ * @param {String} apiToken - Refocus API Token
+ * @param {String} proxy - Proxy URL
+ * @returns {Promise} - Route response
  */
-function parseAndUnescape(str) {
-  const obj = JSON.parse(str);
-
-  for (const k in obj) {
-    if (obj.hasOwnProperty(k)) {
-      obj[k] = _.unescape(obj[k]);
+function genericPatch(route, obj, apiToken, proxy){
+  return new Promise((resolve) => {
+    const req = request.patch(route);
+    if (proxy) {
+      req.proxy(proxy);
     }
-  }
+    req
+      .set('Authorization', apiToken)
+      .send(obj)
+      .end((error, res) => {
+        resolve(res);
+      });
+  });
+} // genericPatch
 
-  return obj;
-}
+/**
+ * Post JSON to server asynchronous
+ *
+ * @param {String} route - URL for route
+ * @param {JSON} obj - the payload needed for route
+ * @param {String} apiToken - Refocus API Token
+ * @param {String} proxy - Proxy URL
+ * @returns {Promise} - Route response
+ */
+function genericPost(route, obj, apiToken, proxy){
+  return new Promise((resolve) => {
+    const req = request.post(route);
+    if (proxy) {
+      req.proxy(proxy);
+    }
+    req
+      .set('Authorization', apiToken)
+      .send(obj)
+      .end((error, res) => {
+        resolve(res);
+      });
+  });
+} // genericPost
 
-module.exports = { escapeAndStringify, parseAndUnescape };
+module.exports = { genericGet, genericPatch, genericPost };

@@ -1,19 +1,29 @@
-const sinon = require('sinon');
-const u = require('../utilities.js');
-const { easyJSON, complicatedJSON } = require('./utils');
-
-describe('Escaping and Stringifying Objects: ', () => {
-  it('Ok, easy JSON stringified and parsed again', (done) => {
-    const stringified = u.escapeAndStringify(easyJSON);
-    const reverted = u.parseAndUnescape(stringified);
-    sinon.assert.match(reverted, easyJSON);
+describe('Generic Get: ', () => {
+  it('Ok, genericGet function works', (done) => {
     done();
   });
 
-  it('Ok, complicated JSON stringified and parsed again', (done) => {
-    const stringified = u.escapeAndStringify(complicatedJSON);
-    const reverted = u.parseAndUnescape(stringified);
-    sinon.assert.match(reverted, complicatedJSON);
+  it('Ok, genericGet without API token returns forbidden', (done) => {
+    done();
+  });
+});
+
+describe('Generic Patch: ', () => {
+  it('Ok, genericPatch function works', (done) => {
+    done();
+  });
+
+  it('Ok, genericPatch without API token returns forbidden', (done) => {
+    done();
+  });
+});
+
+describe('Generic Post: ', () => {
+  it('Ok, genericPost function works', (done) => {
+    done();
+  });
+
+  it('Ok, genericPost without API token returns forbidden', (done) => {
     done();
   });
 });
