@@ -35,6 +35,9 @@ const USERS_ROUTE = '/users';
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
 const ONE = 1;
+const defaultMaxEvents = 2000;
+const maxEvents = process.env.MAX_EVENTS || // eslint-disable-line
+  defaultMaxEvents;
 
 /**
  * Returns console.logs depending on the URL parameters
@@ -592,24 +595,27 @@ module.exports = (config) => {
      * Find all events by room
      *
      * @param {String} room - ID of room
+     * @param {String} type - Type of Event to filter by
      * @returns {Promise} - All the events of the room
      */
-    getAllEvents: (room) => {
+    getAllEvents: (room, type) => {
       log.debug('Get all events for Room ', room);
+      const baseUrl =
+        `${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}&sort=-createdAt`;
+      const getRoute = type ? `${baseUrl}&type=${type}` : baseUrl;
       let limit;
       let offset;
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`,
-        TOKEN)
+      return genericGet(getRoute, TOKEN)
         .then((events) => {
           const allEvents = [];
           const total = events.header['x-total-count'];
           if ((events.body) && (total > events.body.length)) {
             limit = events.body.length;
             offset = NO_OFFSET;
-            while (offset < total) {
+            while (offset < total && offset < maxEvents) {
               allEvents.push(
-                genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-                  `&limit=${limit}&offset=${offset}`, TOKEN)
+                genericGet(`${getRoute}&limit=${limit}&offset=${offset}`,
+                  TOKEN)
               );
               offset += limit;
             }
