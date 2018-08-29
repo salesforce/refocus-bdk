@@ -506,7 +506,7 @@ module.exports = (config) => {
     getBotData: (room, bot, name) => {
       log.debug('Getting Bot Data. ', { room, bot, name });
       if (!bot) {
-        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${room}/data`, TOKEN);
+        return log.error('getBotData needs botname');
       } if (!name) {
         return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/` +
           `${room}/bots/${bot}/data`, TOKEN);
