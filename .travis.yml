@@ -20,4 +20,6 @@ git:
   depth: 2
 
 script:
+  - npm run lint
   - npm test
+  - npm run coverage

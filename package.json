@@ -3,8 +3,9 @@
   "version": "1.6.7",
   "description": "Utilities used by Refocus Bots to communicate with Refocus.",
   "scripts": {
+    "lint": "eslint --ext=js --ext=jsx . ",
     "test": "mocha tests",
-    "lint": "eslint --ext=js --ext=jsx ."
+    "coverage": "istanbul cover _mocha tests"
   },
   "main": "refocus-bdk-server.js",
   "browser": "refocus-bdk-client.js",
@@ -34,6 +35,7 @@
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "7.7.0",
     "husky": "^0.15.0-rc.8",
+    "istanbul": "^0.4.5",
     "mocha": "5.0.5",
     "rewire": "^4.0.0",
     "sinon": "4.5.0",
