@@ -54,6 +54,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * log
 * updateExternalId
 * updateRoomName
+* getActiveRooms
 
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
@@ -109,4 +110,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.4 Update room name
 * 1.6.5 Only log upsert error if there is an error.
 * 1.6.6 Can filter Events by type.
-* 1.6.7 Fix getBotData to not return all room data
+* 1.6.7 Fix getBotData to not return all room data.
+* 1.6.8 Get a list of all active rooms.
