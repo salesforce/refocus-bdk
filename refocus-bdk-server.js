@@ -373,8 +373,10 @@ module.exports = (config) => {
   function installBot(bot) {
     const {
       name,
-      displayName,
+      displayName = '',
       url,
+      docsUrl = '',
+      ownerUrl = '',
       active = false,
       version = '1.0.0',
       actions = [],
@@ -389,15 +391,14 @@ module.exports = (config) => {
         req.proxy(PROXY_URL);
       }
 
-      if (displayName) {
-        req.field('displayName', displayName);
-      }
-
       req
         .set('Content-Type', 'multipart/form-data')
         .set('Authorization', TOKEN)
         .field('name', name)
+        .field('displayName', displayName)
         .field('url', url)
+        .field('docsUrl', docsUrl)
+        .field('ownerUrl', ownerUrl)
         .field('active', active)
         .field('version', version)
         .field('actions', JSON.stringify(actions))
@@ -441,8 +442,10 @@ module.exports = (config) => {
   function updateBot(bot) {
     const {
       name,
-      displayName,
+      displayName = '',
       url,
+      docsUrl = '',
+      ownerUrl = '',
       active = false,
       version = '1.0.0',
       actions = [],
@@ -457,15 +460,14 @@ module.exports = (config) => {
         req.proxy(PROXY_URL);
       }
 
-      if (displayName) {
-        req.field('displayName', displayName);
-      }
-
       req
         .set('Content-Type', 'multipart/form-data')
         .set('Authorization', TOKEN)
         .field('name', name)
+        .field('displayName', displayName)
         .field('url', url)
+        .field('docsUrl', docsUrl)
+        .field('ownerUrl', ownerUrl)
         .field('active', active)
         .field('version', version)
         .field('actions', JSON.stringify(actions))
@@ -1038,8 +1040,8 @@ module.exports = (config) => {
      */
     installOrUpdateBot: (packageJSON) => {
       const { metadata: { actions, data, settings },
-        name, url, version, displayName } = packageJSON;
-      const bot = { name, url, version, displayName, actions,
+        name, url, version, displayName, docsUrl, ownerUrl } = packageJSON;
+      const bot = { name, url, docsUrl, ownerUrl, version, displayName, actions,
         data, settings, ui: DEFAULT_UI_PATH, active: true };
 
       // try to update a bot
