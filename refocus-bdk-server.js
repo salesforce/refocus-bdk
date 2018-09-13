@@ -375,7 +375,7 @@ module.exports = (config) => {
       name,
       displayName = '',
       url,
-      docsUrl = '',
+      helpUrl = '',
       ownerUrl = '',
       active = false,
       version = '1.0.0',
@@ -397,7 +397,7 @@ module.exports = (config) => {
         .field('name', name)
         .field('displayName', displayName)
         .field('url', url)
-        .field('docsUrl', docsUrl)
+        .field('helpUrl', helpUrl)
         .field('ownerUrl', ownerUrl)
         .field('active', active)
         .field('version', version)
@@ -444,7 +444,7 @@ module.exports = (config) => {
       name,
       displayName = '',
       url,
-      docsUrl = '',
+      helpUrl = '',
       ownerUrl = '',
       active = false,
       version = '1.0.0',
@@ -466,7 +466,7 @@ module.exports = (config) => {
         .field('name', name)
         .field('displayName', displayName)
         .field('url', url)
-        .field('docsUrl', docsUrl)
+        .field('helpUrl', helpUrl)
         .field('ownerUrl', ownerUrl)
         .field('active', active)
         .field('version', version)
@@ -1040,8 +1040,8 @@ module.exports = (config) => {
      */
     installOrUpdateBot: (packageJSON) => {
       const { metadata: { actions, data, settings },
-        name, url, version, displayName, docsUrl, ownerUrl } = packageJSON;
-      const bot = { name, url, docsUrl, ownerUrl, version, displayName, actions,
+        name, url, version, displayName, helpUrl, ownerUrl } = packageJSON;
+      const bot = { name, url, helpUrl, ownerUrl, version, displayName, actions,
         data, settings, ui: DEFAULT_UI_PATH, active: true };
 
       // try to update a bot
