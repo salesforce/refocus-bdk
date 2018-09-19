@@ -212,6 +212,15 @@ module.exports = (config) => {
     }, // findRoom
 
     /**
+     * Get a list of all active rooms
+     *
+     * @returns {Promise} - Resolves to a list of active rooms.
+     */
+    getActiveRooms: () => {
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}?active=true`, TOKEN);
+    }, // getActiveRooms
+
+    /**
      * Update room settings
      *
      * @param {String} id - ID of room
