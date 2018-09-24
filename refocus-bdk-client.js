@@ -166,7 +166,7 @@ function genericPost(route, obj, apiToken){
 } // genericPost
 
 module.exports = (config) => {
-  const SERVER = config.refocusUrl;
+  const SERVER = window.location.origin || config.refocusUrl;
   const TOKEN = config.token;
 
   /**
