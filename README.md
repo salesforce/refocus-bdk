@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/salesforce/refocus-bdk.svg?branch=master)](https://travis-ci.org/salesforce/refocus-bdk)
 
 # refocus-bdk
-This is the repository for the refocus-bdk. The bdk (bot developement kit) contains a set of utilities used by Refocus Bots to communicate with [Refocus Rooms](https://github.com/salesforce/refocus).
+This is the repository for the refocus-bdk. The bdk (bot development kit) contains a set of utilities used by Refocus Bots to communicate with [Refocus Rooms](https://github.com/salesforce/refocus).
 
 ## Getting Started
 These instructions will enable you to have a copy of this project up and running on your local machine for development and testing purposes.

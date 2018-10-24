@@ -431,7 +431,7 @@ module.exports = (config) => {
           } else {
             eventObject = {
               log: instance.body.botId +
-              ' succesfully performed ' +
+              ' successfully performed ' +
               instance.body.name,
               context: {
                 'type': 'Event',
