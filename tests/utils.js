@@ -111,6 +111,8 @@ const settings = [
 const bot = {
   name: 'IlikeBurrito',
   url: 'https://buritto-stand.com',
+  helpUrl: 'https://better-buritto-stand.com',
+  ownerUrl: 'https://buritto-stand-owner.com',
   active: true,
   version: '2.0.0',
   displayName: 'Insert Cool Nickname Here!',
