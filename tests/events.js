@@ -11,7 +11,7 @@ const rewire = require('rewire');
 const config = { refocusUrl: 'zzz', token: 'dummy' };
 const bdkServer = rewire('../refocus-bdk-server.js');
 
-// Create enviornment for client code to work
+// Create environment for client code to work
 global.user = '{&quot;email&quot;:&quot;test@test.com&quot;}';
 global.window = { document: { }, location: { href: '' } };
 const bdkClient = rewire('../refocus-bdk-client.js');

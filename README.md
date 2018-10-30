@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/salesforce/refocus-bdk.svg?branch=master)](https://travis-ci.org/salesforce/refocus-bdk)
 
 # refocus-bdk
-This is the repository for the refocus-bdk. The bdk (bot developement kit) contains a set of utilities used by Refocus Bots to communicate with [Refocus Rooms](https://github.com/salesforce/refocus).
+This is the repository for the refocus-bdk. The bdk (bot development kit) contains a set of utilities used by Refocus Bots to communicate with [Refocus Rooms](https://github.com/salesforce/refocus).
 
 ## Getting Started
 These instructions will enable you to have a copy of this project up and running on your local machine for development and testing purposes.
@@ -54,6 +54,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * log
 * updateExternalId
 * updateRoomName
+* getActiveRooms
 
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
@@ -109,4 +110,6 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.4 Update room name
 * 1.6.5 Only log upsert error if there is an error.
 * 1.6.6 Can filter Events by type.
-* 1.6.7 Fix getBotData to not return all room data
+* 1.6.7 Fix getBotData to not return all room data.
+* 1.6.8 Get a list of all active rooms.
+* 1.6.9 On client side, use window location for server url.

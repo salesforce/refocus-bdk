@@ -542,6 +542,16 @@ module.exports = (config) => {
     }, // findRoom
 
     /**
+     * Get a list of all active rooms
+     *
+     * @returns {Promise} - Resolves to a list of active rooms.
+     */
+    getActiveRooms: () => {
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}?active=true`,
+        PROXY_URL, TOKEN);
+    }, // getActiveRooms
+
+    /**
      * Update room settings
      *
      * @param {String} id - ID of room
@@ -705,7 +715,7 @@ module.exports = (config) => {
           } else {
             eventObject = {
               log: instance.body.botId +
-              ' succesfully performed ' +
+              ' successfully performed ' +
               instance.body.name,
               context: {
                 'type': 'Event',

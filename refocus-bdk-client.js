@@ -166,7 +166,7 @@ function genericPost(route, obj, apiToken){
 } // genericPost
 
 module.exports = (config) => {
-  const SERVER = config.refocusUrl;
+  const SERVER = window.location.origin || config.refocusUrl;
   const TOKEN = config.token;
 
   /**
@@ -210,6 +210,15 @@ module.exports = (config) => {
         { id, route: `${SERVER}${API}${ROOMS_ROUTE}/${id}` });
       return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${id}`, TOKEN);
     }, // findRoom
+
+    /**
+     * Get a list of all active rooms
+     *
+     * @returns {Promise} - Resolves to a list of active rooms.
+     */
+    getActiveRooms: () => {
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}?active=true`, TOKEN);
+    }, // getActiveRooms
 
     /**
      * Update room settings
@@ -422,7 +431,7 @@ module.exports = (config) => {
           } else {
             eventObject = {
               log: instance.body.botId +
-              ' succesfully performed ' +
+              ' successfully performed ' +
               instance.body.name,
               context: {
                 'type': 'Event',
