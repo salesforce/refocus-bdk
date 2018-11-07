@@ -1017,9 +1017,10 @@ module.exports = (config) => {
      * @param {String} token - Socket Token needed to connect to Refocus socket
      * @param {String} botName - name of a Bot
      */
-    refocusConnect: (app, botName) => {
+    refocusConnect: (app, token, botName) => {
       let botId = '';
       let botRoute = '/';
+      const connectToken = SOCKET_TOKEN ? SOCKET_TOKEN : token;
       if (botName) {
         genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName,
           PROXY_URL, TOKEN)
@@ -1032,13 +1033,13 @@ module.exports = (config) => {
             if (USE_POLLING) {
               refocusConnectPolling(app, botRoute);
             } else {
-              refocusConnectSocket(app, SOCKET_TOKEN, botId);
+              refocusConnectSocket(app, connectToken, botId);
             }
           });
       } else if (USE_POLLING) {
         refocusConnectPolling(app, botRoute);
       } else {
-        refocusConnectSocket(app, SOCKET_TOKEN);
+        refocusConnectSocket(app, connectToken);
       }
     }, // refocusConnect
 
