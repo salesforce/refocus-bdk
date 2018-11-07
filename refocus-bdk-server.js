@@ -57,6 +57,7 @@ const STATUS_CODE_CREATED = 201;
 const STATUS_CODE_NOT_FOUND = 404;
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
+const SOCKET_TOKEN;
 
 // Create logger
 const winston = require('winston');
@@ -175,7 +176,11 @@ function genericPost(route, obj, proxy, apiToken){
 
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
-  const TOKEN = config.token;
+  let TOKEN;
+  if (!NEW_TOKEN_WORKFLOW) {
+    TOKEN = config.token;
+  }
+  const BOT_INSTALL_TOKEN = config.token;
   let PROXY_URL;
 
   /**
@@ -373,10 +378,8 @@ module.exports = (config) => {
   function installBot(bot) {
     const {
       name,
-      displayName = '',
+      displayName,
       url,
-      helpUrl = '',
-      ownerUrl = '',
       active = false,
       version = '1.0.0',
       actions = [],
@@ -391,14 +394,15 @@ module.exports = (config) => {
         req.proxy(PROXY_URL);
       }
 
+      if (displayName) {
+        req.field('displayName', displayName);
+      }
+
       req
         .set('Content-Type', 'multipart/form-data')
-        .set('Authorization', TOKEN)
+        .set('Authorization', BOT_INSTALL_TOKEN)
         .field('name', name)
-        .field('displayName', displayName)
         .field('url', url)
-        .field('helpUrl', helpUrl)
-        .field('ownerUrl', ownerUrl)
         .field('active', active)
         .field('version', version)
         .field('actions', JSON.stringify(actions))
@@ -426,7 +430,11 @@ module.exports = (config) => {
           } else {
             // Need to save this after install
             logger.info('Socket Authorization Token: ' + res.body.token);
-            resolve(res);
+            SOCKET_TOKEN = res.body.token;
+            if (NEW_TOKEN_WORKFLOW) {
+              TOKEN = res.body.token;
+            }
+            return resolve(res);
           }
         });
     });
@@ -442,10 +450,8 @@ module.exports = (config) => {
   function updateBot(bot) {
     const {
       name,
-      displayName = '',
+      displayName,
       url,
-      helpUrl = '',
-      ownerUrl = '',
       active = false,
       version = '1.0.0',
       actions = [],
@@ -460,14 +466,15 @@ module.exports = (config) => {
         req.proxy(PROXY_URL);
       }
 
+      if (displayName) {
+        req.field('displayName', displayName);
+      }
+
       req
         .set('Content-Type', 'multipart/form-data')
-        .set('Authorization', TOKEN)
+        .set('Authorization', BOT_INSTALL_TOKEN)
         .field('name', name)
-        .field('displayName', displayName)
         .field('url', url)
-        .field('helpUrl', helpUrl)
-        .field('ownerUrl', ownerUrl)
         .field('active', active)
         .field('version', version)
         .field('actions', JSON.stringify(actions))
@@ -498,6 +505,10 @@ module.exports = (config) => {
             }
 
             return reject(err || !ok);
+          }
+          if (NEW_TOKEN_WORKFLOW) {
+            SOCKET_TOKEN = res.body.token;
+            TOKEN = res.body.token;
           }
           return resolve(res);
         });
@@ -540,16 +551,6 @@ module.exports = (config) => {
     findRoom: (id) => {
       return genericGet(SERVER+API+ROOMS_ROUTE+'/'+id, PROXY_URL, TOKEN);
     }, // findRoom
-
-    /**
-     * Get a list of all active rooms
-     *
-     * @returns {Promise} - Resolves to a list of active rooms.
-     */
-    getActiveRooms: () => {
-      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}?active=true`,
-        PROXY_URL, TOKEN);
-    }, // getActiveRooms
 
     /**
      * Update room settings
@@ -715,7 +716,7 @@ module.exports = (config) => {
           } else {
             eventObject = {
               log: instance.body.botId +
-              ' successfully performed ' +
+              ' succesfully performed ' +
               instance.body.name,
               context: {
                 'type': 'Event',
@@ -1016,7 +1017,7 @@ module.exports = (config) => {
      * @param {String} token - Socket Token needed to connect to Refocus socket
      * @param {String} botName - name of a Bot
      */
-    refocusConnect: (app, token, botName) => {
+    refocusConnect: (app, botName) => {
       let botId = '';
       let botRoute = '/';
       if (botName) {
@@ -1031,13 +1032,13 @@ module.exports = (config) => {
             if (USE_POLLING) {
               refocusConnectPolling(app, botRoute);
             } else {
-              refocusConnectSocket(app, token, botId);
+              refocusConnectSocket(app, SOCKET_TOKEN, botId);
             }
           });
       } else if (USE_POLLING) {
         refocusConnectPolling(app, botRoute);
       } else {
-        refocusConnectSocket(app, token);
+        refocusConnectSocket(app, SOCKET_TOKEN);
       }
     }, // refocusConnect
 
@@ -1050,8 +1051,8 @@ module.exports = (config) => {
      */
     installOrUpdateBot: (packageJSON) => {
       const { metadata: { actions, data, settings },
-        name, url, version, displayName, helpUrl, ownerUrl } = packageJSON;
-      const bot = { name, url, helpUrl, ownerUrl, version, displayName, actions,
+        name, url, version, displayName } = packageJSON;
+      const bot = { name, url, version, displayName, actions,
         data, settings, ui: DEFAULT_UI_PATH, active: true };
 
       // try to update a bot
