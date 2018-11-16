@@ -378,8 +378,10 @@ module.exports = (config) => {
   function installBot(bot) {
     const {
       name,
-      displayName,
+      displayName = '',
       url,
+      helpUrl = '',
+      ownerUrl = '',
       active = false,
       version = '1.0.0',
       actions = [],
@@ -394,15 +396,14 @@ module.exports = (config) => {
         req.proxy(PROXY_URL);
       }
 
-      if (displayName) {
-        req.field('displayName', displayName);
-      }
-
       req
         .set('Content-Type', 'multipart/form-data')
         .set('Authorization', BOT_INSTALL_TOKEN)
         .field('name', name)
+        .field('displayName', displayName)
         .field('url', url)
+        .field('helpUrl', helpUrl)
+        .field('ownerUrl', ownerUrl)
         .field('active', active)
         .field('version', version)
         .field('actions', JSON.stringify(actions))
@@ -434,7 +435,7 @@ module.exports = (config) => {
             if (NEW_TOKEN_WORKFLOW) {
               TOKEN = res.body.token;
             }
-            return resolve(res);
+            resolve(res);
           }
         });
     });
@@ -450,8 +451,10 @@ module.exports = (config) => {
   function updateBot(bot) {
     const {
       name,
-      displayName,
+      displayName = '',
       url,
+      helpUrl = '',
+      ownerUrl = '',
       active = false,
       version = '1.0.0',
       actions = [],
@@ -466,15 +469,14 @@ module.exports = (config) => {
         req.proxy(PROXY_URL);
       }
 
-      if (displayName) {
-        req.field('displayName', displayName);
-      }
-
       req
         .set('Content-Type', 'multipart/form-data')
         .set('Authorization', BOT_INSTALL_TOKEN)
         .field('name', name)
+        .field('displayName', displayName)
         .field('url', url)
+        .field('helpUrl', helpUrl)
+        .field('ownerUrl', ownerUrl)
         .field('active', active)
         .field('version', version)
         .field('actions', JSON.stringify(actions))
@@ -551,6 +553,16 @@ module.exports = (config) => {
     findRoom: (id) => {
       return genericGet(SERVER+API+ROOMS_ROUTE+'/'+id, PROXY_URL, TOKEN);
     }, // findRoom
+
+    /**
+     * Get a list of all active rooms
+     *
+     * @returns {Promise} - Resolves to a list of active rooms.
+     */
+    getActiveRooms: () => {
+      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}?active=true`,
+        PROXY_URL, TOKEN);
+    }, // getActiveRooms
 
     /**
      * Update room settings
@@ -716,7 +728,7 @@ module.exports = (config) => {
           } else {
             eventObject = {
               log: instance.body.botId +
-              ' succesfully performed ' +
+              ' successfully performed ' +
               instance.body.name,
               context: {
                 'type': 'Event',
@@ -1052,8 +1064,8 @@ module.exports = (config) => {
      */
     installOrUpdateBot: (packageJSON) => {
       const { metadata: { actions, data, settings },
-        name, url, version, displayName } = packageJSON;
-      const bot = { name, url, version, displayName, actions,
+        name, url, version, displayName, helpUrl, ownerUrl } = packageJSON;
+      const bot = { name, url, helpUrl, ownerUrl, version, displayName, actions,
         data, settings, ui: DEFAULT_UI_PATH, active: true };
 
       // try to update a bot
