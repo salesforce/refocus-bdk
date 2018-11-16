@@ -180,7 +180,7 @@ module.exports = (config) => {
     TOKEN = config.token;
   }
   const BOT_INSTALL_TOKEN = config.token;
-  const SOCKET_TOKEN;
+  let SOCKET_TOKEN;
   let PROXY_URL;
 
   /**
