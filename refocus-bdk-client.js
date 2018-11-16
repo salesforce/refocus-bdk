@@ -167,7 +167,7 @@ function genericPost(route, obj, apiToken){
 
 module.exports = (config) => {
   const SERVER = window.location.origin || config.refocusUrl;
-  const TOKEN = config.token;
+  const TOKEN = window.userSession || config.token;
 
   /**
    * Define a set of log functions

@@ -57,7 +57,6 @@ const STATUS_CODE_CREATED = 201;
 const STATUS_CODE_NOT_FOUND = 404;
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
-const SOCKET_TOKEN;
 
 // Create logger
 const winston = require('winston');
@@ -181,6 +180,7 @@ module.exports = (config) => {
     TOKEN = config.token;
   }
   const BOT_INSTALL_TOKEN = config.token;
+  const SOCKET_TOKEN;
   let PROXY_URL;
 
   /**
