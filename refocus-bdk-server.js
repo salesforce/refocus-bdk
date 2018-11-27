@@ -35,6 +35,7 @@ const MIN_HEARTBEAT_TIMER = 60000;
 /* eslint-disable no-process-env */
 /* eslint-disable no-implicit-coercion*/
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
+const NEW_TOKEN_WORKFLOW = process.env.NEW_TOKEN_WORKFLOW || false;
 
 let POLLING_DELAY =
   +process.env.POLLING_DELAY || MIN_POLLING_DELAY; // Second
@@ -175,7 +176,12 @@ function genericPost(route, obj, proxy, apiToken){
 
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
-  const TOKEN = config.token;
+  let TOKEN;
+  if (!NEW_TOKEN_WORKFLOW) {
+    TOKEN = config.token;
+  }
+  const BOT_INSTALL_TOKEN = config.token;
+  let SOCKET_TOKEN;
   let PROXY_URL;
 
   /**
@@ -393,7 +399,7 @@ module.exports = (config) => {
 
       req
         .set('Content-Type', 'multipart/form-data')
-        .set('Authorization', TOKEN)
+        .set('Authorization', BOT_INSTALL_TOKEN)
         .field('name', name)
         .field('displayName', displayName)
         .field('url', url)
@@ -426,6 +432,10 @@ module.exports = (config) => {
           } else {
             // Need to save this after install
             logger.info('Socket Authorization Token: ' + res.body.token);
+            SOCKET_TOKEN = res.body.token;
+            if (NEW_TOKEN_WORKFLOW) {
+              TOKEN = res.body.token;
+            }
             resolve(res);
           }
         });
@@ -462,7 +472,7 @@ module.exports = (config) => {
 
       req
         .set('Content-Type', 'multipart/form-data')
-        .set('Authorization', TOKEN)
+        .set('Authorization', BOT_INSTALL_TOKEN)
         .field('name', name)
         .field('displayName', displayName)
         .field('url', url)
@@ -498,6 +508,10 @@ module.exports = (config) => {
             }
 
             return reject(err || !ok);
+          }
+          if (NEW_TOKEN_WORKFLOW) {
+            SOCKET_TOKEN = res.body.token;
+            TOKEN = res.body.token;
           }
           return resolve(res);
         });
@@ -1019,6 +1033,7 @@ module.exports = (config) => {
     refocusConnect: (app, token, botName) => {
       let botId = '';
       let botRoute = '/';
+      const connectToken = SOCKET_TOKEN ? SOCKET_TOKEN : token;
       if (botName) {
         genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName,
           PROXY_URL, TOKEN)
@@ -1031,13 +1046,13 @@ module.exports = (config) => {
             if (USE_POLLING) {
               refocusConnectPolling(app, botRoute);
             } else {
-              refocusConnectSocket(app, token, botId);
+              refocusConnectSocket(app, connectToken, botId);
             }
           });
       } else if (USE_POLLING) {
         refocusConnectPolling(app, botRoute);
       } else {
-        refocusConnectSocket(app, token);
+        refocusConnectSocket(app, connectToken);
       }
     }, // refocusConnect
 
