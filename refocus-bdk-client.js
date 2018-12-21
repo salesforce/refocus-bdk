@@ -707,6 +707,35 @@ module.exports = (config) => {
         roomObject, TOKEN);
     }, // updateRoomName
 
+    getOrInitializeBotData: (room,botName,dataName,defaultValue) => {
+      log.debug('Getting or Initialize BotData. ', { room, botName, dataName });
+      return new Promise((resolve, reject) => {
+        return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}` +
+        `?roomId=${room}&botId=${botName}&name=${dataName}`, TOKEN)
+          .then((data) => {
+            const _data = data.body.filter((bd) =>
+              bd.name === dataName)[FIRST_ARRAY_EL];
+            return _data;
+          })
+          .then((data) => {
+            if (data) {
+              const botDataValue = JSON.parse(data.value);
+              return botDataValue;
+            }
+
+            return createBotData(room, botName, dataName, defaultValue)
+              .then(() =>  defaultValue);
+          })
+          .then((botDataValue) => {
+            resolve(botDataValue);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
+
+
     log,
   };
 };

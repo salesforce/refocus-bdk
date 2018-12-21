@@ -115,3 +115,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.9 On client side, use window location for server url.
 * 1.6.10 Send ownerUrl and helpUrl on install / update.
 * 1.6.11 Made changes for new token workflow behind feature flag/backwards compatible.
+* 1.6.12 Add the getOrInitializeBotData function
