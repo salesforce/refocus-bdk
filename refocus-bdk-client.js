@@ -723,17 +723,19 @@ module.exports = (config) => {
               const botDataValue = JSON.parse(data.value);
               return botDataValue;
             }
-            if (defaultValue && typeof defaultValue !== 'string') {
-              defaultValue = serialize(defaultValue);
+            let newData = defaultValue;
+            if (newData && typeof newData !== 'string') {
+              newData = serialize(newData);
             }
             const botData = {
               'name': dataName,
               'roomId': parseInt(room, 10),
               'botId': bot,
-              'value': defaultValue
+              'value': newData
             };
-            return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData, TOKEN)
-              .then(() => defaultValue);
+            return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`,
+              botData, TOKEN)
+              .then(() => newData);
           })
           .then((botDataValue) => {
             resolve(botDataValue);
@@ -743,6 +745,22 @@ module.exports = (config) => {
           });
       });
     },
+
+    createBotData: (room, bot, botName, value) => {
+      let newData = value;
+      if (newData && typeof newData !== 'string') {
+        newData = serialize(newData);
+      }
+      const botData = {
+        'name': botName,
+        'roomId': parseInt(room, 10),
+        'botId': bot,
+        'value': newData
+      };
+      log.debug('Creating Bot Data', botData);
+      return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData, TOKEN);
+    }, // createBotData
+
 
     log,
   };
