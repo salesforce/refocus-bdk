@@ -34,6 +34,7 @@ const EVENTS_ROUTE = '/events';
 const USERS_ROUTE = '/users';
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
+const FIRST_ARRAY_EL = 0;
 const ONE = 1;
 const defaultMaxEvents = 2000;
 const maxEvents = process.env.MAX_EVENTS || // eslint-disable-line
@@ -707,7 +708,7 @@ module.exports = (config) => {
         roomObject, TOKEN);
     }, // updateRoomName
 
-    getOrInitializeBotData: (room,botName,dataName,defaultValue) => {
+    getOrInitializeBotData: (room, botName, dataName, defaultValue) => {
       log.debug('Getting or Initialize BotData. ', { room, botName, dataName });
       return new Promise((resolve, reject) => {
         return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}` +
@@ -723,8 +724,8 @@ module.exports = (config) => {
               return botDataValue;
             }
 
-            return createBotData(room, botName, dataName, defaultValue)
-              .then(() =>  defaultValue);
+            return this.createBotData(room, botName, dataName, defaultValue)
+              .then(() => defaultValue);
           })
           .then((botDataValue) => {
             resolve(botDataValue);
