@@ -28,6 +28,7 @@ const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
 const EVENTS_ROUTE = '/events';
+const EVENTS_BULK_ROUTE = '/events/bulk';
 const USERS_ROUTE = '/users';
 const MIN_POLLING_DELAY = 100;
 const MIN_POLLING_REFRESH = 5000;
@@ -992,6 +993,16 @@ module.exports = (config) => {
       return genericPost(SERVER+API+EVENTS_ROUTE, events,
         PROXY_URL, TOKEN);
     }, // createEvents
+
+    /**
+     * Create multiple events at once
+     * @param {Array} events - Array of events to be created
+     * @returns {Promise} - Response to events
+     */
+    bulkCreateEvents: (events) => {
+      log.debug('Bulk creating new Events. ', events);
+      return genericPost(`${SERVER}${API}${EVENTS_BULK_ROUTE}`, events, TOKEN);
+    }, // bulkCreateEvents
 
     /**
      * Updates Room externalId
