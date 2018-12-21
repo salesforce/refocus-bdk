@@ -723,8 +723,16 @@ module.exports = (config) => {
               const botDataValue = JSON.parse(data.value);
               return botDataValue;
             }
-
-            return this.createBotData(room, botName, dataName, defaultValue)
+            if (defaultValue && typeof defaultValue !== 'string') {
+              defaultValue = serialize(defaultValue);
+            }
+            const botData = {
+              'name': dataName,
+              'roomId': parseInt(room, 10),
+              'botId': bot,
+              'value': defaultValue
+            };
+            return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData, TOKEN)
               .then(() => defaultValue);
           })
           .then((botDataValue) => {
@@ -735,7 +743,6 @@ module.exports = (config) => {
           });
       });
     },
-
 
     log,
   };
