@@ -683,7 +683,7 @@ module.exports = (config) => {
      *
      * @param {Array} events - Array of events to be created
      * @returns {Promise} - Response to events
-     */
+    */
     bulkCreateEvents: (events) => {
       log.debug('Bulk creating new Events. ', events);
       return genericPost(`${SERVER}${API}${EVENTS_BULK_ROUTE}`, events, TOKEN);
