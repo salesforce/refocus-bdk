@@ -682,6 +682,7 @@ module.exports = (config) => {
      * Create multiple events at once
      *
      * @param {Array} events - Array of events to be created
+     * Structure of event objects: {context, roomId, log}
      * @returns {Promise} - Response to events
     */
     bulkCreateEvents: (events) => {
