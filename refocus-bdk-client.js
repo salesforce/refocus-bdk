@@ -720,7 +720,7 @@ module.exports = (config) => {
           })
           .then((data) => {
             if (data) {
-              const botDataValue = JSON.parse(data.value);
+              const botDataValue = data.value;
               return botDataValue;
             }
             let newData = defaultValue;
@@ -730,7 +730,7 @@ module.exports = (config) => {
             const botData = {
               'name': dataName,
               'roomId': parseInt(room, 10),
-              'botId': bot,
+              'botId': botName,
               'value': newData
             };
             return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`,
