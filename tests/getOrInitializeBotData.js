@@ -11,35 +11,30 @@
  */
 
 const expect = require('chai').expect;
-const sinon = require('sinon');
 const rewire = require('rewire');
 const serialize = require('serialize-javascript');
-
-const _ = require('lodash');
 const config = { refocusUrl: 'zzz', token: 'dummy' };
 const bdk = rewire('../refocus-bdk-client.js');
-const { bot, botWithUI } = require('./utils');
 const roomId = 10;
-const botName = "test";
+const botName = 'test';
 
 global.user = '{&quot;email&quot;:&quot;test@test.com&quot;}';
 global.window = { document: { }, location: { href: '' } };
 
-
-
 describe('getOrInitializeBotData function >', () => {
   it('Ok, BotData exists, just retrieve it', (done) => {
-    const testStr = "testing";
-    const data = serialize(testStr)
+    const testStr = 'testing';
+    const data = serialize(testStr);
     bdk.__set__('genericGet', () => {
       return new Promise((resolve) => {
         resolve({
-          body: [{ "name": "test",
-            "value": data}]
-          });
+          body: [{ 'name': 'test',
+            'value': data }]
+        });
       });
     });
-    bdk.__get__('module.exports')(config).getOrInitializeBotData(roomId, botName, "test", {})
+    bdk.__get__('module.exports')(config)
+      .getOrInitializeBotData(roomId, botName, 'test', {})
       .then((res) => {
         expect(JSON.parse(res)).to.equal(testStr);
         done();
@@ -50,12 +45,14 @@ describe('getOrInitializeBotData function >', () => {
     bdk.__set__('genericPost', () => {
       return new Promise((resolve) => {
         resolve({ body:
-          { "name": "test2",
-            "value": {}}
-         });
+          { 'name': 'test2',
+            'value': {}
+          }
+        });
       });
     });
-    bdk.__get__('module.exports')(config).getOrInitializeBotData(roomId, botName, "test2", '')
+    bdk.__get__('module.exports')(config)
+      .getOrInitializeBotData(roomId, botName, 'test2', '')
       .then((res) => {
         expect(res)
           .to.equal('');

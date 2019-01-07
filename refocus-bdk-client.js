@@ -746,22 +746,6 @@ module.exports = (config) => {
       });
     },
 
-    createBotData: (room, bot, botName, value) => {
-      let newData = value;
-      if (newData && typeof newData !== 'string') {
-        newData = serialize(newData);
-      }
-      const botData = {
-        'name': botName,
-        'roomId': parseInt(room, 10),
-        'botId': bot,
-        'value': newData
-      };
-      log.debug('Creating Bot Data', botData);
-      return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData, TOKEN);
-    }, // createBotData
-
-
     log,
   };
 };
