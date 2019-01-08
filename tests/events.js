@@ -50,6 +50,25 @@ describe('BDK Client Events: ', () => {
         done();
       });
   });
+
+  it('Ok, bulk create sends correctly', (done) => {
+    const arraySize = 2;
+    bdkClient.__set__('genericPost', (_, array) => {
+      return new Promise((resolve) => {
+        const returnArray = [];
+        for (let i =0; i<array.length;i++) {
+          returnArray.push({ id: i });
+        }
+        resolve({ returnArray });
+      });
+    });
+    bdkClient.__get__('module.exports')(config)
+      .bulkCreateEvents([{ 'event1': 1 }, { 'event2': 1 }])
+      .then((res) => {
+        expect(res.returnArray.length).to.equal(arraySize);
+        done();
+      });
+  });
 });
 
 describe('BDK Server Events: ', () => {
