@@ -56,6 +56,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * updateExternalId
 * updateRoomName
 * getActiveRooms
+* getOrInitializeBotData
 
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
