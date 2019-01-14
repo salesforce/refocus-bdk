@@ -23,8 +23,8 @@ global.window = { document: { }, location: { href: '' } };
 
 describe('getOrInitializeBotData function >', () => {
   it('Ok, BotData exists, just retrieve it', (done) => {
-    const testStr = 'testing';
-    const data = serialize(testStr);
+    const expectedResponse = 'testing';
+    const data = serialize(expectedResponse);
     bdk.__set__('genericGet', () => {
       return new Promise((resolve) => {
         resolve({
@@ -36,12 +36,13 @@ describe('getOrInitializeBotData function >', () => {
     bdk.__get__('module.exports')(config)
       .getOrInitializeBotData(roomId, botName, 'test', {})
       .then((res) => {
-        expect(JSON.parse(res)).to.equal(testStr);
+        expect(JSON.parse(res)).to.equal(expectedResponse);
         done();
       });
   });
 
-  it('Ok, BotData does not exist, create it', (done) => {
+  it('Ok, BotData does not exist, create it with a default value', (done) => {
+    const defaultValue = '';
     bdk.__set__('genericPost', () => {
       return new Promise((resolve) => {
         resolve({ body:
@@ -52,10 +53,10 @@ describe('getOrInitializeBotData function >', () => {
       });
     });
     bdk.__get__('module.exports')(config)
-      .getOrInitializeBotData(roomId, botName, 'test2', '')
+      .getOrInitializeBotData(roomId, botName, 'test2', defaultValue)
       .then((res) => {
         expect(res)
-          .to.equal('');
+          .to.equal(defaultValue);
         done();
       });
   });
