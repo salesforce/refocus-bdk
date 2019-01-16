@@ -117,3 +117,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.10 Send ownerUrl and helpUrl on install / update.
 * 1.6.11 Made changes for new token workflow behind feature flag/backwards compatible.
 * 1.6.12 Added bulkCreateEvents function.
+* 1.6.13 Socket connection behind proxy.
