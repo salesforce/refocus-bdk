@@ -37,6 +37,7 @@ const MIN_HEARTBEAT_TIMER = 60000;
 const TOO_MANY_REQUESTS = 429;
 /* eslint-disable no-process-env */
 /* eslint-disable no-implicit-coercion*/
+const MAX_RETRIES = process.env.MAX_RETRIES || 3;
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
 const NEW_TOKEN_WORKFLOW = process.env.NEW_TOKEN_WORKFLOW || false;
 
@@ -115,7 +116,8 @@ const logger = new (winston.Logger)({
  * @param {String} apiToken - Refocus API Token
  * @returns {Promise} - Route response
  */
-function genericGet(route, proxy, apiToken){
+function genericGet(route, proxy, apiToken, tries){
+  let count = tries || 0;
   return new Promise((resolve) => {
     const req = request.get(route);
     if (proxy) {
@@ -124,11 +126,11 @@ function genericGet(route, proxy, apiToken){
     req
       .set('Authorization', apiToken)
       .end((error, res) => {
-        if ((res.status === TOO_MANY_REQUESTS)){
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
           const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
           setTimeout(
             () => {
-              genericGet(route, proxy, apiToken)
+              genericGet(route, proxy, apiToken, ++count)
                 .then((res) => {
                   resolve(res);
                 });
@@ -149,7 +151,8 @@ function genericGet(route, proxy, apiToken){
  * @param {String} apiToken - Refocus API Token
  * @returns {Promise} - Route response
  */
-function genericPatch(route, obj, proxy, apiToken){
+function genericPatch(route, obj, proxy, apiToken, tries){
+  let count = tries || 0;
   return new Promise((resolve) => {
     const req = request.patch(route);
     if (proxy) {
@@ -159,11 +162,11 @@ function genericPatch(route, obj, proxy, apiToken){
       .set('Authorization', apiToken)
       .send(obj)
       .end((error, res) => {
-        if ((res.status === TOO_MANY_REQUESTS)){
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
           const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
           setTimeout(
             () => {
-              genericPatch(route, obj, proxy, apiToken)
+              genericPatch(route, obj, proxy, apiToken, ++count)
                 .then((res) => {
                   resolve(res);
                 });
@@ -184,7 +187,8 @@ function genericPatch(route, obj, proxy, apiToken){
  * @param {String} apiToken - Refocus API Token
  * @returns {Promise} - Route response
  */
-function genericPost(route, obj, proxy, apiToken){
+function genericPost(route, obj, proxy, apiToken, tries){
+  let count = tries || 0;
   return new Promise((resolve) => {
     const req = request.post(route);
     if (proxy) {
@@ -194,11 +198,11 @@ function genericPost(route, obj, proxy, apiToken){
       .set('Authorization', apiToken)
       .send(obj)
       .end((error, res) => {
-        if ((res.status === TOO_MANY_REQUESTS)){
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
           const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
           setTimeout(
             () => {
-              genericPost(route, obj, proxy, apiToken)
+              genericPost(route, obj, proxy, apiToken, ++count)
                 .then((res) => {
                   resolve(res);
                 });

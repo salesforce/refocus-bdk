@@ -39,6 +39,7 @@ const ONE = 1;
 const defaultMaxEvents = 2000;
 const MIN_POLLING_REFRESH = 5000;
 const TOO_MANY_REQUESTS = 429;
+const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
 const maxEvents = process.env.MAX_EVENTS || // eslint-disable-line
   defaultMaxEvents;
 
@@ -105,17 +106,18 @@ function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
  * @param {String} apiToken - Refocus API Token
  * @returns {Promise} - Route response
  */
-function genericGet(route, apiToken){
+function genericGet(route, apiToken, tries){
+  let count = tries || 0;
   return new Promise((resolve) => {
     const req = request.get(route);
     req
       .set('Authorization', apiToken)
       .end((error, res) => {
         debugMessage('silly', 'Generic Get. ', res);
-        if (res.status === TOO_MANY_REQUESTS){
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
           const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
           setTimeout(() => {
-            genericGet(route, apiToken)
+            genericGet(route, apiToken, ++count)
               .then((res) => {
                 resolve(res);
               });
@@ -139,17 +141,18 @@ function genericGet(route, apiToken){
  * @param {String} apiToken - Refocus API Token
  * @returns {Promise} - Route response
  */
-function genericPatch(route, obj, apiToken){
+function genericPatch(route, obj, apiToken, tries)){
+  let count = tries || 0;
   return new Promise((resolve) => {
     const req = request.patch(route);
     req
       .set('Authorization', apiToken)
       .end((error, res) => {
         debugMessage('silly', 'Generic Patch. ', res);
-        if (res.status === TOO_MANY_REQUESTS){
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
           const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
           setTimeout(() => {
-            genericPatch(route, obj, apiToken)
+            genericPatch(route, obj, apiToken, ++count)
               .then((res) => {
                 resolve(res);
               });
@@ -173,17 +176,18 @@ function genericPatch(route, obj, apiToken){
  * @param {String} apiToken - Refocus API Token
  * @returns {Promise} - Route response
  */
-function genericPost(route, obj, apiToken){
+function genericPost(route, obj, apiToken, tries)){
+  let count = tries || 0;
   return new Promise((resolve) => {
     const req = request.post(route);
     req
       .set('Authorization', apiToken)
       .end((error, res) => {
         debugMessage('silly', 'Generic Post. ', res);
-        if (res.status === TOO_MANY_REQUESTS){
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
           const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
           setTimeout(() => {
-            genericPost(route, obj, apiToken)
+            genericPost(route, obj, apiToken, ++count)
               .then((res) => {
                 resolve(res);
               });
