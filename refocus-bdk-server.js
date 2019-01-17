@@ -33,6 +33,7 @@ const USERS_ROUTE = '/users';
 const MIN_POLLING_DELAY = 100;
 const MIN_POLLING_REFRESH = 5000;
 const MIN_HEARTBEAT_TIMER = 60000;
+const TOO_MANY_REQUESTS = 429;
 /* eslint-disable no-process-env */
 /* eslint-disable no-implicit-coercion*/
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
@@ -122,7 +123,18 @@ function genericGet(route, proxy, apiToken){
     req
       .set('Authorization', apiToken)
       .end((error, res) => {
-        resolve(res);
+        if ((res.status === TOO_MANY_REQUESTS)){
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(
+            () => {
+              genericGet(route, proxy, apiToken)
+                .then((res) => {
+                  resolve(res);
+                });
+            }, retry);
+        } else {
+          resolve(res);
+        }
       });
   });
 } // genericGet
@@ -146,7 +158,18 @@ function genericPatch(route, obj, proxy, apiToken){
       .set('Authorization', apiToken)
       .send(obj)
       .end((error, res) => {
-        resolve(res);
+        if ((res.status === TOO_MANY_REQUESTS)){
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(
+            () => {
+              genericPatch(route, obj, proxy, apiToken)
+                .then((res) => {
+                  resolve(res);
+                });
+            }, retry);
+        } else {
+          resolve(res);
+        }
       });
   });
 } // genericPatch
@@ -170,7 +193,18 @@ function genericPost(route, obj, proxy, apiToken){
       .set('Authorization', apiToken)
       .send(obj)
       .end((error, res) => {
-        resolve(res);
+        if ((res.status === TOO_MANY_REQUESTS)){
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(
+            () => {
+              genericPost(route, obj, proxy, apiToken)
+                .then((res) => {
+                  resolve(res);
+                });
+            }, retry);
+        } else {
+          resolve(res);
+        }
       });
   });
 } // genericPost

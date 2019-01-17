@@ -37,6 +37,8 @@ const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
 const ONE = 1;
 const defaultMaxEvents = 2000;
+const MIN_POLLING_REFRESH = 5000;
+const TOO_MANY_REQUESTS = 429;
 const maxEvents = process.env.MAX_EVENTS || // eslint-disable-line
   defaultMaxEvents;
 
@@ -110,10 +112,21 @@ function genericGet(route, apiToken){
       .set('Authorization', apiToken)
       .end((error, res) => {
         debugMessage('silly', 'Generic Get. ', res);
-        if (error) {
-          debugMessage('error', 'Error: ', { error, res });
+        if (res.status === TOO_MANY_REQUESTS){
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(() => {
+            genericGet(route, apiToken)
+              .then((res) => {
+                resolve(res);
+              });
+          }, retry);
+        } else {
+          if (error) {
+            debugMessage('error', 'Error: ', { error, res });
+          }
+
+          resolve(res);
         }
-        resolve(res);
       });
   });
 } // genericGet
@@ -131,13 +144,23 @@ function genericPatch(route, obj, apiToken){
     const req = request.patch(route);
     req
       .set('Authorization', apiToken)
-      .send(obj)
       .end((error, res) => {
         debugMessage('silly', 'Generic Patch. ', res);
-        if (error) {
-          debugMessage('error', 'Error: ', { error, res });
+        if (res.status === TOO_MANY_REQUESTS){
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(() => {
+            genericPatch(route, obj, apiToken)
+              .then((res) => {
+                resolve(res);
+              });
+          }, retry);
+        } else {
+          if (error) {
+            debugMessage('error', 'Error: ', { error, res });
+          }
+
+          resolve(res);
         }
-        resolve(res);
       });
   });
 } // genericPatch
@@ -155,13 +178,23 @@ function genericPost(route, obj, apiToken){
     const req = request.post(route);
     req
       .set('Authorization', apiToken)
-      .send(obj)
       .end((error, res) => {
         debugMessage('silly', 'Generic Post. ', res);
-        if (error) {
-          debugMessage('error', 'Error: ', { error, res });
+        if (res.status === TOO_MANY_REQUESTS){
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(() => {
+            genericPost(route, obj, apiToken)
+              .then((res) => {
+                resolve(res);
+              });
+          }, retry);
+        } else {
+          if (error) {
+            debugMessage('error', 'Error: ', { error, res });
+          }
+
+          resolve(res);
         }
-        resolve(res);
       });
   });
 } // genericPost
