@@ -20,6 +20,7 @@
 const moment = require('moment');
 const request = require('superagent');
 const requestProxy = require('superagent-proxy');
+const HttpsProxyAgent = require('https-proxy-agent');
 const io = require('socket.io-client');
 const serialize = require('serialize-javascript');
 const API = '/v1';
@@ -217,15 +218,21 @@ module.exports = (config) => {
    * @param {String} token - Socket Token needed to connect to Refocus socket
    */
   function refocusConnectSocket(app, token) {
-    const socket = io.connect(SERVER, {
-      'reconnect': true,
+    const opts = {
+      reconnect: true,
       'reconnection delay': 10,
-      'transports': ['websocket'],
+      transports: ['websocket'],
       upgrade: false,
       extraHeaders: {
         Authorization: token
       }
-    });
+    };
+
+    if (PROXY_URL) {
+      opts.agent = new HttpsProxyAgent(PROXY_URL);
+    }
+
+    const socket = io.connect(SERVER, opts);
 
     const settingsChangedEventName =
       'refocus.internal.realtime.room.settingsChanged';
