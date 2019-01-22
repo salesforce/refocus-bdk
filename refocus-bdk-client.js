@@ -35,6 +35,7 @@ const EVENTS_BULK_ROUTE = '/events/bulk';
 const USERS_ROUTE = '/users';
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
+const FIRST_ARRAY_EL = 0;
 const ONE = 1;
 const ZERO = 0;
 const defaultMaxEvents = 2000;
@@ -762,6 +763,44 @@ module.exports = (config) => {
       return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
         roomObject, TOKEN);
     }, // updateRoomName
+
+    getOrInitializeBotData: (room, botName, dataName, defaultValue) => {
+      log.debug('Getting or Initialize BotData. ', { room, botName, dataName });
+      return new Promise((resolve, reject) => {
+        return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}` +
+        `?roomId=${room}&botId=${botName}&name=${dataName}`, TOKEN)
+          .then((data) => {
+            const _data = data.body.filter((bd) =>
+              bd.name === dataName)[FIRST_ARRAY_EL];
+            return _data;
+          })
+          .then((data) => {
+            if (data) {
+              const botDataValue = data.value;
+              return botDataValue;
+            }
+            let newData = defaultValue;
+            if (newData && typeof newData !== 'string') {
+              newData = serialize(newData);
+            }
+            const botData = {
+              'name': dataName,
+              'roomId': parseInt(room, 10),
+              'botId': botName,
+              'value': newData
+            };
+            return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`,
+              botData, TOKEN)
+              .then(() => newData);
+          })
+          .then((botDataValue) => {
+            resolve(botDataValue);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      });
+    },
 
     log,
   };
