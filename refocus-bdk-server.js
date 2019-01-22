@@ -37,7 +37,7 @@ const MIN_HEARTBEAT_TIMER = 60000;
 const TOO_MANY_REQUESTS = 429;
 /* eslint-disable no-process-env */
 /* eslint-disable no-implicit-coercion*/
-const MAX_RETRIES = process.env.MAX_RETRIES || 3;
+const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
 const NEW_TOKEN_WORKFLOW = process.env.NEW_TOKEN_WORKFLOW || false;
 
@@ -62,6 +62,7 @@ const STATUS_CODE_CREATED = 201;
 const STATUS_CODE_NOT_FOUND = 404;
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
+const ZERO = 0;
 
 // Create logger
 const winston = require('winston');
@@ -114,10 +115,11 @@ const logger = new (winston.Logger)({
  * @param {String} route - URL for route
  * @param {String} proxy - Proxy URL
  * @param {String} apiToken - Refocus API Token
+ * @param {Integers} tries - Number of tries used for the APIs
  * @returns {Promise} - Route response
  */
 function genericGet(route, proxy, apiToken, tries){
-  let count = tries || 0;
+  let count = tries || ZERO;
   return new Promise((resolve) => {
     const req = request.get(route);
     if (proxy) {
@@ -131,8 +133,8 @@ function genericGet(route, proxy, apiToken, tries){
           setTimeout(
             () => {
               genericGet(route, proxy, apiToken, ++count)
-                .then((res) => {
-                  resolve(res);
+                .then((retryRes) => {
+                  resolve(retryRes);
                 });
             }, retry);
         } else {
@@ -149,10 +151,11 @@ function genericGet(route, proxy, apiToken, tries){
  * @param {JSON} obj - the payload needed for route
  * @param {String} proxy - Proxy URL
  * @param {String} apiToken - Refocus API Token
+ * @param {Integers} tries - Number of tries used for the APIs
  * @returns {Promise} - Route response
  */
-function genericPatch(route, obj, proxy, apiToken, tries){
-  let count = tries || 0;
+function genericPatch(route, obj, proxy, apiToken, tries){ // eslint-disable-line
+  let count = tries || ZERO;
   return new Promise((resolve) => {
     const req = request.patch(route);
     if (proxy) {
@@ -167,8 +170,8 @@ function genericPatch(route, obj, proxy, apiToken, tries){
           setTimeout(
             () => {
               genericPatch(route, obj, proxy, apiToken, ++count)
-                .then((res) => {
-                  resolve(res);
+                .then((retryRes) => {
+                  resolve(retryRes);
                 });
             }, retry);
         } else {
@@ -185,10 +188,11 @@ function genericPatch(route, obj, proxy, apiToken, tries){
  * @param {JSON} obj - the payload needed for route
  * @param {String} proxy - Proxy URL
  * @param {String} apiToken - Refocus API Token
+ * @param {Integers} tries - Number of tries used for the APIs
  * @returns {Promise} - Route response
  */
-function genericPost(route, obj, proxy, apiToken, tries){
-  let count = tries || 0;
+function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
+  let count = tries || ZERO;
   return new Promise((resolve) => {
     const req = request.post(route);
     if (proxy) {
@@ -203,8 +207,8 @@ function genericPost(route, obj, proxy, apiToken, tries){
           setTimeout(
             () => {
               genericPost(route, obj, proxy, apiToken, ++count)
-                .then((res) => {
-                  resolve(res);
+                .then((retryRes) => {
+                  resolve(retryRes);
                 });
             }, retry);
         } else {
