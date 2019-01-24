@@ -120,3 +120,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.12 Added bulkCreateEvents function.
 * 1.6.13 Socket connection behind proxy.
 * 1.6.14 Add the getOrInitializeBotData function
+* 1.6.15 Fix bug with token workflow.

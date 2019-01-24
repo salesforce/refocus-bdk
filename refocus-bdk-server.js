@@ -120,7 +120,7 @@ const logger = new (winston.Logger)({
  */
 function genericGet(route, proxy, apiToken, tries){
   let count = tries || ZERO;
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const req = request.get(route);
     if (proxy) {
       req.proxy(proxy);
@@ -128,6 +128,14 @@ function genericGet(route, proxy, apiToken, tries){
     req
       .set('Authorization', apiToken)
       .end((error, res) => {
+        if (error) {
+          logger.error(
+            `Get ${route} failed: ${error}`
+          );
+          
+          reject(error);
+        }
+
         if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
           const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
           setTimeout(
@@ -220,10 +228,7 @@ function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
 
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
-  let TOKEN;
-  if (!NEW_TOKEN_WORKFLOW) {
-    TOKEN = config.token;
-  }
+  let TOKEN = config.token;
   const BOT_INSTALL_TOKEN = config.token;
   let SOCKET_TOKEN;
   let PROXY_URL;
@@ -1122,6 +1127,7 @@ module.exports = (config) => {
      *
      * @param {JSON} packageJSON - Contains information such as
      *    actions, names, url etc
+     * @returns {Promise} - promise for chaining
      */
     installOrUpdateBot: (packageJSON) => {
       const { metadata: { actions, data, settings },
@@ -1132,38 +1138,43 @@ module.exports = (config) => {
       // try to update a bot
       // this function is more common then installing a new bot
       // therefore executed first
-      updateBot(bot)
-        .then(() => {
-          logger.info(`${name} successfully updated on: ${SERVER}`);
-          if (!HEARTBEAT_OFF){
-            startHeartBeat(name);
-          }
-        })
-        .catch((error) => {
-          // err not found indicate that bot doesnt exist yet
-          if (error && error.status === STATUS_CODE_NOT_FOUND) {
-            // installs a new bot in refocus
-            installBot(bot)
-              .then(() => {
-                logger.info(`${name} successfully installed on: ${SERVER}`);
-                if (!HEARTBEAT_OFF){
-                  startHeartBeat(name);
-                }
-              })
-              .catch((installError) => {
-                logger.error(`Unable to install bot ${name} on: ${SERVER}`);
-                logger.error('Details: ', installError);
-                throw new Error(`Unable to install bot ${name} on: ${SERVER}`);
-              });
-          } else {
-            logger.error(
-              `Something went wrong while updating ${name} on: ${SERVER}`
-            );
-            logger.error('Details: ', error);
-            throw new Error(`Something went wrong while updating
-              ${name} on: ${SERVER}`);
-          }
-        });
+      return new Promise((resolve) => {
+        updateBot(bot)
+          .then(() => {
+            logger.info(`${name} successfully updated on: ${SERVER}`);
+            if (!HEARTBEAT_OFF){
+              startHeartBeat(name);
+            }
+            resolve();
+          })
+          .catch((error) => {
+            // err not found indicate that bot doesnt exist yet
+            if (error && error.status === STATUS_CODE_NOT_FOUND) {
+              // installs a new bot in refocus
+              installBot(bot)
+                .then(() => {
+                  logger.info(`${name} successfully installed on: ${SERVER}`);
+                  if (!HEARTBEAT_OFF){
+                    startHeartBeat(name);
+                  }
+                  resolve();
+                })
+                .catch((installError) => {
+                  logger.error(`Unable to install bot ${name} on: ${SERVER}`);
+                  logger.error('Details: ', installError);
+                  throw new Error(`Unable to install bot ${name}
+                    on: ${SERVER}`);
+                });
+            } else {
+              logger.error(
+                `Something went wrong while updating ${name} on: ${SERVER}`
+              );
+              logger.error('Details: ', error);
+              throw new Error(`Something went wrong while updating
+                ${name} on: ${SERVER}`);
+            }
+          });
+      });
     } // installOrUpdateBot
   };
 };
