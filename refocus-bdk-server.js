@@ -132,7 +132,7 @@ function genericGet(route, proxy, apiToken, tries){
           logger.error(
             `Get ${route} failed: ${error}`
           );
-          
+
           reject(error);
         }
 
@@ -164,7 +164,7 @@ function genericGet(route, proxy, apiToken, tries){
  */
 function genericPatch(route, obj, proxy, apiToken, tries){ // eslint-disable-line
   let count = tries || ZERO;
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const req = request.patch(route);
     if (proxy) {
       req.proxy(proxy);
@@ -173,6 +173,14 @@ function genericPatch(route, obj, proxy, apiToken, tries){ // eslint-disable-lin
       .set('Authorization', apiToken)
       .send(obj)
       .end((error, res) => {
+        if (error) {
+          logger.error(
+            `Get ${route} failed: ${error}`
+          );
+
+          reject(error);
+        }
+
         if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
           const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
           setTimeout(
@@ -201,7 +209,7 @@ function genericPatch(route, obj, proxy, apiToken, tries){ // eslint-disable-lin
  */
 function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
   let count = tries || ZERO;
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const req = request.post(route);
     if (proxy) {
       req.proxy(proxy);
@@ -210,6 +218,14 @@ function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
       .set('Authorization', apiToken)
       .send(obj)
       .end((error, res) => {
+        if (error) {
+          logger.error(
+            `Get ${route} failed: ${error}`
+          );
+
+          reject(error);
+        }
+
         if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
           const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
           setTimeout(

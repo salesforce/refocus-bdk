@@ -197,14 +197,14 @@ describe('BDK Server generic API: ', () => {
             return ({
               'end': (input) => {
                 if (count > ZERO) {
-                  input({}, {
+                  input(null, {
                     'status': TOO_MANY_REQUESTS,
                     'headers': {
                       'Retry-After': RETRY_TIME
                     }
                   });
                 } else {
-                  input({}, {
+                  input(null, {
                     'status': SUCCESS
                   });
                 }
@@ -222,14 +222,14 @@ describe('BDK Server generic API: ', () => {
                 return ({
                   'end': (input) => {
                     if (count > ZERO) {
-                      input({}, {
+                      input(null, {
                         'status': TOO_MANY_REQUESTS,
                         'headers': {
                           'Retry-After': RETRY_TIME
                         }
                       });
                     } else {
-                      input({}, {
+                      input(null, {
                         'status': SUCCESS
                       });
                     }
@@ -249,14 +249,14 @@ describe('BDK Server generic API: ', () => {
                 return ({
                   'end': (input) => {
                     if (count > ZERO) {
-                      input({}, {
+                      input(null, {
                         'status': TOO_MANY_REQUESTS,
                         'headers': {
                           'Retry-After': RETRY_TIME
                         }
                       });
                     } else {
-                      input({}, {
+                      input(null, {
                         'status': SUCCESS
                       });
                     }
