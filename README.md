@@ -57,6 +57,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * updateRoomName
 * getActiveRooms
 * getOrInitializeBotData
+* getRoomTypes
 
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
@@ -122,3 +123,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.14 Add the getOrInitializeBotData function
 * 1.6.15 Fix bug with token workflow.
 * 1.6.16 Retry if API limit has been reached.
+* 1.6.17 getRoomTypes function.
