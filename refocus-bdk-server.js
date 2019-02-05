@@ -28,6 +28,7 @@ const BOTS_ROUTE = '/bots';
 const BOTACTIONS_ROUTE = '/botActions';
 const BOTDATA_ROUTE = '/botData';
 const ROOMS_ROUTE = '/rooms';
+const ROOM_TYPES_ROUTE = '/roomTypes';
 const EVENTS_ROUTE = '/events';
 const EVENTS_BULK_ROUTE = '/events/bulk';
 const USERS_ROUTE = '/users';
@@ -575,6 +576,11 @@ module.exports = (config) => {
       return genericGet(`${SERVER}${API}${ROOMS_ROUTE}?active=true`,
         PROXY_URL, TOKEN);
     }, // getActiveRooms
+
+    getRoomTypes: () => {
+      return genericGet(`${SERVER}${API}${ROOM_TYPES_ROUTE}`,
+        PROXY_URL, TOKEN);
+    }, // getRoomTypes
 
     /**
      * Update room settings
