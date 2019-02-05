@@ -37,7 +37,11 @@ const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
 const FIRST_ARRAY_EL = 0;
 const ONE = 1;
+const ZERO = 0;
 const defaultMaxEvents = 2000;
+const MIN_POLLING_REFRESH = 5000;
+const TOO_MANY_REQUESTS = 429;
+const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
 const maxEvents = process.env.MAX_EVENTS || // eslint-disable-line
   defaultMaxEvents;
 
@@ -102,19 +106,32 @@ function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
  *
  * @param {String} route - URL for route
  * @param {String} apiToken - Refocus API Token
+ * @param {Integers} tries - Number of tries used for the APIs
  * @returns {Promise} - Route response
  */
-function genericGet(route, apiToken){
+function genericGet(route, apiToken, tries){
+  let count = tries || ZERO;
   return new Promise((resolve) => {
     const req = request.get(route);
     req
       .set('Authorization', apiToken)
       .end((error, res) => {
         debugMessage('silly', 'Generic Get. ', res);
-        if (error) {
-          debugMessage('error', 'Error: ', { error, res });
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(() => {
+            genericGet(route, apiToken, ++count)
+              .then((retryRes) => {
+                resolve(retryRes);
+              });
+          }, retry);
+        } else {
+          if (error) {
+            debugMessage('error', 'Error: ', { error, res });
+          }
+
+          resolve(res);
         }
-        resolve(res);
       });
   });
 } // genericGet
@@ -125,9 +142,11 @@ function genericGet(route, apiToken){
  * @param {String} route - URL for route
  * @param  {JSON} obj - the payload needed for route
  * @param {String} apiToken - Refocus API Token
+ * @param {Integers} tries - Number of tries used for the APIs
  * @returns {Promise} - Route response
  */
-function genericPatch(route, obj, apiToken){
+function genericPatch(route, obj, apiToken, tries){
+  let count = tries || ZERO;
   return new Promise((resolve) => {
     const req = request.patch(route);
     req
@@ -135,10 +154,21 @@ function genericPatch(route, obj, apiToken){
       .send(obj)
       .end((error, res) => {
         debugMessage('silly', 'Generic Patch. ', res);
-        if (error) {
-          debugMessage('error', 'Error: ', { error, res });
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(() => {
+            genericPatch(route, obj, apiToken, ++count)
+              .then((retryRes) => {
+                resolve(retryRes);
+              });
+          }, retry);
+        } else {
+          if (error) {
+            debugMessage('error', 'Error: ', { error, res });
+          }
+
+          resolve(res);
         }
-        resolve(res);
       });
   });
 } // genericPatch
@@ -149,9 +179,11 @@ function genericPatch(route, obj, apiToken){
  * @param {String} route - URL for route
  * @param {JSON} obj - the payload needed for route
  * @param {String} apiToken - Refocus API Token
+ * @param {Integers} tries - Number of tries used for the APIs
  * @returns {Promise} - Route response
  */
-function genericPost(route, obj, apiToken){
+function genericPost(route, obj, apiToken, tries){
+  let count = tries || ZERO;
   return new Promise((resolve) => {
     const req = request.post(route);
     req
@@ -159,10 +191,21 @@ function genericPost(route, obj, apiToken){
       .send(obj)
       .end((error, res) => {
         debugMessage('silly', 'Generic Post. ', res);
-        if (error) {
-          debugMessage('error', 'Error: ', { error, res });
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(() => {
+            genericPost(route, obj, apiToken, ++count)
+              .then((retryRes) => {
+                resolve(retryRes);
+              });
+          }, retry);
+        } else {
+          if (error) {
+            debugMessage('error', 'Error: ', { error, res });
+          }
+
+          resolve(res);
         }
-        resolve(res);
       });
   });
 } // genericPost

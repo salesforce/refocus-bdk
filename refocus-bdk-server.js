@@ -34,8 +34,10 @@ const USERS_ROUTE = '/users';
 const MIN_POLLING_DELAY = 100;
 const MIN_POLLING_REFRESH = 5000;
 const MIN_HEARTBEAT_TIMER = 60000;
+const TOO_MANY_REQUESTS = 429;
 /* eslint-disable no-process-env */
 /* eslint-disable no-implicit-coercion*/
+const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
 const NEW_TOKEN_WORKFLOW = process.env.NEW_TOKEN_WORKFLOW || false;
 
@@ -60,6 +62,7 @@ const STATUS_CODE_CREATED = 201;
 const STATUS_CODE_NOT_FOUND = 404;
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
+const ZERO = 0;
 
 // Create logger
 const winston = require('winston');
@@ -112,9 +115,11 @@ const logger = new (winston.Logger)({
  * @param {String} route - URL for route
  * @param {String} proxy - Proxy URL
  * @param {String} apiToken - Refocus API Token
+ * @param {Integers} tries - Number of tries used for the APIs
  * @returns {Promise} - Route response
  */
-function genericGet(route, proxy, apiToken){
+function genericGet(route, proxy, apiToken, tries){
+  let count = tries || ZERO;
   return new Promise((resolve, reject) => {
     const req = request.get(route);
     if (proxy) {
@@ -127,9 +132,22 @@ function genericGet(route, proxy, apiToken){
           logger.error(
             `Get ${route} failed: ${error}`
           );
+
           reject(error);
         }
-        resolve(res);
+
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(
+            () => {
+              genericGet(route, proxy, apiToken, ++count)
+                .then((retryRes) => {
+                  resolve(retryRes);
+                });
+            }, retry);
+        } else {
+          resolve(res);
+        }
       });
   });
 } // genericGet
@@ -141,10 +159,12 @@ function genericGet(route, proxy, apiToken){
  * @param {JSON} obj - the payload needed for route
  * @param {String} proxy - Proxy URL
  * @param {String} apiToken - Refocus API Token
+ * @param {Integers} tries - Number of tries used for the APIs
  * @returns {Promise} - Route response
  */
-function genericPatch(route, obj, proxy, apiToken){
-  return new Promise((resolve) => {
+function genericPatch(route, obj, proxy, apiToken, tries){ // eslint-disable-line
+  let count = tries || ZERO;
+  return new Promise((resolve, reject) => {
     const req = request.patch(route);
     if (proxy) {
       req.proxy(proxy);
@@ -153,7 +173,26 @@ function genericPatch(route, obj, proxy, apiToken){
       .set('Authorization', apiToken)
       .send(obj)
       .end((error, res) => {
-        resolve(res);
+        if (error) {
+          logger.error(
+            `Get ${route} failed: ${error}`
+          );
+
+          reject(error);
+        }
+
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(
+            () => {
+              genericPatch(route, obj, proxy, apiToken, ++count)
+                .then((retryRes) => {
+                  resolve(retryRes);
+                });
+            }, retry);
+        } else {
+          resolve(res);
+        }
       });
   });
 } // genericPatch
@@ -165,10 +204,12 @@ function genericPatch(route, obj, proxy, apiToken){
  * @param {JSON} obj - the payload needed for route
  * @param {String} proxy - Proxy URL
  * @param {String} apiToken - Refocus API Token
+ * @param {Integers} tries - Number of tries used for the APIs
  * @returns {Promise} - Route response
  */
-function genericPost(route, obj, proxy, apiToken){
-  return new Promise((resolve) => {
+function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
+  let count = tries || ZERO;
+  return new Promise((resolve, reject) => {
     const req = request.post(route);
     if (proxy) {
       req.proxy(proxy);
@@ -177,7 +218,26 @@ function genericPost(route, obj, proxy, apiToken){
       .set('Authorization', apiToken)
       .send(obj)
       .end((error, res) => {
-        resolve(res);
+        if (error) {
+          logger.error(
+            `Get ${route} failed: ${error}`
+          );
+
+          reject(error);
+        }
+
+        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
+          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
+          setTimeout(
+            () => {
+              genericPost(route, obj, proxy, apiToken, ++count)
+                .then((retryRes) => {
+                  resolve(retryRes);
+                });
+            }, retry);
+        } else {
+          resolve(res);
+        }
       });
   });
 } // genericPost
