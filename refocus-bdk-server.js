@@ -17,6 +17,7 @@
  *
  */
 
+/* eslint consistent-return: 0 */
 const moment = require('moment');
 const request = require('superagent');
 const requestProxy = require('superagent-proxy');
@@ -134,7 +135,7 @@ function genericGet(route, proxy, apiToken, tries){
             `Get ${route} failed: ${error}`
           );
 
-          reject(error);
+          return reject(error);
         }
 
         if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
@@ -179,7 +180,7 @@ function genericPatch(route, obj, proxy, apiToken, tries){ // eslint-disable-lin
             `Get ${route} failed: ${error}`
           );
 
-          reject(error);
+          return reject(error);
         }
 
         if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
@@ -224,7 +225,7 @@ function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
             `Get ${route} failed: ${error}`
           );
 
-          reject(error);
+          return reject(error);
         }
 
         if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
