@@ -488,8 +488,11 @@ module.exports = (config) => {
               },
             };
           }
-
+          // adds name of action and an extra field set by bot developer
+          // for better logging granularity
+          const sumoLog = instance.body.name + instance.body.actionLog;
           eventObject.context = eventObject.context ? eventObject.context : {};
+          eventObject.actionType = sumoLog;
           eventObject.context.name = instance.body.name;
           eventObject.context.response = instance.body.response;
           eventObject.roomId = instance.body.roomId;
@@ -703,13 +706,15 @@ module.exports = (config) => {
      * @param {Integer} room - Room Id
      * @param {String} msg - Log String
      * @param {Object} context - JSON context
+     * @param {String} type - string to go into actionType
      * @returns {Promise} - Event response
      */
-    createEvents: (room, msg, context) => {
-      log.debug('Creating a new Event. ', { room, msg, context });
+    createEvents: (room, msg, context, type) => {
+      log.debug('Creating a new Event. ', { room, msg, context, type });
       const events = {
         log: msg,
-        roomId: room
+        roomId: room,
+        actionType: type
       };
       if (context) {
         events.context = context;
