@@ -815,7 +815,8 @@ module.exports = (config) => {
             };
           }
 
-          const sumoLog = instance.body.name + instance.body.actionLog;
+          const sumoLog = instance.body.actionLog ? instance.body.name +
+           instance.body.actionLog : instance.body.name;
           eventObject.context = eventObject.context ? eventObject.context : {};
           eventObject.actionType = sumoLog;
           eventObject.context.name = instance.body.name;

@@ -490,7 +490,8 @@ module.exports = (config) => {
           }
           // adds name of action and an extra field set by bot developer
           // for better logging granularity
-          const sumoLog = instance.body.name + instance.body.actionLog;
+          const sumoLog = instance.body.actionLog ? instance.body.name +
+           instance.body.actionLog : instance.body.name;
           eventObject.context = eventObject.context ? eventObject.context : {};
           eventObject.actionType = sumoLog;
           eventObject.context.name = instance.body.name;
