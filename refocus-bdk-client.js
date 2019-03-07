@@ -214,6 +214,7 @@ function genericPost(route, obj, apiToken, tries){
 module.exports = (config) => {
   const SERVER = window.location.origin || config.refocusUrl;
   const TOKEN = window.userSession || config.token;
+  const botName = config.botName;
 
   /**
    * Define a set of log functions
@@ -528,17 +529,17 @@ module.exports = (config) => {
      *
      * @param {String} room - Id room
      * @param {String} bot - Id of bot
-     * @param {String} botName - Name of data
+     * @param {String} botDataName - Name of data
      * @param {*} value - Can already be serialized or any other data type
      * @returns {Promise} - Bot Data response
      */
-    createBotData: (room, bot, botName, value) => {
+    createBotData: (room, bot, botDataName, value) => {
       let newData = value;
       if (newData && typeof newData !== 'string') {
         newData = serialize(newData);
       }
       const botData = {
-        'name': botName,
+        'name': botDataName,
         'roomId': parseInt(room, 10),
         'botId': bot,
         'value': newData
@@ -715,7 +716,8 @@ module.exports = (config) => {
       const events = {
         log: msg,
         roomId: room,
-        actionType: type
+        actionType: type,
+        botId: botName
       };
       if (context) {
         events.context = context;
@@ -775,11 +777,11 @@ module.exports = (config) => {
         roomObject, TOKEN);
     }, // updateRoomName
 
-    getOrInitializeBotData: (room, botName, dataName, defaultValue) => {
+    getOrInitializeBotData: (room, botId, dataName, defaultValue) => {
       log.debug('Getting or Initialize BotData. ', { room, botName, dataName });
       return new Promise((resolve, reject) => {
         return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}` +
-        `?roomId=${room}&botId=${botName}&name=${dataName}`, TOKEN)
+        `?roomId=${room}&botId=${botId}&name=${dataName}`, TOKEN)
           .then((data) => {
             const _data = data.body.filter((bd) =>
               bd.name === dataName)[FIRST_ARRAY_EL];
