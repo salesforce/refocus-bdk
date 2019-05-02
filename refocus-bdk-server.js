@@ -247,6 +247,7 @@ function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
   let TOKEN = config.token;
+  const botName = config.botName;
   const BOT_INSTALL_TOKEN = config.token;
   let SOCKET_TOKEN;
   let PROXY_URL;
@@ -593,13 +594,13 @@ module.exports = (config) => {
 
   /**
     *
-    * @param {string} botName - Contains name of bot
+    * @param {string} name - Contains name of bot
     */
-  function startHeartBeat(botName){
+  function startHeartBeat(name){
     setInterval(() => {
       const currentTimestamp = new Date();
       const requestBody = { currentTimestamp };
-      genericPost(SERVER+API+BOTS_ROUTE+'/'+botName+'/heartbeat', requestBody,
+      genericPost(SERVER+API+BOTS_ROUTE+'/'+name+'/heartbeat', requestBody,
         PROXY_URL, TOKEN);
     }, HEARTBEAT_TIMER);
   } // heartBeat
@@ -1067,7 +1068,8 @@ module.exports = (config) => {
       const events = {
         log: msg,
         roomId: room,
-        actionType: type
+        actionType: type,
+        botId: botName
       };
       if (context) {
         events.context = context;
@@ -1121,14 +1123,14 @@ module.exports = (config) => {
      *
      * @param {Express} app - App stream so we can push events to the server
      * @param {String} token - Socket Token needed to connect to Refocus socket
-     * @param {String} botName - name of a Bot
+     * @param {String} name - name of a Bot
      */
-    refocusConnect: (app, token, botName) => {
+    refocusConnect: (app, token, name) => {
       let botId = '';
       let botRoute = '/';
       const connectToken = SOCKET_TOKEN ? SOCKET_TOKEN : token;
-      if (botName) {
-        genericGet(SERVER+API+BOTS_ROUTE+'?name='+botName,
+      if (name) {
+        genericGet(SERVER+API+BOTS_ROUTE+'?name='+name,
           PROXY_URL, TOKEN)
           .then((bots) => {
             if (bots && bots.body && bots.body.length) {

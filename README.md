@@ -125,3 +125,6 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.16 Retry if API limit has been reached.
 * 1.6.17 getRoomTypes function.
 * 1.6.18 Return reject bug.
+* 1.6.19 Added log automatically to event.
+* 1.6.20 Added botname from config to event
+
