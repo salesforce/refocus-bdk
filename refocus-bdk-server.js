@@ -312,8 +312,11 @@ module.exports = (config) => {
     const botEventAdd =
       'refocus.internal.realtime.bot.event.add';
 
-    socket.on(initalizeEventName, () => {
-      logger.info('Socket Initialized');
+    socket.on(initalizeEventName, (data) => {
+      const eventData = JSON.parse(data);
+      const room = eventData[initalizeEventName];
+      app.emit('refocus.internal.realtime.bot.namespace.initialize', room);
+      log.realtime('New Room', room);
     });
 
     socket.on(settingsChangedEventName, (data) => {
