@@ -128,3 +128,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.19 Added log automatically to event.
 * 1.6.20 Added botname from config to event.
 * 1.6.21 Emit event for new room created.
+* 1.6.22 Remove NEW_TOKEN_WORKFLOW toggle.

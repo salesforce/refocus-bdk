@@ -41,7 +41,6 @@ const TOO_MANY_REQUESTS = 429;
 /* eslint-disable no-implicit-coercion*/
 const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
-const NEW_TOKEN_WORKFLOW = process.env.NEW_TOKEN_WORKFLOW || false;
 
 let POLLING_DELAY =
   +process.env.POLLING_DELAY || MIN_POLLING_DELAY; // Second
@@ -510,9 +509,7 @@ module.exports = (config) => {
             // Need to save this after install
             logger.info('Socket Authorization Token: ' + res.body.token);
             SOCKET_TOKEN = res.body.token;
-            if (NEW_TOKEN_WORKFLOW) {
-              TOKEN = res.body.token;
-            }
+            TOKEN = res.body.token;
             resolve(res);
           }
         });
@@ -586,10 +583,9 @@ module.exports = (config) => {
 
             return reject(err || !ok);
           }
-          if (NEW_TOKEN_WORKFLOW) {
-            SOCKET_TOKEN = res.body.token;
-            TOKEN = res.body.token;
-          }
+
+          SOCKET_TOKEN = res.body.token;
+          TOKEN = res.body.token;
           return resolve(res);
         });
     });
