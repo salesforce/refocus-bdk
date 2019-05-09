@@ -42,6 +42,8 @@ const TOO_MANY_REQUESTS = 429;
 const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
 const NEW_TOKEN_WORKFLOW = process.env.NEW_TOKEN_WORKFLOW || false;
+const NEW_RT_APP_TOGGLE = process.env.NEW_RT_APP_TOGGLE &&
+  process.env.NEW_RT_APP_TOGGLE === 'true';
 
 let POLLING_DELAY =
   +process.env.POLLING_DELAY || MIN_POLLING_DELAY; // Second
@@ -246,6 +248,7 @@ function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
 
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
+  const RT_SERVER = config.refocusRealtimeUrl;
   let TOKEN = config.token;
   const botName = config.botName;
   const BOT_INSTALL_TOKEN = config.token;
@@ -295,7 +298,13 @@ module.exports = (config) => {
       opts.agent = new HttpsProxyAgent(PROXY_URL);
     }
 
-    const socket = io.connect(SERVER, opts);
+    let rtConnectUrl = SERVER;
+
+    if (NEW_RT_APP_TOGGLE && RT_SERVER) {
+      rtConnectUrl = `${RT_SERVER}?t=${token}`;
+    }
+
+    const socket = io.connect(rtConnectUrl, opts);
 
     const settingsChangedEventName =
       'refocus.internal.realtime.room.settingsChanged';
