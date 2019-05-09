@@ -8,10 +8,10 @@
 
 module.exports = {
   rtEventNames: {
-    settingsChanged:
-      'refocus.internal.realtime.room.settingsChanged',
     initalize:
       'refocus.internal.realtime.bot.namespace.initialize',
+    settingsChanged:
+      'refocus.internal.realtime.room.settingsChanged',
     botActionsAdd:
       'refocus.internal.realtime.bot.action.add',
     botActionsUpdate:
