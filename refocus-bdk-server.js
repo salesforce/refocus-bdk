@@ -24,6 +24,7 @@ const requestProxy = require('superagent-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
 const io = require('socket.io-client');
 const serialize = require('serialize-javascript');
+const { rtEventNames } = require('config');
 const API = '/v1';
 const BOTS_ROUTE = '/bots';
 const BOTACTIONS_ROUTE = '/botActions';
@@ -41,7 +42,6 @@ const TOO_MANY_REQUESTS = 429;
 /* eslint-disable no-implicit-coercion*/
 const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
-const NEW_TOKEN_WORKFLOW = process.env.NEW_TOKEN_WORKFLOW || false;
 const NEW_RT_APP_TOGGLE = process.env.NEW_RT_APP_TOGGLE &&
   process.env.NEW_RT_APP_TOGGLE === 'true';
 
@@ -306,66 +306,51 @@ module.exports = (config) => {
 
     const socket = io.connect(rtConnectUrl, opts);
 
-    const settingsChangedEventName =
-      'refocus.internal.realtime.room.settingsChanged';
-    const initalizeEventName =
-      'refocus.internal.realtime.bot.namespace.initialize';
-    const botActionsAdd =
-      'refocus.internal.realtime.bot.action.add';
-    const botActionsUpdate =
-      'refocus.internal.realtime.bot.action.update';
-    const botDataAdd =
-      'refocus.internal.realtime.bot.data.add';
-    const botDataUpdate =
-      'refocus.internal.realtime.bot.data.update';
-    const botEventAdd =
-      'refocus.internal.realtime.bot.event.add';
-
-    socket.on(initalizeEventName, (data) => {
+    socket.on(rtEventNames.initalize, (data) => {
       const eventData = JSON.parse(data);
-      const room = eventData[initalizeEventName];
+      const room = eventData[rtEventNames.initalizeEventName];
       app.emit('refocus.internal.realtime.bot.namespace.initialize', room);
       log.realtime('New Room', room);
     });
 
-    socket.on(settingsChangedEventName, (data) => {
+    socket.on(rtEventNames.settingsChanged, (data) => {
       const eventData = JSON.parse(data);
-      const room = eventData[settingsChangedEventName];
+      const room = eventData[rtEventNames.settingsChanged];
       app.emit('refocus.room.settings', room);
       log.realtime('Room Settings', room);
     });
 
-    socket.on(botActionsAdd, (data) => {
+    socket.on(rtEventNames.botActionsAdd, (data) => {
       const eventData = JSON.parse(data);
-      const action = eventData[botActionsAdd];
+      const action = eventData[rtEventNames.botActionsAdd];
       app.emit('refocus.bot.actions', action);
       log.realtime('Bot Action', action);
     });
 
-    socket.on(botActionsUpdate, (data) => {
+    socket.on(rtEventNames.botActionsUpdate, (data) => {
       const eventData = JSON.parse(data);
-      const action = eventData[botActionsUpdate].new;
+      const action = eventData[rtEventNames.botActionsUpdate].new;
       app.emit('refocus.bot.actions', action);
       log.realtime('Bot Action', action);
     });
 
-    socket.on(botDataAdd, (data) => {
+    socket.on(rtEventNames.botDataAdd, (data) => {
       const eventData = JSON.parse(data);
-      const botData = eventData[botDataAdd];
+      const botData = eventData[rtEventNames.botDataAdd];
       app.emit('refocus.bot.data', botData);
       log.realtime('Bot Data', botData);
     });
 
-    socket.on(botDataUpdate, (data) => {
+    socket.on(rtEventNames.botDataUpdate, (data) => {
       const eventData = JSON.parse(data);
-      const botData = eventData[botDataUpdate].new;
+      const botData = eventData[rtEventNames.botDataUpdate].new;
       app.emit('refocus.bot.data', botData);
       log.realtime('Bot Data', botData);
     });
 
-    socket.on(botEventAdd, (data) => {
+    socket.on(rtEventNames.botEventAdd, (data) => {
       const eventData = JSON.parse(data);
-      const botEvent = eventData[botEventAdd];
+      const botEvent = eventData[rtEventNames.botEventAdd];
       app.emit('refocus.events', botEvent);
       log.realtime('Room Events', botEvent);
     });
@@ -519,9 +504,7 @@ module.exports = (config) => {
             // Need to save this after install
             logger.info('Socket Authorization Token: ' + res.body.token);
             SOCKET_TOKEN = res.body.token;
-            if (NEW_TOKEN_WORKFLOW) {
-              TOKEN = res.body.token;
-            }
+            TOKEN = res.body.token;
             resolve(res);
           }
         });
@@ -595,10 +578,9 @@ module.exports = (config) => {
 
             return reject(err || !ok);
           }
-          if (NEW_TOKEN_WORKFLOW) {
-            SOCKET_TOKEN = res.body.token;
-            TOKEN = res.body.token;
-          }
+
+          SOCKET_TOKEN = res.body.token;
+          TOKEN = res.body.token;
           return resolve(res);
         });
     });
