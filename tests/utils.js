@@ -144,18 +144,6 @@ const botActionsArray = [
   }
 ];
 
-const easyJSON = {
-  name: 'Test Name',
-  age: '16',
-  phoneNumber: '123456789',
-};
-
-const complicatedJSON = {
-  blah: `blah !@£$%^& "hi" ${'var name'} {}[]::;;||\\><//?><*();`,
-  includesTabs: '       \n 12345 aaa AAA ||',
-  complex: `"""""""""""""" {} ||\\'''''%%%${'var'}"""+=0---00`
-};
-
 module.exports = {
   actions,
   data,
@@ -163,6 +151,4 @@ module.exports = {
   bot,
   botActionsArray,
   botWithUI,
-  easyJSON,
-  complicatedJSON
 };
