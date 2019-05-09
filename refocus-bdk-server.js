@@ -306,51 +306,61 @@ module.exports = (config) => {
 
     const socket = io.connect(rtConnectUrl, opts);
 
-    socket.on(rtEventNames.initalize, (data) => {
+    const {
+      initalize,
+      settingsChanged,
+      botActionsAdd,
+      botActionsUpdate,
+      botDataAdd,
+      botDataUpdate,
+      botEventAdd
+    } = rtEventNames;
+
+    socket.on(initalize, (data) => {
       const eventData = JSON.parse(data);
-      const room = eventData[rtEventNames.initalizeEventName];
+      const room = eventData[initalize];
       app.emit('refocus.internal.realtime.bot.namespace.initialize', room);
       log.realtime('New Room', room);
     });
 
-    socket.on(rtEventNames.settingsChanged, (data) => {
+    socket.on(settingsChanged, (data) => {
       const eventData = JSON.parse(data);
-      const room = eventData[rtEventNames.settingsChanged];
+      const room = eventData[settingsChanged];
       app.emit('refocus.room.settings', room);
       log.realtime('Room Settings', room);
     });
 
-    socket.on(rtEventNames.botActionsAdd, (data) => {
+    socket.on(botActionsAdd, (data) => {
       const eventData = JSON.parse(data);
-      const action = eventData[rtEventNames.botActionsAdd];
+      const action = eventData[botActionsAdd];
       app.emit('refocus.bot.actions', action);
       log.realtime('Bot Action', action);
     });
 
-    socket.on(rtEventNames.botActionsUpdate, (data) => {
+    socket.on(botActionsUpdate, (data) => {
       const eventData = JSON.parse(data);
-      const action = eventData[rtEventNames.botActionsUpdate].new;
+      const action = eventData[botActionsUpdate].new;
       app.emit('refocus.bot.actions', action);
       log.realtime('Bot Action', action);
     });
 
-    socket.on(rtEventNames.botDataAdd, (data) => {
+    socket.on(botDataAdd, (data) => {
       const eventData = JSON.parse(data);
-      const botData = eventData[rtEventNames.botDataAdd];
+      const botData = eventData[botDataAdd];
       app.emit('refocus.bot.data', botData);
       log.realtime('Bot Data', botData);
     });
 
-    socket.on(rtEventNames.botDataUpdate, (data) => {
+    socket.on(botDataUpdate, (data) => {
       const eventData = JSON.parse(data);
-      const botData = eventData[rtEventNames.botDataUpdate].new;
+      const botData = eventData[botDataUpdate].new;
       app.emit('refocus.bot.data', botData);
       log.realtime('Bot Data', botData);
     });
 
-    socket.on(rtEventNames.botEventAdd, (data) => {
+    socket.on(botEventAdd, (data) => {
       const eventData = JSON.parse(data);
-      const botEvent = eventData[rtEventNames.botEventAdd];
+      const botEvent = eventData[botEventAdd];
       app.emit('refocus.events', botEvent);
       log.realtime('Room Events', botEvent);
     });
