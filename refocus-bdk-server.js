@@ -42,8 +42,6 @@ const TOO_MANY_REQUESTS = 429;
 /* eslint-disable no-implicit-coercion*/
 const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
-const NEW_RT_APP_TOGGLE = process.env.NEW_RT_APP_TOGGLE &&
-  process.env.NEW_RT_APP_TOGGLE === 'true';
 
 let POLLING_DELAY =
   +process.env.POLLING_DELAY || MIN_POLLING_DELAY; // Second
@@ -300,7 +298,7 @@ module.exports = (config) => {
 
     let rtConnectUrl = SERVER;
 
-    if (NEW_RT_APP_TOGGLE && RT_SERVER) {
+    if (RT_SERVER) {
       rtConnectUrl = `${RT_SERVER}?t=${token}`;
     }
 
