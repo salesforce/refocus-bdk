@@ -278,23 +278,24 @@ module.exports = (config) => {
    *
    * @param {Express} app - App stream so we can push events to the server
    * @param {String} token - Socket Token needed to connect to Refocus socket
+   * @param {String} botId - Id of the bot
    */
-  function refocusConnectSocket(app, token) {
+  function refocusConnectSocket(app, token, botId) {
     const opts = {
       reconnect: true,
       'reconnection delay': 10,
       transports: ['websocket'],
       upgrade: false,
-      extraHeaders: {
-        Authorization: token
-      }
+      query: {
+        id: botId,
+      },
     };
 
     if (PROXY_URL) {
       opts.agent = new HttpsProxyAgent(PROXY_URL);
     }
 
-    const socket = io.connect(SERVER, opts);
+    const socket = io.connect(`${SERVER}/bots`, opts);
 
     const settingsChangedEventName =
       'refocus.internal.realtime.room.settingsChanged';
@@ -361,6 +362,8 @@ module.exports = (config) => {
     });
 
     socket.on('connect', () => {
+      socket.emit('auth', token);
+    }).on('authenticated', () => {
       logger.info('Socket Connected');
     });
 
@@ -1146,7 +1149,8 @@ module.exports = (config) => {
       } else if (USE_POLLING) {
         refocusConnectPolling(app, botRoute);
       } else {
-        refocusConnectSocket(app, connectToken);
+        // can't connect without specific bot name for new namespace format
+        // TODO: need to handle this case?
       }
     }, // refocusConnect
 
