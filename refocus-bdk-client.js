@@ -21,6 +21,7 @@ const moment = require('moment');
 const url = require('url');
 const request = require('superagent');
 const serialize = require('serialize-javascript');
+const generic = require('./generic.js');
 // user is a global object provided by the Refocus server
 // eslint-disable-next-line no-undef
 const _user = JSON.parse(user.replace(/&quot;/g, '"')
@@ -38,10 +39,7 @@ const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
 const FIRST_ARRAY_EL = 0;
 const ONE = 1;
-const ZERO = 0;
 const defaultMaxEvents = 2000;
-const MIN_POLLING_REFRESH = 5000;
-const TOO_MANY_REQUESTS = 429;
 const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
 const maxEvents = process.env.MAX_EVENTS || // eslint-disable-line
   defaultMaxEvents;
@@ -102,115 +100,6 @@ function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
   }
 } // debugMessage
 
-/**
- * Get JSON from server asynchronous
- *
- * @param {String} route - URL for route
- * @param {String} apiToken - Refocus API Token
- * @param {Integers} tries - Number of tries used for the APIs
- * @returns {Promise} - Route response
- */
-function genericGet(route, apiToken, tries){
-  let count = tries || ZERO;
-  return new Promise((resolve) => {
-    const req = request.get(route);
-    req
-      .set('Authorization', apiToken)
-      .end((error, res) => {
-        debugMessage('silly', 'Generic Get. ', res);
-        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
-          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
-          setTimeout(() => {
-            genericGet(route, apiToken, ++count)
-              .then((retryRes) => {
-                resolve(retryRes);
-              });
-          }, retry);
-        } else {
-          if (error) {
-            debugMessage('error', 'Error: ', { error, res });
-          }
-
-          resolve(res);
-        }
-      });
-  });
-} // genericGet
-
-/**
- * Patch JSON to server asynchronous
- *
- * @param {String} route - URL for route
- * @param  {JSON} obj - the payload needed for route
- * @param {String} apiToken - Refocus API Token
- * @param {Integers} tries - Number of tries used for the APIs
- * @returns {Promise} - Route response
- */
-function genericPatch(route, obj, apiToken, tries){
-  let count = tries || ZERO;
-  return new Promise((resolve) => {
-    const req = request.patch(route);
-    req
-      .set('Authorization', apiToken)
-      .send(obj)
-      .end((error, res) => {
-        debugMessage('silly', 'Generic Patch. ', res);
-        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
-          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
-          setTimeout(() => {
-            genericPatch(route, obj, apiToken, ++count)
-              .then((retryRes) => {
-                resolve(retryRes);
-              });
-          }, retry);
-        } else {
-          if (error) {
-            debugMessage('error', 'Error: ', { error, res });
-          }
-
-          resolve(res);
-        }
-      });
-  });
-} // genericPatch
-
-/**
- * Post JSON to server asynchronous
- *
- * @param {String} route - URL for route
- * @param {JSON} obj - the payload needed for route
- * @param {String} apiToken - Refocus API Token
- * @param {Integers} tries - Number of tries used for the APIs
- * @returns {Promise} - Route response
- */
-function genericPost(route, obj, apiToken, tries){
-  let count = tries || ZERO;
-  return new Promise((resolve) => {
-    const req = request.post(route);
-    req
-      .set('Authorization', apiToken)
-      .send(obj)
-      .end((error, res) => {
-        debugMessage('silly', 'Generic Post. ', res);
-        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
-          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
-          setTimeout(() => {
-            genericPost(route, obj, apiToken, ++count)
-              .then((retryRes) => {
-                resolve(retryRes);
-              });
-          }, retry);
-        } else {
-          if (error) {
-            debugMessage('error', 'Error: ', { error, res });
-          }
-
-          resolve(res);
-        }
-      });
-  });
-} // genericPost
-
 module.exports = (config) => {
   const SERVER = window.location.origin || config.refocusUrl;
   const TOKEN = window.userSession || config.token;
@@ -255,7 +144,8 @@ module.exports = (config) => {
     findRoom: (id) => {
       log.debug('Find Room ',
         { id, route: `${SERVER}${API}${ROOMS_ROUTE}/${id}` });
-      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/${id}`, TOKEN);
+      return generic.get(`${SERVER}${API}${ROOMS_ROUTE}/${id}`,
+        TOKEN, MAX_RETRIES, log);
     }, // findRoom
 
     /**
@@ -264,11 +154,13 @@ module.exports = (config) => {
      * @returns {Promise} - Resolves to a list of active rooms.
      */
     getActiveRooms: () => {
-      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}?active=true`, TOKEN);
+      return generic.get(`${SERVER}${API}${ROOMS_ROUTE}?active=true`,
+        TOKEN, MAX_RETRIES, log);
     }, // getActiveRooms
 
     getRoomTypes: () => {
-      return genericGet(`${SERVER}${API}${ROOM_TYPES_ROUTE}`, TOKEN);
+      return generic.get(`${SERVER}${API}${ROOM_TYPES_ROUTE}`,
+        TOKEN, MAX_RETRIES, log);
     }, // getRoomTypes
 
     /**
@@ -283,7 +175,8 @@ module.exports = (config) => {
         'settings': newSettings,
       };
       log.debug('Updating Settings ', newSettings);
-      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${id}`, patch, TOKEN);
+      return generic.patch(`${SERVER}${API}${ROOMS_ROUTE}/${id}`, patch, TOKEN,
+        MAX_RETRIES, log);
     }, // updateSettings
 
     /**
@@ -294,7 +187,8 @@ module.exports = (config) => {
      */
     getUser: (id) => {
       log.debug('Getting User ', id);
-      return genericGet(`${SERVER}${API}${USERS_ROUTE}/${id}`, TOKEN);
+      return generic.get(`${SERVER}${API}${USERS_ROUTE}/${id}`, TOKEN,
+        MAX_RETRIES, log);
     }, // getUser
 
     /**
@@ -306,7 +200,8 @@ module.exports = (config) => {
      */
     getActiveUsers: (room) => {
       log.debug('Requesting active users for room ', room);
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`, TOKEN)
+      return generic.get(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`, TOKEN,
+        MAX_RETRIES, log)
         .then((events) => {
           const users = [];
           const userEvents = events.body
@@ -349,7 +244,8 @@ module.exports = (config) => {
     findBot: (id) => {
       log.debug('Find Bot ',
         { id, route: `${SERVER}${API}${BOTS_ROUTE}/${id}` });
-      return genericGet(`${SERVER}${API}${BOTS_ROUTE}/${id}`, TOKEN);
+      return generic.get(`${SERVER}${API}${BOTS_ROUTE}/${id}`, TOKEN,
+        MAX_RETRIES, log);
     }, // findBot
 
     /**
@@ -361,7 +257,8 @@ module.exports = (config) => {
     findBotAction: (id) => {
       log.debug('Find Bot Action ',
         { id, route: `${SERVER}${API}${BOTACTIONS_ROUTE}/${id}` });
-      return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`, TOKEN);
+      return generic.get(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`, TOKEN,
+        MAX_RETRIES, log);
     }, // findBotAction
 
     /**
@@ -376,18 +273,16 @@ module.exports = (config) => {
       log.debug('Getting Bot Actions for Room',
         { room, bot, name });
       if (!bot) {
-        return genericGet(`${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}`,
-          TOKEN);
+        return generic.get(`${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}`,
+          MAX_RETRIES, log);
       } else if (!name) {
-        return genericGet(
+        return generic.get(
           `${SERVER}${API}${BOTACTIONS_ROUTE}?roomId=${room}&botId=${bot}`,
-          TOKEN
-        );
+          TOKEN, MAX_RETRIES, log);
       }
-      return genericGet(
+      return generic.get(
         `${SERVER}${API}${BOTACTIONS_ROUTE}` +
-        `?roomId=${room}&botId=${bot}&name=${name}`, TOKEN
-      );
+        `?roomId=${room}&botId=${bot}&name=${name}`, TOKEN, MAX_RETRIES, log);
     }, // getBotActions
 
     /**
@@ -440,11 +335,12 @@ module.exports = (config) => {
       log.debug('Creating Bot Action ', botAction);
       try {
         botAction.userId = _user.id;
+        botAction.botId = botName ? botName : botAction.botId;
       } catch (error) {
         log.error('Create bot action bdk', error);
       }
-      return genericPost(`${SERVER}${API}${BOTACTIONS_ROUTE}`, botAction,
-        TOKEN);
+      return generic.post(`${SERVER}${API}${BOTACTIONS_ROUTE}`, botAction,
+        TOKEN, MAX_RETRIES, log);
     }, // createBotAction
 
     /**
@@ -473,8 +369,8 @@ module.exports = (config) => {
         'response': res,
       };
 
-      return genericPatch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
-        responseObject, TOKEN)
+      return generic.patch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
+        responseObject, TOKEN, MAX_RETRIES, log)
         .then((instance) => {
           let eventObject = {};
           if (eventLog) {
@@ -501,8 +397,8 @@ module.exports = (config) => {
           eventObject.botId = instance.body.botId;
           eventObject.botActionId = instance.body.id;
           eventObject.userId = instance.body.userId;
-          return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, eventObject,
-            TOKEN);
+          return generic.post(`${SERVER}${API}${EVENTS_ROUTE}`, eventObject,
+            TOKEN, MAX_RETRIES, log);
         });
     }, // respondBotAction
 
@@ -520,8 +416,8 @@ module.exports = (config) => {
         'response': res,
       };
 
-      return genericPatch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
-        responseObject, TOKEN);
+      return generic.patch(`${SERVER}${API}${BOTACTIONS_ROUTE}/${id}`,
+        responseObject, TOKEN, MAX_RETRIES, log);
     }, // respondBotActionNoLog
 
     /**
@@ -538,14 +434,16 @@ module.exports = (config) => {
       if (newData && typeof newData !== 'string') {
         newData = serialize(newData);
       }
+      const Id = botName ? botName : bot;
       const botData = {
         'name': botDataName,
         'roomId': parseInt(room, 10),
-        'botId': bot,
+        'botId': Id,
         'value': newData
       };
       log.debug('Creating Bot Data', botData);
-      return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`, botData, TOKEN);
+      return generic.post(`${SERVER}${API}${BOTDATA_ROUTE}`, botData, TOKEN,
+        MAX_RETRIES, log);
     }, // createBotData
 
     /**
@@ -556,7 +454,8 @@ module.exports = (config) => {
      */
     findBotData: (id) => {
       log.debug('Getting Bot Data ', id);
-      return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, TOKEN);
+      return generic.get(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, TOKEN,
+        MAX_RETRIES, log);
     }, // findBotData
 
     /**
@@ -568,15 +467,16 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     getBotData: (room, bot, name) => {
-      log.debug('Getting Bot Data. ', { room, bot, name });
-      if (!bot) {
+      const bName = botName ? botName : bot;
+      log.debug('Getting Bot Data. ', { room, bName, name });
+      if (!bName) {
         return log.error('getBotData needs botname');
       } if (!name) {
-        return genericGet(`${SERVER}${API}${ROOMS_ROUTE}/` +
-          `${room}/bots/${bot}/data`, TOKEN);
+        return generic.get(`${SERVER}${API}${ROOMS_ROUTE}/` +
+          `${room}/bots/${bName}/data`, TOKEN, MAX_RETRIES, log);
       }
-      return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}` +
-        `?roomId=${room}&botId=${bot}&name=${name}`, TOKEN);
+      return generic.get(`${SERVER}${API}${BOTDATA_ROUTE}` +
+        `?roomId=${room}&botId=${bName}&name=${name}`, TOKEN, MAX_RETRIES, log);
     }, // getBotData
 
     /**
@@ -595,8 +495,8 @@ module.exports = (config) => {
         'value': newData
       };
       log.debug('Updating Bot Data. ', { id, newBotData });
-      return genericPatch(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, newBotData,
-        TOKEN);
+      return generic.patch(`${SERVER}${API}${BOTDATA_ROUTE}/${id}`, newBotData,
+        TOKEN, MAX_RETRIES, log);
     }, // changeBotData
 
     /**
@@ -609,6 +509,7 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response.
      */
     upsertBotData: (room, bot, name, value) => {
+      const bName = botName ? botName : bot;
       let newData = value;
       if (newData && typeof newData !== 'string') {
         newData = serialize(newData);
@@ -617,7 +518,7 @@ module.exports = (config) => {
       const newBotData = {
         name,
         'roomId': parseInt(room, 10),
-        'botId': bot,
+        'botId': bName,
         'value': newData
       };
 
@@ -651,8 +552,9 @@ module.exports = (config) => {
       log.debug('Get specified events for Room ', room);
       const limitAmount = limit || DEFAULT_LIMIT;
       const offsetAmount = offset || NO_OFFSET;
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-        `&limit=${limitAmount}&offset=${offsetAmount}`, TOKEN);
+      return generic.get(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+        `&limit=${limitAmount}&offset=${offsetAmount}`, TOKEN,
+      MAX_RETRIES, log);
     }, // getEvents
 
     /**
@@ -669,7 +571,7 @@ module.exports = (config) => {
       const getRoute = type ? `${baseUrl}&type=${type}` : baseUrl;
       let limit;
       let offset;
-      return genericGet(getRoute, TOKEN)
+      return generic.get(getRoute, TOKEN, MAX_RETRIES, log)
         .then((events) => {
           const allEvents = [];
           const total = events.header['x-total-count'];
@@ -678,8 +580,8 @@ module.exports = (config) => {
             offset = NO_OFFSET;
             while (offset < total && offset < maxEvents) {
               allEvents.push(
-                genericGet(`${getRoute}&limit=${limit}&offset=${offset}`,
-                  TOKEN)
+                generic.get(`${getRoute}&limit=${limit}&offset=${offset}`,
+                  TOKEN, MAX_RETRIES, log)
               );
               offset += limit;
             }
@@ -732,7 +634,8 @@ module.exports = (config) => {
       } catch (error) {
         log.error('Event User Error', error);
       }
-      return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN);
+      return generic.post(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN,
+        MAX_RETRIES, log);
     }, // createEvents
 
     /**
@@ -744,7 +647,8 @@ module.exports = (config) => {
     */
     bulkCreateEvents: (events) => {
       log.debug('Bulk creating new Events. ', events);
-      return genericPost(`${SERVER}${API}${EVENTS_BULK_ROUTE}`, events, TOKEN);
+      return generic.post(`${SERVER}${API}${EVENTS_BULK_ROUTE}`, events, TOKEN,
+        MAX_RETRIES, log);
     }, // bulkCreateEvents
 
     /**
@@ -758,8 +662,8 @@ module.exports = (config) => {
       const roomObject = {
         externalId: eId
       };
-      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
-        roomObject, TOKEN);
+      return generic.patch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, TOKEN, MAX_RETRIES, log);
     }, // updateExternalId
 
     /**
@@ -773,15 +677,17 @@ module.exports = (config) => {
       const roomObject = {
         name
       };
-      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
-        roomObject, TOKEN);
+      return generic.patch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, TOKEN, MAX_RETRIES, log);
     }, // updateRoomName
 
     getOrInitializeBotData: (room, botId, dataName, defaultValue) => {
-      log.debug('Getting or Initialize BotData. ', { room, botName, dataName });
+      const bName = botName ? botName : botId;
+      log.debug('Getting or Initialize BotData. ', { room, bName, dataName });
       return new Promise((resolve, reject) => {
-        return genericGet(`${SERVER}${API}${BOTDATA_ROUTE}` +
-        `?roomId=${room}&botId=${botId}&name=${dataName}`, TOKEN)
+        return generic.get(`${SERVER}${API}${BOTDATA_ROUTE}` +
+        `?roomId=${room}&botId=${botId}&name=${dataName}`,
+        TOKEN, MAX_RETRIES, log)
           .then((data) => {
             const _data = data.body.filter((bd) =>
               bd.name === dataName)[FIRST_ARRAY_EL];
@@ -799,11 +705,11 @@ module.exports = (config) => {
             const botData = {
               'name': dataName,
               'roomId': parseInt(room, 10),
-              'botId': botName,
+              'botId': bName,
               'value': newData
             };
-            return genericPost(`${SERVER}${API}${BOTDATA_ROUTE}`,
-              botData, TOKEN)
+            return generic.post(`${SERVER}${API}${BOTDATA_ROUTE}`,
+              botData, TOKEN, MAX_RETRIES, log)
               .then(() => newData);
           })
           .then((botDataValue) => {
