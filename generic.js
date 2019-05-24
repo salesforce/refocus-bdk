@@ -108,8 +108,6 @@ function get(route, apiToken, tries, logger, proxy){
  */
  function post(route, obj, apiToken, tries, logger ,proxy) { // eslint-disable-line
   let count = tries || ZERO;
-  // console.log("route, obj, apiToken, tries, logger ,proxy");
-  // console.log(route, obj, apiToken, tries, logger ,proxy);
   return new Promise((resolve, reject) => {
     const req = request.post(route);
     if (proxy) {
