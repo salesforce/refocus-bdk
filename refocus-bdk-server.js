@@ -939,7 +939,7 @@ module.exports = (config) => {
         events.context = context;
       }
       return generic.post(SERVER+API+EVENTS_ROUTE, events,
-        PROXY_URL, TOKEN);
+        TOKEN, ZERO, log, PROXY_URL);
     }, // createEvents
 
     /**
@@ -949,7 +949,8 @@ module.exports = (config) => {
      */
     bulkCreateEvents: (events) => {
       log.debug('Bulk creating new Events. ', events);
-      return generic.post(`${SERVER}${API}${EVENTS_BULK_ROUTE}`, events, TOKEN);
+      return generic.post(`${SERVER}${API}${EVENTS_BULK_ROUTE}`, events,
+        TOKEN, ZERO, log, PROXY_URL);
     }, // bulkCreateEvents
 
     /**
@@ -964,7 +965,7 @@ module.exports = (config) => {
         externalId: eId
       };
       return generic.patch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
-        roomObject, PROXY_URL, TOKEN);
+        roomObject, TOKEN, ZERO, log, PROXY_URL);
     }, // updateExternalId
 
     /**
@@ -979,7 +980,7 @@ module.exports = (config) => {
         name
       };
       return generic.patch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
-        roomObject, PROXY_URL, TOKEN);
+        roomObject, TOKEN, ZERO, log, PROXY_URL);
     }, // updateRoomName
 
     /**
@@ -995,7 +996,7 @@ module.exports = (config) => {
       const connectToken = SOCKET_TOKEN ? SOCKET_TOKEN : token;
       if (name) {
         generic.get(SERVER+API+BOTS_ROUTE+'?name='+name,
-          PROXY_URL, TOKEN)
+          TOKEN, ZERO, log, PROXY_URL)
           .then((bots) => {
             if (bots && bots.body && bots.body.length) {
               botId = bots.body[START_OF_ARRAY].id;
