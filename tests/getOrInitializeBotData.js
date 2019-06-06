@@ -14,43 +14,38 @@ const expect = require('chai').expect;
 const rewire = require('rewire');
 const serialize = require('serialize-javascript');
 const config = { refocusUrl: 'zzz', token: 'dummy' };
-const bdk = rewire('../refocus-bdk-client.js');
 const roomId = 10;
 const botName = 'test';
+const sinon = require('sinon');
+const generic = require('../generic.js');
 
-global.user = '{&quot;email&quot;:&quot;test@test.com&quot;}';
+global.user = '{&quot;email&quot;:&quot;test@test.com&quot;'+
+  ',&quot;id&quot;:&quot;Test&quot;}';
 global.window = { document: { }, location: { href: '' } };
+const bdk = rewire('../refocus-bdk-client.js');
 
 describe('getOrInitializeBotData function >', () => {
   it('Ok, BotData exists, just retrieve it', (done) => {
     const expectedResponse = 'testing';
     const data = serialize(expectedResponse);
-    bdk.__set__('genericGet', () => {
-      return new Promise((resolve) => {
-        resolve({
-          body: [{ 'name': 'test',
-            'value': data }]
-        });
-      });
+    sinon.stub(generic, 'get').resolves({
+      body: [{ 'name': 'test', 'value': data }]
     });
     bdk.__get__('module.exports')(config)
       .getOrInitializeBotData(roomId, botName, 'test', {})
       .then((res) => {
         expect(JSON.parse(res)).to.equal(expectedResponse);
         done();
-      });
+      }).then(() => generic.get.restore());
   });
 
   it('Ok, BotData does not exist, create it with a default value', (done) => {
     const defaultValue = '';
-    bdk.__set__('genericPost', () => {
-      return new Promise((resolve) => {
-        resolve({ body:
-          { 'name': 'test2',
-            'value': {}
-          }
-        });
-      });
+    sinon.stub(generic, 'get').resolves({
+      body: [{ 'name': 'test', 'value': null }]
+    });
+    sinon.stub(generic, 'post').resolves({ body: { 'name': 'test2',
+      'value': {} }
     });
     bdk.__get__('module.exports')(config)
       .getOrInitializeBotData(roomId, botName, 'test2', defaultValue)
@@ -58,6 +53,7 @@ describe('getOrInitializeBotData function >', () => {
         expect(res)
           .to.equal(defaultValue);
         done();
-      });
+      }).then(() => generic.post.restore())
+      .then(() => generic.get.restore());
   });
 });
