@@ -365,7 +365,9 @@ module.exports = (config) => {
       socket.emit('auth', token);
     }).on('authenticated', () => {
       logger.info('Socket Connected');
-    });
+    }).on('auth error', (err) =>
+      logger.error('Socket auth error:', err)
+    );
 
     socket.on('disconnect', () => {
       logger.info('Socket Disconnected');
