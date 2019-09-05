@@ -462,7 +462,8 @@ module.exports = (config) => {
     setInterval(() => {
       const currentTimestamp = new Date();
       const requestBody = { currentTimestamp };
-      generic.post(SERVER + API + BOTS_ROUTE + '/' + name + '/heartbeat', requestBody,
+      generic.post(SERVER + API + BOTS_ROUTE + '/' + name + '/heartbeat',
+        requestBody,
         TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, HEARTBEAT_TIMER);
   } // heartBeat

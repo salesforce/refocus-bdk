@@ -131,3 +131,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.6.22 Remove NEW_TOKEN_WORKFLOW toggle.
 * 1.7.0 Pull out generic functions and fix tests
 * 1.7.1 Fix bug with generic function.
+* 1.8.0 Adding sorted by in get events and adding deactivate room
