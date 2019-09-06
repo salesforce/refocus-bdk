@@ -12,12 +12,12 @@ const ZERO = 0;
  *
  * @param {String} route - URL for route
  * @param {String} apiToken - Refocus API Token
- * @param {Integers} tries - Number of tries used for the APIs
+ * @param {Integer} tries - Number of tries used for the APIs
  * @param {Function} logger - Logger to use
  * @param {String} proxy - Proxy URL
  * @returns {Promise} - Route response
  */
-function get(route, apiToken, tries, logger, proxy){
+function get(route, apiToken, tries, logger, proxy) {
   let count = tries || ZERO;
   return new Promise((resolve, reject) => {
     const req = request.get(route);
@@ -56,12 +56,12 @@ function get(route, apiToken, tries, logger, proxy){
  * @param {String} route - URL for route
  * @param {JSON} obj - the payload needed for route
  * @param {String} apiToken - Refocus API Token
- * @param {Integers} tries - Number of tries used for the APIs
+ * @param {Integer} tries - Number of tries used for the APIs
  * @param {Function} logger - Logger to use
  * @param {String} proxy - Proxy URL
  * @returns {Promise} - Route response
  */
- function patch(route, obj, apiToken, tries, logger ,proxy) { // eslint-disable-line
+function patch(route, obj, apiToken, tries, logger, proxy) {
   let count = tries || ZERO;
   return new Promise((resolve, reject) => {
     const req = request.patch(route);
@@ -73,9 +73,7 @@ function get(route, apiToken, tries, logger, proxy){
       .send(obj)
       .end((error, res) => {
         if (error) {
-          logger.error(
-            `Get ${route} failed: ${error}`
-          );
+          logger.error(`Get ${route} failed: ${error}`);
 
           return reject(error);
         }
@@ -101,12 +99,12 @@ function get(route, apiToken, tries, logger, proxy){
  * @param {String} route - URL for route
  * @param {JSON} obj - the payload needed for route
  * @param {String} apiToken - Refocus API Token
- * @param {Integers} tries - Number of tries used for the APIs
+ * @param {Integer} tries - Number of tries used for the APIs
  * @param {Function} logger - Logger to use
  * @param {String} proxy - Proxy URL
  * @returns {Promise} - Route response
  */
- function post(route, obj, apiToken, tries, logger ,proxy) { // eslint-disable-line
+function post(route, obj, apiToken, tries, logger, proxy) {
   let count = tries || ZERO;
   return new Promise((resolve, reject) => {
     const req = request.post(route);
@@ -143,4 +141,5 @@ function get(route, apiToken, tries, logger, proxy){
 module.exports = {
   post,
   patch,
-  get };
+  get
+};
