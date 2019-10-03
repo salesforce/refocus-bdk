@@ -287,7 +287,7 @@ module.exports = (config) => {
       transports: ['websocket'],
       upgrade: false,
       query: {
-        id: botId,
+        id: config.botName,
       },
     };
 

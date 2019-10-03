@@ -211,6 +211,23 @@ function genericPost(route, obj, apiToken, tries){
   });
 } // genericPost
 
+/**
+ * Gets ID of bot from refocus
+ * @param {string} url - refocus url to query
+ * @param {string} botName - name of bot to get Id of
+ */
+function getBotId(url, botName) {
+  return new Promise((resolve, reject) => {
+    genericGet(`${url}${API}${BOTS_ROUTE}?name=${botName}`).then((res) => {
+      botId = res.body[0].id;
+      resolve(botId);
+    })
+    .catch((error) => {
+      reject(error)
+    });
+  });
+}
+
 module.exports = (config) => {
   const SERVER = window.location.origin || config.refocusUrl;
   const TOKEN = window.userSession || config.token;
@@ -712,27 +729,30 @@ module.exports = (config) => {
      * @returns {Promise} - Event response
      */
     createEvents: (room, msg, context, type) => {
-      log.debug('Creating a new Event. ', { room, msg, context, type });
-      const events = {
-        log: msg,
-        roomId: room,
-        actionType: type,
-        botId: botName
-      };
-      if (context) {
-        events.context = context;
-        events.context.user = _user;
-      } else {
-        events.context = {
-          user: _user
-        };
-      }
-      try {
-        events.userId = _user.id;
-      } catch (error) {
-        log.error('Event User Error', error);
-      }
-      return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN);
+
+        return getBotId(SERVER, config.botName).then((id) => {
+          log.debug('Creating a new Event. ', { room, msg, context, type });
+          const events = {
+            log: msg,
+            roomId: room,
+            actionType: type,
+            botId: id
+          };
+          if (context) {
+            events.context = context;
+            events.context.user = _user;
+          } else {
+            events.context = {
+              user: _user
+            };
+          }
+          try {
+            events.userId = _user.id;
+          } catch (error) {
+            log.error('Event User Error', error);
+          }
+          return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN);
+        });
     }, // createEvents
 
     /**
