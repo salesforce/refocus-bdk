@@ -21,6 +21,7 @@ const moment = require('moment');
 const url = require('url');
 const request = require('superagent');
 const serialize = require('serialize-javascript');
+const { botName } = require('../../../config');
 // user is a global object provided by the Refocus server
 // eslint-disable-next-line no-undef
 const _user = JSON.parse(user.replace(/&quot;/g, '"')
@@ -214,9 +215,8 @@ function genericPost(route, obj, apiToken, tries){
 /**
  * Gets ID of bot from refocus
  * @param {string} url - refocus url to query
- * @param {string} botName - name of bot to get Id of
  */
-function getBotId(url, botName) {
+function getBotId(url) {
   return new Promise((resolve, reject) => {
     genericGet(`${url}${API}${BOTS_ROUTE}?name=${botName}`).then((res) => {
       botId = res.body[0].id;
@@ -231,7 +231,6 @@ function getBotId(url, botName) {
 module.exports = (config) => {
   const SERVER = window.location.origin || config.refocusUrl;
   const TOKEN = window.userSession || config.token;
-  const botName = config.botName;
 
   /**
    * Define a set of log functions
@@ -730,7 +729,7 @@ module.exports = (config) => {
      */
     createEvents: (room, msg, context, type) => {
 
-        return getBotId(SERVER, config.botName).then((id) => {
+        return getBotId(SERVER).then((id) => {
           log.debug('Creating a new Event. ', { room, msg, context, type });
           const events = {
             log: msg,
