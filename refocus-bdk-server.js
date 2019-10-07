@@ -300,7 +300,7 @@ module.exports = (config) => {
         Authorization: token
       }
     } else {
-      connectUrl = REALTIME_APP_URL;
+      connectUrl = `${REALTIME_APP_URL}/bots`;
     }
 
     if (PROXY_URL) {
@@ -374,7 +374,7 @@ module.exports = (config) => {
     });
 
     socket.on('connect', () => {
-      socket.emit('auth', token);
+      socket.emit('auth', BOT_INSTALL_TOKEN);
     }).on('authenticated', () => {
       logger.info('Socket Connected');
     }).on('auth error', (err) =>
