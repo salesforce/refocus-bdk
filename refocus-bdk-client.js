@@ -216,14 +216,14 @@ function genericPost(route, obj, apiToken, tries){
  * Gets ID of bot from refocus
  * @param {string} url - refocus url to query
  */
-function getBotId(url) {
+function getBotId(url, token) {
   return new Promise((resolve, reject) => {
-    genericGet(`${url}${API}${BOTS_ROUTE}?name=${botName}`).then((res) => {
-      botId = res.body[0].id;
+    genericGet(`${url}${API}${BOTS_ROUTE}?name=${botName}`, token).then((res) => {
+      const botId = res.body[0].id;
       resolve(botId);
     })
     .catch((error) => {
-      reject(error)
+      reject(error);
     });
   });
 }
@@ -729,7 +729,7 @@ module.exports = (config) => {
      */
     createEvents: (room, msg, context, type) => {
 
-        return getBotId(SERVER).then((id) => {
+        return getBotId(SERVER, TOKEN).then((id) => {
           log.debug('Creating a new Event. ', { room, msg, context, type });
           const events = {
             log: msg,
