@@ -374,9 +374,13 @@ module.exports = (config) => {
     });
 
     socket.on('connect', () => {
-      socket.emit('auth', BOT_INSTALL_TOKEN);
+      if (REALTIME_APP_URL) {
+        socket.emit('auth', BOT_INSTALL_TOKEN);
+      } else {
+        logger.info('Socket Connected > Refocus');
+      }
     }).on('authenticated', () => {
-      logger.info('Socket Connected');
+      logger.info('Socket Connected > Realtime app');
     }).on('auth error', (err) =>
       logger.error('Socket auth error:', err)
     );

@@ -728,7 +728,6 @@ module.exports = (config) => {
      * @returns {Promise} - Event response
      */
     createEvents: (room, msg, context, type) => {
-
         return getBotId(SERVER, TOKEN).then((id) => {
           log.debug('Creating a new Event. ', { room, msg, context, type });
           const events = {
