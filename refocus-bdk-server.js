@@ -284,7 +284,7 @@ module.exports = (config) => {
   function refocusConnectSocket(app, token, botId) {
     const opts = {
       reconnect: true,
-      'reconnection delay': 10,
+      'reconnection delay': 1000,
       transports: ['websocket'],
       upgrade: false,
       query: {
@@ -1167,8 +1167,7 @@ module.exports = (config) => {
       } else if (USE_POLLING) {
         refocusConnectPolling(app, botRoute);
       } else {
-        // can't connect without specific bot name for new namespace format
-        // TODO: need to handle this case?
+        bdk.log.error(`Cannot connect to refocus - name provided to \`refocusConnect() is null or undefined: ${name}`);
       }
     }, // refocusConnect
 
