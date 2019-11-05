@@ -21,6 +21,7 @@ const moment = require('moment');
 const url = require('url');
 const request = require('superagent');
 const serialize = require('serialize-javascript');
+const { botName } = require('../../../config');
 // user is a global object provided by the Refocus server
 // eslint-disable-next-line no-undef
 const _user = JSON.parse(user.replace(/&quot;/g, '"')
@@ -211,10 +212,25 @@ function genericPost(route, obj, apiToken, tries){
   });
 } // genericPost
 
+/**
+ * Gets ID of bot from refocus
+ * @param {string} url - refocus url to query
+ */
+function getBotId(url, token) {
+  return new Promise((resolve, reject) => {
+    genericGet(`${url}${API}${BOTS_ROUTE}?name=${botName}`, token).then((res) => {
+      const botId = res.body[0].id;
+      resolve(botId);
+    })
+    .catch((error) => {
+      reject(error);
+    });
+  });
+}
+
 module.exports = (config) => {
   const SERVER = window.location.origin || config.refocusUrl;
   const TOKEN = window.userSession || config.token;
-  const botName = config.botName;
 
   /**
    * Define a set of log functions
@@ -712,27 +728,29 @@ module.exports = (config) => {
      * @returns {Promise} - Event response
      */
     createEvents: (room, msg, context, type) => {
-      log.debug('Creating a new Event. ', { room, msg, context, type });
-      const events = {
-        log: msg,
-        roomId: room,
-        actionType: type,
-        botId: botName
-      };
-      if (context) {
-        events.context = context;
-        events.context.user = _user;
-      } else {
-        events.context = {
-          user: _user
-        };
-      }
-      try {
-        events.userId = _user.id;
-      } catch (error) {
-        log.error('Event User Error', error);
-      }
-      return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN);
+        return getBotId(SERVER, TOKEN).then((id) => {
+          log.debug('Creating a new Event. ', { room, msg, context, type });
+          const events = {
+            log: msg,
+            roomId: room,
+            actionType: type,
+            botId: id
+          };
+          if (context) {
+            events.context = context;
+            events.context.user = _user;
+          } else {
+            events.context = {
+              user: _user
+            };
+          }
+          try {
+            events.userId = _user.id;
+          } catch (error) {
+            log.error('Event User Error', error);
+          }
+          return genericPost(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN);
+        });
     }, // createEvents
 
     /**

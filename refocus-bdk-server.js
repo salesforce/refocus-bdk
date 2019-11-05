@@ -245,6 +245,7 @@ function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
 
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
+  const REALTIME_APP_URL = config.refocusRealtimeUrl;
   let TOKEN = config.token;
   const botName = config.botName;
   const BOT_INSTALL_TOKEN = config.token;
@@ -283,7 +284,7 @@ module.exports = (config) => {
   function refocusConnectSocket(app, token, botId) {
     const opts = {
       reconnect: true,
-      'reconnection delay': 10,
+      'reconnection delay': 1000,
       transports: ['websocket'],
       upgrade: false,
       query: {
@@ -291,11 +292,22 @@ module.exports = (config) => {
       },
     };
 
+    let connectUrl;
+    // Using realtime app env var as a feature flag in case of need for rollback.
+    if (!REALTIME_APP_URL) {
+      connectUrl = SERVER;
+      opts.extraHeaders = {
+        Authorization: token
+      }
+    } else {
+      connectUrl = `${REALTIME_APP_URL}/bots`;
+    }
+
     if (PROXY_URL) {
       opts.agent = new HttpsProxyAgent(PROXY_URL);
     }
 
-    const socket = io.connect(`${SERVER}/bots`, opts);
+    const socket = io.connect(connectUrl, opts);
 
     const settingsChangedEventName =
       'refocus.internal.realtime.room.settingsChanged';
@@ -362,9 +374,13 @@ module.exports = (config) => {
     });
 
     socket.on('connect', () => {
-      socket.emit('auth', token);
+      if (REALTIME_APP_URL) {
+        socket.emit('auth', BOT_INSTALL_TOKEN);
+      } else {
+        logger.info('Socket Connected > Refocus');
+      }
     }).on('authenticated', () => {
-      logger.info('Socket Connected');
+      logger.info('Socket Connected > Realtime app');
     }).on('auth error', (err) =>
       logger.error('Socket auth error:', err)
     );
@@ -1151,8 +1167,7 @@ module.exports = (config) => {
       } else if (USE_POLLING) {
         refocusConnectPolling(app, botRoute);
       } else {
-        // can't connect without specific bot name for new namespace format
-        // TODO: need to handle this case?
+        bdk.log.error(`Cannot connect to refocus - name provided to \`refocusConnect() is null or undefined: ${name}`);
       }
     }, // refocusConnect
 
