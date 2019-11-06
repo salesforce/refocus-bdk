@@ -21,7 +21,6 @@ const moment = require('moment');
 const url = require('url');
 const request = require('superagent');
 const serialize = require('serialize-javascript');
-const { botName } = require('../../../config');
 const generic = require('./generic.js');
 // user is a global object provided by the Refocus server
 // eslint-disable-next-line no-undef
@@ -105,9 +104,10 @@ function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
  * Gets ID of bot from refocus
  * @param {string} refocusUrl - refocus url to query
  * @param {string} token - token for authenticating with refocus
+ * @param {string} botName - name of bot to get Id for
  * @returns {string} bot id
  */
-function getBotId(refocusUrl, token) {
+function getBotId(refocusUrl, token, botName) {
   return new Promise((resolve, reject) => {
     generic.get(`${refocusUrl}${API}${BOTS_ROUTE}?name=${botName}`, token)
       .then((res) => {
@@ -120,7 +120,7 @@ function getBotId(refocusUrl, token) {
   });
 }
 
-module.exports = (config) => {
+module.exports = (config, botName='') => {
   const SERVER = window.location.origin || config.refocusUrl;
   const TOKEN = window.userSession || config.token;
 
@@ -633,7 +633,7 @@ module.exports = (config) => {
      * @returns {Promise} - Event response
      */
     createEvents: (room, msg, context, type) => {
-      return getBotId(SERVER, TOKEN).then((id) => {
+      return getBotId(SERVER, TOKEN, botName).then((id) => {
         log.debug('Creating a new Event. ', { room, msg, context, type });
         const events = {
           log: msg,
