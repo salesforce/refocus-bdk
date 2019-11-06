@@ -22,6 +22,7 @@ const moment = require('moment');
 const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
+const bdk = require('@salesforce/bdk');
 const generic = require('./generic.js');
 const io = require('socket.io-client');
 const serialize = require('serialize-javascript');
@@ -54,6 +55,22 @@ let HEARTBEAT_TIMER =
   +process.env.HEARTBEAT_TIMER || MIN_HEARTBEAT_TIMER; // Milliseconds
 HEARTBEAT_TIMER = HEARTBEAT_TIMER > MIN_HEARTBEAT_TIMER ?
   HEARTBEAT_TIMER : MIN_HEARTBEAT_TIMER;
+
+const settingsChangedEventName =
+  'refocus.internal.realtime.room.settingsChanged';
+const initalizeEventName =
+  'refocus.internal.realtime.bot.namespace.initialize';
+const botActionsAdd =
+  'refocus.internal.realtime.bot.action.add';
+const botActionsUpdate =
+  'refocus.internal.realtime.bot.action.update';
+const botDataAdd =
+  'refocus.internal.realtime.bot.data.add';
+const botDataUpdate =
+  'refocus.internal.realtime.bot.data.update';
+const botEventAdd =
+  'refocus.internal.realtime.bot.event.add';
+
 /* eslint-enable no-process-env */
 /* eslint-enable no-implicit-coercion*/
 const DEFAULT_UI_PATH = 'web/dist/bot.zip';
@@ -157,14 +174,13 @@ module.exports = (config) => {
     };
 
     let connectUrl;
-    // Using realtime app env var as a feature flag in case of need for rollback.
-    if (!REALTIME_APP_URL) {
+    if (REALTIME_APP_URL) {
+      connectUrl = `${REALTIME_APP_URL}/bots`;
+    } else {
       connectUrl = SERVER;
       opts.extraHeaders = {
         Authorization: token
-      }
-    } else {
-      connectUrl = `${REALTIME_APP_URL}/bots`;
+      };
     }
 
     if (PROXY_URL) {
@@ -172,21 +188,6 @@ module.exports = (config) => {
     }
 
     const socket = io.connect(connectUrl, opts);
-
-    const settingsChangedEventName =
-      'refocus.internal.realtime.room.settingsChanged';
-    const initalizeEventName =
-      'refocus.internal.realtime.bot.namespace.initialize';
-    const botActionsAdd =
-      'refocus.internal.realtime.bot.action.add';
-    const botActionsUpdate =
-      'refocus.internal.realtime.bot.action.update';
-    const botDataAdd =
-      'refocus.internal.realtime.bot.data.add';
-    const botDataUpdate =
-      'refocus.internal.realtime.bot.data.update';
-    const botEventAdd =
-      'refocus.internal.realtime.bot.event.add';
 
     socket.on(initalizeEventName, (data) => {
       const eventData = JSON.parse(data);
@@ -1056,7 +1057,8 @@ module.exports = (config) => {
       } else if (USE_POLLING) {
         refocusConnectPolling(app, botRoute);
       } else {
-        bdk.log.error(`Cannot connect to refocus - name provided to \`refocusConnect() is null or undefined: ${name}`);
+        bdk.log.error('Cannot connect to refocus - name provided to ' +
+          `refocusConnect() is null or undefined: ${name}`);
       }
     }, // refocusConnect
 

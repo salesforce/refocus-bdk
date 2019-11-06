@@ -103,17 +103,20 @@ function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
 
 /**
  * Gets ID of bot from refocus
- * @param {string} url - refocus url to query
+ * @param {string} refocusUrl - refocus url to query
+ * @param {string} token - token for authenticating with refocus
+ * @returns {string} bot id
  */
-function getBotId(url, token) {
+function getBotId(refocusUrl, token) {
   return new Promise((resolve, reject) => {
-    generic.get(`${url}${API}${BOTS_ROUTE}?name=${botName}`, token).then((res) => {
-      const botId = res.body[0].id;
-      resolve(botId);
-    })
-    .catch((error) => {
-      reject(error);
-    });
+    generic.get(`${refocusUrl}${API}${BOTS_ROUTE}?name=${botName}`, token)
+      .then((res) => {
+        const botId = res.body[ZERO].id;
+        resolve(botId);
+      })
+      .catch((error) => {
+        reject(error);
+      });
   });
 }
 
@@ -630,29 +633,30 @@ module.exports = (config) => {
      * @returns {Promise} - Event response
      */
     createEvents: (room, msg, context, type) => {
-        return getBotId(SERVER, TOKEN).then((id) => {
-          log.debug('Creating a new Event. ', { room, msg, context, type });
-          const events = {
-            log: msg,
-            roomId: room,
-            actionType: type,
-            botId: id
+      return getBotId(SERVER, TOKEN).then((id) => {
+        log.debug('Creating a new Event. ', { room, msg, context, type });
+        const events = {
+          log: msg,
+          roomId: room,
+          actionType: type,
+          botId: id
+        };
+        if (context) {
+          events.context = context;
+          events.context.user = _user;
+        } else {
+          events.context = {
+            user: _user
           };
-          if (context) {
-            events.context = context;
-            events.context.user = _user;
-          } else {
-            events.context = {
-              user: _user
-            };
-          }
-          try {
-            events.userId = _user.id;
-          } catch (error) {
-            log.error('Event User Error', error);
-          }
-          return generic.post(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN, ZERO, log);
-        });
+        }
+        try {
+          events.userId = _user.id;
+        } catch (error) {
+          log.error('Event User Error', error);
+        }
+        return generic
+          .post(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN, ZERO, log);
+      });
     }, // createEvents
 
     /**
