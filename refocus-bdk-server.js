@@ -22,7 +22,6 @@ const moment = require('moment');
 const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
-const bdk = require('@salesforce/bdk');
 const generic = require('./generic.js');
 const io = require('socket.io-client');
 const serialize = require('serialize-javascript');
@@ -1057,7 +1056,7 @@ module.exports = (config) => {
       } else if (USE_POLLING) {
         refocusConnectPolling(app, botRoute);
       } else {
-        bdk.log.error('Cannot connect to refocus - name provided to ' +
+        log.error('Cannot connect to refocus - name provided to ' +
           `refocusConnect() is null or undefined: ${name}`);
       }
     }, // refocusConnect
