@@ -22,6 +22,7 @@ const moment = require('moment');
 const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
+const generic = require('./generic.js');
 const io = require('socket.io-client');
 const serialize = require('serialize-javascript');
 const API = '/v1';
@@ -36,10 +37,9 @@ const USERS_ROUTE = '/users';
 const MIN_POLLING_DELAY = 100;
 const MIN_POLLING_REFRESH = 5000;
 const MIN_HEARTBEAT_TIMER = 60000;
-const TOO_MANY_REQUESTS = 429;
 /* eslint-disable no-process-env */
 /* eslint-disable no-implicit-coercion*/
-const MAX_RETRIES = process.env.MAX_RETRIES || 3; // eslint-disable-line
+const DEFAULT_TRIES = 0;
 const HEARTBEAT_OFF = process.env.HEARTBEAT_OFF || false;
 
 let POLLING_DELAY =
@@ -63,7 +63,6 @@ const STATUS_CODE_CREATED = 201;
 const STATUS_CODE_NOT_FOUND = 404;
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
-const ZERO = 0;
 
 // Create logger
 const winston = require('winston');
@@ -77,11 +76,10 @@ const logging =
 const CONSOLE_LOG_LEVEL = process.env.CONSOLE_LOG_LEVEL || 'info';
 const FILE_LOG_LEVEL = process.env.FILE_LOG_LEVEL || 'verbose';
 const USE_POLLING = process.env.USE_POLLING;
-/* eslint-enable no-process-env */
 
 /* eslint no-sync: ["error", { allowAtRootLevel: true }] */
 if (((logging === 'both') || (logging === 'file')) &&
-    (!fs.existsSync(logDir))) {
+  (!fs.existsSync(logDir))) {
   fs.mkdirSync(logDir);
 }
 /* eslint func-style: ["error", "declaration",
@@ -109,140 +107,6 @@ const logger = new (winston.Logger)({
     })
   ]
 });
-
-/**
- * Get JSON from server asynchronous
- *
- * @param {String} route - URL for route
- * @param {String} proxy - Proxy URL
- * @param {String} apiToken - Refocus API Token
- * @param {Integers} tries - Number of tries used for the APIs
- * @returns {Promise} - Route response
- */
-function genericGet(route, proxy, apiToken, tries){
-  let count = tries || ZERO;
-  return new Promise((resolve, reject) => {
-    const req = request.get(route);
-    if (proxy) {
-      req.proxy(proxy);
-    }
-    req
-      .set('Authorization', apiToken)
-      .end((error, res) => {
-        if (error) {
-          logger.error(
-            `Get ${route} failed: ${error}`
-          );
-
-          return reject(error);
-        }
-
-        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
-          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
-          setTimeout(
-            () => {
-              genericGet(route, proxy, apiToken, ++count)
-                .then((retryRes) => {
-                  resolve(retryRes);
-                });
-            }, retry);
-        } else {
-          resolve(res);
-        }
-      });
-  });
-} // genericGet
-
-/**
- * Patch JSON to server asynchronous
- *
- * @param {String} route - URL for route
- * @param {JSON} obj - the payload needed for route
- * @param {String} proxy - Proxy URL
- * @param {String} apiToken - Refocus API Token
- * @param {Integers} tries - Number of tries used for the APIs
- * @returns {Promise} - Route response
- */
-function genericPatch(route, obj, proxy, apiToken, tries){ // eslint-disable-line
-  let count = tries || ZERO;
-  return new Promise((resolve, reject) => {
-    const req = request.patch(route);
-    if (proxy) {
-      req.proxy(proxy);
-    }
-    req
-      .set('Authorization', apiToken)
-      .send(obj)
-      .end((error, res) => {
-        if (error) {
-          logger.error(
-            `Get ${route} failed: ${error}`
-          );
-
-          return reject(error);
-        }
-
-        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
-          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
-          setTimeout(
-            () => {
-              genericPatch(route, obj, proxy, apiToken, ++count)
-                .then((retryRes) => {
-                  resolve(retryRes);
-                });
-            }, retry);
-        } else {
-          resolve(res);
-        }
-      });
-  });
-} // genericPatch
-
-/**
- * Post JSON to server asynchronous
- *
- * @param {String} route - URL for route
- * @param {JSON} obj - the payload needed for route
- * @param {String} proxy - Proxy URL
- * @param {String} apiToken - Refocus API Token
- * @param {Integers} tries - Number of tries used for the APIs
- * @returns {Promise} - Route response
- */
-function genericPost(route, obj, proxy, apiToken, tries){ // eslint-disable-line
-  let count = tries || ZERO;
-  return new Promise((resolve, reject) => {
-    const req = request.post(route);
-    if (proxy) {
-      req.proxy(proxy);
-    }
-    req
-      .set('Authorization', apiToken)
-      .send(obj)
-      .end((error, res) => {
-        if (error) {
-          logger.error(
-            `Get ${route} failed: ${error}`
-          );
-
-          return reject(error);
-        }
-
-        if ((res.status === TOO_MANY_REQUESTS) && (count < MAX_RETRIES)) {
-          const retry = res.headers['Retry-After'] || MIN_POLLING_REFRESH;
-          setTimeout(
-            () => {
-              genericPost(route, obj, proxy, apiToken, ++count)
-                .then((retryRes) => {
-                  resolve(retryRes);
-                });
-            }, retry);
-        } else {
-          resolve(res);
-        }
-      });
-  });
-} // genericPost
-
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
   const REALTIME_APP_URL = config.refocusRealtimeUrl;
@@ -400,7 +264,7 @@ module.exports = (config) => {
    * @param {Express} app - App stream so we can push events to the server
    * @param {Object} options - Request options
    */
-  function refocusConnectPolling(app, options){
+  function refocusConnectPolling(app, options) {
     const pendingActions = {};
     setInterval(() => {
       // Clear action queue
@@ -416,8 +280,8 @@ module.exports = (config) => {
         }
       }
 
-      genericGet(SERVER+API+BOTACTIONS_ROUTE+options+'&isPending=true',
-        PROXY_URL, TOKEN)
+      generic.get(SERVER + API + BOTACTIONS_ROUTE + options + '&isPending=true',
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL)
         .then((botActions) => {
           if (botActions && botActions.body) {
             botActions.body.forEach((botAction) => {
@@ -428,14 +292,14 @@ module.exports = (config) => {
 
               // Check if an action is new
               const IS_ACTION_NEW = (botAction.isPending) &&
-              (!botAction.response) &&
-              (duration < POLLING_DELAY);
+                (!botAction.response) &&
+                (duration < POLLING_DELAY);
 
               // If an action is pending and has not been responded to yet but
               // the action is older than our polling delay called it timed out
               const IS_ACTION_TIMED_OUT = (botAction.isPending) &&
-              (!botAction.response) &&
-              (duration > POLLING_DELAY);
+                (!botAction.response) &&
+                (duration > POLLING_DELAY);
 
               if (IS_ACTION_NEW) {
                 // Check if its a duplicate action
@@ -450,10 +314,9 @@ module.exports = (config) => {
                   'response': { 'error': 'Polling Request Timeout' },
                 };
 
-                genericPatch(
+                generic.patch(
                   SERVER + API + BOTACTIONS_ROUTE + '/' + botAction.id,
-                  responseObject, PROXY_URL, TOKEN
-                )
+                  responseObject, TOKEN, DEFAULT_TRIES, log, PROXY_URL)
                   .catch((error) => {
                     logger.error(
                       `Responding to ${botAction.id} failed: ${error}`
@@ -613,29 +476,30 @@ module.exports = (config) => {
   } // updateBot
 
   /**
-    *
-    * @param {string} name - Contains name of bot
-    */
-  function startHeartBeat(name){
+   *
+   * @param {string} name - Contains name of bot
+   */
+  function startHeartBeat(name) {
     setInterval(() => {
       const currentTimestamp = new Date();
       const requestBody = { currentTimestamp };
-      genericPost(SERVER+API+BOTS_ROUTE+'/'+name+'/heartbeat', requestBody,
-        PROXY_URL, TOKEN);
+      generic.post(SERVER + API + BOTS_ROUTE + '/' + name + '/heartbeat',
+        requestBody,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, HEARTBEAT_TIMER);
   } // heartBeat
 
   return {
 
     /**
-    * Export logger
-    */
+     * Export logger
+     */
     log,
 
     /**
-    * export Install and Update functions
-    * for unit testing
-    */
+     * export Install and Update functions
+     * for unit testing
+     */
     installBot,
     updateBot,
 
@@ -646,7 +510,8 @@ module.exports = (config) => {
      * @returns {Promise} - Room response
      */
     findRoom: (id) => {
-      return genericGet(SERVER+API+ROOMS_ROUTE+'/'+id, PROXY_URL, TOKEN);
+      return generic.get(SERVER + API + ROOMS_ROUTE + '/' + id,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // findRoom
 
     /**
@@ -655,13 +520,13 @@ module.exports = (config) => {
      * @returns {Promise} - Resolves to a list of active rooms.
      */
     getActiveRooms: () => {
-      return genericGet(`${SERVER}${API}${ROOMS_ROUTE}?active=true`,
-        PROXY_URL, TOKEN);
+      return generic.get(`${SERVER}${API}${ROOMS_ROUTE}?active=true`,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // getActiveRooms
 
     getRoomTypes: () => {
-      return genericGet(`${SERVER}${API}${ROOM_TYPES_ROUTE}`,
-        PROXY_URL, TOKEN);
+      return generic.get(`${SERVER}${API}${ROOM_TYPES_ROUTE}`,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // getRoomTypes
 
     /**
@@ -675,8 +540,8 @@ module.exports = (config) => {
       const patch = {
         'settings': newSettings,
       };
-      return genericPatch(SERVER+API+ROOMS_ROUTE+'/'+id, patch,
-        PROXY_URL, TOKEN);
+      return generic.patch(SERVER + API + ROOMS_ROUTE + '/' + id, patch,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // updateSettings
 
     /**
@@ -687,8 +552,8 @@ module.exports = (config) => {
      */
     getUser: (id) => {
       log.debug('Getting User ', id);
-      return genericGet(`${SERVER}${API}${USERS_ROUTE}/${id}`,
-        PROXY_URL, TOKEN);
+      return generic.get(`${SERVER}${API}${USERS_ROUTE}/${id}`,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // getUser
 
     /**
@@ -699,12 +564,12 @@ module.exports = (config) => {
      * @returns {Promise} - An object of the users currently in the room
      */
     getActiveUsers: (room) => {
-      return genericGet(SERVER+API+EVENTS_ROUTE+'?roomId='+room,
-        PROXY_URL, TOKEN)
+      return generic.get(SERVER + API + EVENTS_ROUTE + '?roomId=' + room,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL)
         .then((events) => {
           const users = [];
           const userEvents = events.body
-            // Sort in decreasing value
+          // Sort in decreasing value
             .sort((a, b) => moment(b.createdAt).diff(moment(a.createdAt)))
             .filter((event) => {
               if ((event.context) && (event.context.type)) {
@@ -740,7 +605,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot response
      */
     findBot: (id) => {
-      return genericGet(SERVER+API+BOTS_ROUTE+'/'+id, PROXY_URL, TOKEN);
+      return generic.get(SERVER + API + BOTS_ROUTE + '/' + id,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // findBot
 
     /**
@@ -750,7 +616,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Action response
      */
     findBotAction: (id) => {
-      return genericGet(SERVER+API+BOTACTIONS_ROUTE+'/'+id, PROXY_URL, TOKEN);
+      return generic.get(SERVER + API + BOTACTIONS_ROUTE + '/' + id,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // findBotAction
 
     /**
@@ -763,18 +630,17 @@ module.exports = (config) => {
      */
     getBotActions: (room, bot, name) => {
       if (!bot) {
-        return genericGet(SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room,
-          PROXY_URL, TOKEN);
+        return generic.get(SERVER + API + BOTACTIONS_ROUTE + '?roomId=' + room,
+          TOKEN, DEFAULT_TRIES, log, PROXY_URL);
       } else if (!name) {
-        return genericGet(
-          SERVER+API+BOTACTIONS_ROUTE+'?roomId='+room+'&botId='+bot,
-          PROXY_URL, TOKEN
-        );
+        return generic.get(
+          SERVER + API + BOTACTIONS_ROUTE + '?roomId=' + room + '&botId=' + bot,
+          TOKEN, DEFAULT_TRIES, log, PROXY_URL);
       }
-      return genericGet(
-        SERVER+API+BOTACTIONS_ROUTE+
-        '?roomId='+room+'&botId='+bot+'&name='+name, PROXY_URL, TOKEN
-      );
+      return generic.get(
+        SERVER + API + BOTACTIONS_ROUTE +
+        '?roomId=' + room + '&botId=' + bot + '&name=' + name,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // getBotActions
 
     /**
@@ -784,8 +650,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Action response
      */
     createBotAction: (botAction) => {
-      return genericPost(SERVER+API+BOTACTIONS_ROUTE+'/', botAction,
-        PROXY_URL, TOKEN);
+      return generic.post(SERVER + API + BOTACTIONS_ROUTE + '/', botAction,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // createBotAction
 
     /**
@@ -818,8 +684,8 @@ module.exports = (config) => {
         responseObject.parameters = parametersOverride;
       }
 
-      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject,
-        PROXY_URL, TOKEN)
+      return generic.patch(SERVER + API + BOTACTIONS_ROUTE + '/' + id,
+        responseObject, TOKEN, DEFAULT_TRIES, log, PROXY_URL)
         .then((instance) => {
           let eventObject = {};
           let userObj = {};
@@ -828,16 +694,15 @@ module.exports = (config) => {
           } else {
             eventObject = {
               log: instance.body.botId +
-              ' successfully performed ' +
-              instance.body.name,
+                ' successfully performed ' +
+                instance.body.name,
               context: {
                 'type': 'Event',
               },
             };
           }
-
           const sumoLog = instance.body.actionLog ? instance.body.name +
-           instance.body.actionLog : instance.body.name;
+            instance.body.actionLog : instance.body.name;
           eventObject.context = eventObject.context ? eventObject.context : {};
           eventObject.actionType = sumoLog;
           eventObject.context.name = instance.body.name;
@@ -848,12 +713,14 @@ module.exports = (config) => {
           eventObject.userId = instance.body.userId;
 
           if (instance.body.userId) {
-            return genericGet(SERVER+API+USERS_ROUTE+'/'+instance.body.userId,
-              PROXY_URL, TOKEN)
+            const route = SERVER + API + USERS_ROUTE + '/' +
+              instance.body.userId;
+            return generic.get(route,
+              TOKEN, DEFAULT_TRIES, log, PROXY_URL)
               .then((userRes, err) => {
                 if (err) {
-                  return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
-                    PROXY_URL, TOKEN);
+                  return generic.post(SERVER + API + EVENTS_ROUTE,
+                    eventObject, TOKEN, DEFAULT_TRIES, log, PROXY_URL);
                 }
 
                 userObj = {
@@ -862,13 +729,13 @@ module.exports = (config) => {
                 };
 
                 eventObject.context.user = userObj;
-                return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
-                  PROXY_URL, TOKEN);
+                return generic.post(SERVER + API + EVENTS_ROUTE,
+                  eventObject, TOKEN, DEFAULT_TRIES, log, PROXY_URL);
               });
           }
 
-          return genericPost(SERVER+API+EVENTS_ROUTE, eventObject,
-            PROXY_URL, TOKEN);
+          return generic.post(SERVER + API + EVENTS_ROUTE, eventObject,
+            TOKEN, DEFAULT_TRIES, log, PROXY_URL);
         });
     }, // respondBotAction
 
@@ -885,8 +752,8 @@ module.exports = (config) => {
         'response': res,
       };
 
-      return genericPatch(SERVER+API+BOTACTIONS_ROUTE+'/'+id, responseObject,
-        PROXY_URL, TOKEN);
+      return generic.patch(SERVER + API + BOTACTIONS_ROUTE + '/' + id,
+        responseObject, TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // respondBotActionNoLog
 
     /**
@@ -896,8 +763,8 @@ module.exports = (config) => {
      * @returns {Promise} - Bot Data response
      */
     findBotData: (id) => {
-      return genericGet(SERVER+API+BOTDATA_ROUTE+'/'+id,
-        PROXY_URL, TOKEN);
+      return generic.get(SERVER + API + BOTDATA_ROUTE + '/' + id,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // findBotData
 
     /**
@@ -910,17 +777,18 @@ module.exports = (config) => {
      */
     getBotData: (room, bot, name) => {
       if (!bot) {
-        return genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/data',
-          PROXY_URL, TOKEN);
-      } if (!name) {
-        return genericGet(SERVER+API+ROOMS_ROUTE+'/'+room+'/bots/'+bot+'/data',
-          PROXY_URL, TOKEN);
+        return generic.get(SERVER + API + ROOMS_ROUTE + '/' + room + '/data',
+          TOKEN, DEFAULT_TRIES, log, PROXY_URL);
+      }
+      if (!name) {
+        return generic.get(SERVER + API + ROOMS_ROUTE + '/' +
+          room + '/bots/' + bot + '/data',
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
       }
 
-      return genericGet(
-        SERVER+API+BOTDATA_ROUTE+'?roomId='+room+'&botId='+bot+'&name='+name,
-        PROXY_URL, TOKEN
-      );
+      return generic.get(
+        SERVER + API + BOTDATA_ROUTE + '?roomId=' + room + '&botId=' +
+        bot + '&name=' + name, TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // getBotData
 
     /**
@@ -946,8 +814,8 @@ module.exports = (config) => {
       };
 
       logger.info('Creating botData: ', name);
-      return genericPost(SERVER+API+BOTDATA_ROUTE+'/', botData,
-        PROXY_URL, TOKEN);
+      return generic.post(SERVER + API + BOTDATA_ROUTE + '/', botData,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // createBotData
 
     /**
@@ -968,8 +836,8 @@ module.exports = (config) => {
       };
 
       logger.info('Updating botData: ', id);
-      return genericPatch(SERVER+API+BOTDATA_ROUTE+'/'+id, newBotData,
-        PROXY_URL, TOKEN);
+      return generic.patch(SERVER + API + BOTDATA_ROUTE + '/' + id, newBotData,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // changeBotData
 
     /**
@@ -1021,14 +889,20 @@ module.exports = (config) => {
      * @param {String} room - ID of room
      * @param {Integer} limit - Number of results
      * @param {Integer} offset - Offset value to get events
+     * @param {String} sortedBy - List in order using a field name (optional)
+     *       descending order accepted, e.g. '...?sort=-name
      * @returns {Promise} - All the events of the room
      */
-    getEvents: (room, limit, offset) => {
+    getEvents: (room, limit, offset, sortedBy = null) => {
       log.debug('Get specified events for Room ', room);
       const limitAmount = limit || DEFAULT_LIMIT;
       const offsetAmount = offset || NO_OFFSET;
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-        `&limit=${limitAmount}&offset=${offsetAmount}`, PROXY_URL, TOKEN);
+      let route = `${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+        `&limit=${limitAmount}&offset=${offsetAmount}`;
+      if (sortedBy) {
+        route += `&sort=${sortedBy}`;
+      }
+      return generic.get(route, TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // getEvents
 
     /**
@@ -1041,8 +915,8 @@ module.exports = (config) => {
       log.debug('Get all events for Room ', room);
       let limit;
       let offset;
-      return genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`,
-        PROXY_URL, TOKEN)
+      return generic.get(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL)
         .then((events) => {
           const allEvents = [];
           const total = events.header['x-total-count'];
@@ -1050,9 +924,10 @@ module.exports = (config) => {
             limit = events.body.length;
             offset = NO_OFFSET;
             while (offset < total) {
+              const route = `${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+                `&limit=${limit}&offset=${offset}`;
               allEvents.push(
-                genericGet(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-                  `&limit=${limit}&offset=${offset}`, PROXY_URL, TOKEN)
+                generic.get(route, TOKEN, DEFAULT_TRIES, log, PROXY_URL)
               );
               offset += limit;
             }
@@ -1094,8 +969,8 @@ module.exports = (config) => {
       if (context) {
         events.context = context;
       }
-      return genericPost(SERVER+API+EVENTS_ROUTE, events,
-        PROXY_URL, TOKEN);
+      return generic.post(SERVER + API + EVENTS_ROUTE, events,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // createEvents
 
     /**
@@ -1105,7 +980,8 @@ module.exports = (config) => {
      */
     bulkCreateEvents: (events) => {
       log.debug('Bulk creating new Events. ', events);
-      return genericPost(`${SERVER}${API}${EVENTS_BULK_ROUTE}`, events, TOKEN);
+      return generic.post(`${SERVER}${API}${EVENTS_BULK_ROUTE}`, events,
+        TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // bulkCreateEvents
 
     /**
@@ -1114,13 +990,13 @@ module.exports = (config) => {
      * @param {Integer} eId - External Id
      * @param {Integer} rId - Room Id
      * @returns {Promise} - Room response
-    */
+     */
     updateExternalId: (eId, rId) => {
       const roomObject = {
         externalId: eId
       };
-      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
-        roomObject, PROXY_URL, TOKEN);
+      return generic.patch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // updateExternalId
 
     /**
@@ -1129,19 +1005,32 @@ module.exports = (config) => {
      * @param {String} name - Room name
      * @param {Integer} rId - Room Id
      * @returns {Promise} - Room response
-    */
+     */
     updateRoomName: (name, rId) => {
       const roomObject = {
         name
       };
-      return genericPatch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
-        roomObject, PROXY_URL, TOKEN);
+      return generic.patch(`${SERVER}${API}${ROOMS_ROUTE}/${rId}`,
+        roomObject, TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // updateRoomName
+
+    /**
+     * Deactivate a Room by ID
+     *
+     * @param {Integer} id - Room's ID
+     * @returns {Promise} - Room response
+     */
+    deactivateRoom: (id) => {
+      const object = { 'active': false };
+      return generic.patch(`${SERVER}${API}${ROOMS_ROUTE}/${id}`,
+        object, TOKEN, DEFAULT_TRIES, log, PROXY_URL);
+    },
 
     /**
      * Abstraction from polling
      *
-     * @param {Express} app - App stream so we can push events to the server
+     * @param {Object} app - Express App  stream so we can push events to the
+     *  server
      * @param {String} token - Socket Token needed to connect to Refocus socket
      * @param {String} name - name of a Bot
      */
@@ -1150,8 +1039,8 @@ module.exports = (config) => {
       let botRoute = '/';
       const connectToken = SOCKET_TOKEN ? SOCKET_TOKEN : token;
       if (name) {
-        genericGet(SERVER+API+BOTS_ROUTE+'?name='+name,
-          PROXY_URL, TOKEN)
+        generic.get(SERVER + API + BOTS_ROUTE + '?name=' + name,
+          TOKEN, DEFAULT_TRIES, log, PROXY_URL)
           .then((bots) => {
             if (bots && bots.body && bots.body.length) {
               botId = bots.body[START_OF_ARRAY].id;
@@ -1180,10 +1069,14 @@ module.exports = (config) => {
      * @returns {Promise} - promise for chaining
      */
     installOrUpdateBot: (packageJSON) => {
-      const { metadata: { actions, data, settings },
-        name, url, version, displayName, helpUrl, ownerUrl } = packageJSON;
-      const bot = { name, url, helpUrl, ownerUrl, version, displayName, actions,
-        data, settings, ui: DEFAULT_UI_PATH, active: true };
+      const {
+        metadata: { actions, data, settings },
+        name, url, version, displayName, helpUrl, ownerUrl
+      } = packageJSON;
+      const bot = {
+        name, url, helpUrl, ownerUrl, version, displayName, actions,
+        data, settings, ui: DEFAULT_UI_PATH, active: true
+      };
 
       // try to update a bot
       // this function is more common then installing a new bot
@@ -1192,7 +1085,7 @@ module.exports = (config) => {
         updateBot(bot)
           .then(() => {
             logger.info(`${name} successfully updated on: ${SERVER}`);
-            if (!HEARTBEAT_OFF){
+            if (!HEARTBEAT_OFF) {
               startHeartBeat(name);
             }
             resolve();
@@ -1204,7 +1097,7 @@ module.exports = (config) => {
               installBot(bot)
                 .then(() => {
                   logger.info(`${name} successfully installed on: ${SERVER}`);
-                  if (!HEARTBEAT_OFF){
+                  if (!HEARTBEAT_OFF) {
                     startHeartBeat(name);
                   }
                   resolve();

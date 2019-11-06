@@ -10,6 +10,8 @@ const expect = require('chai').expect;
 const rewire = require('rewire');
 const config = { refocusUrl: 'zzz', token: 'dummy' };
 const bdkServer = rewire('../refocus-bdk-server.js');
+const sinon = require('sinon');
+const generic = require('../generic.js');
 
 // Create environment for client code to work
 global.user = '{&quot;email&quot;:&quot;test@test.com&quot;}';
@@ -24,30 +26,24 @@ describe('BDK Client roomTypes: ', () => {
   });
 
   it('Ok, get roomTypes', (done) => {
-    bdkClient.__set__('genericGet', () => {
-      return new Promise((resolve) => {
-        resolve({ body: [{ id: 'abcdefg', name: 'RoomTypeName' }] });
-      });
-    });
+    sinon.stub(generic, 'get').resolves({ body:
+      [{ id: 'abcdefg', name: 'RoomTypeName' }] });
     bdkClient.__get__('module.exports')(config).getRoomTypes()
       .then((res) => {
         expect(res.body.length).to.equal(ONE);
-        done();
-      });
+      }).then(() => generic.get.restore())
+      .then(() => done());
   });
 });
 
 describe('BDK Server roomTypes: ', () => {
   it('Ok, getRoomTypes', (done) => {
-    bdkServer.__set__('genericGet', () => {
-      return new Promise((resolve) => {
-        resolve({ body: [{ id: 'abcdefg', name: 'RoomTypeName' }] });
-      });
-    });
+    sinon.stub(generic, 'get').resolves({ body:
+      [{ id: 'abcdefg', name: 'RoomTypeName' }] });
     bdkServer.__get__('module.exports')(config).getRoomTypes()
       .then((res) => {
         expect(res.body.length).to.equal(ONE);
-        done();
-      });
+      }).then(() => generic.get.restore())
+      .then(() => done());
   });
 });
