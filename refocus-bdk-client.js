@@ -115,6 +115,7 @@ function getBotId(refocusUrl, token, botName) {
         resolve(botId);
       })
       .catch((error) => {
+        // eslint-disable-next-line
         console.error(error);
         resolve(undefined);
       });
