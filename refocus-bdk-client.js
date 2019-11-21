@@ -108,14 +108,15 @@ function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
  * @returns {string} bot id
  */
 function getBotId(refocusUrl, token, botName) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     generic.get(`${refocusUrl}${API}${BOTS_ROUTE}?name=${botName}`, token)
       .then((res) => {
         const botId = res.body[ZERO].id;
         resolve(botId);
       })
       .catch((error) => {
-        reject(error);
+        console.error(error);
+        resolve(undefined);
       });
   });
 }
@@ -153,6 +154,13 @@ module.exports = (config, botName='') => {
         parseInt(window.location.pathname.split('rooms/')[ONE], 10) :
         ONE;
     }, // getRoomId
+
+    /**
+     * Get the bot ID from the name
+     *
+     * @returns {string} - Id of the bot from refocus
+     */
+    getBotId,
 
     /**
      * Find room by id/name
