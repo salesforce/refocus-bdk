@@ -98,12 +98,33 @@ function debugMessage(type, msg, obj) { // eslint-disable-line require-jsdoc
       );
     }
   }
-} // debugMessage
+} // debugMessageGet
 
-module.exports = (config) => {
+/**
+ * Gets ID of bot from refocus
+ * @param {string} refocusUrl - refocus url to query
+ * @param {string} token - token for authenticating with refocus
+ * @param {string} botName - name of bot to get Id for
+ * @returns {string} bot id
+ */
+function getBotId(refocusUrl, token, botName) {
+  return new Promise((resolve) => {
+    generic.get(`${refocusUrl}${API}${BOTS_ROUTE}?name=${botName}`, token)
+      .then((res) => {
+        const botId = res.body[ZERO].id;
+        resolve(botId);
+      })
+      .catch((error) => {
+        // eslint-disable-next-line
+        console.error(error);
+        resolve(undefined);
+      });
+  });
+}
+
+module.exports = (config, botName='') => {
   const SERVER = window.location.origin || config.refocusUrl;
   const TOKEN = window.userSession || config.token;
-  const botName = config.botName;
 
   /**
    * Define a set of log functions
@@ -134,6 +155,13 @@ module.exports = (config) => {
         parseInt(window.location.pathname.split('rooms/')[ONE], 10) :
         ONE;
     }, // getRoomId
+
+    /**
+     * Get the bot ID from the name
+     *
+     * @returns {string} - Id of the bot from refocus
+     */
+    getBotId,
 
     /**
      * Find room by id/name
@@ -614,28 +642,30 @@ module.exports = (config) => {
      * @returns {Promise} - Event response
      */
     createEvents: (room, msg, context, type) => {
-      log.debug('Creating a new Event. ', { room, msg, context, type });
-      const events = {
-        log: msg,
-        roomId: room,
-        actionType: type,
-        botId: botName
-      };
-      if (context) {
-        events.context = context;
-        events.context.user = _user;
-      } else {
-        events.context = {
-          user: _user
+      return getBotId(SERVER, TOKEN, botName).then((id) => {
+        log.debug('Creating a new Event. ', { room, msg, context, type });
+        const events = {
+          log: msg,
+          roomId: room,
+          actionType: type,
+          botId: id
         };
-      }
-      try {
-        events.userId = _user.id;
-      } catch (error) {
-        log.error('Event User Error', error);
-      }
-      return generic.post(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN,
-        ZERO, log);
+        if (context) {
+          events.context = context;
+          events.context.user = _user;
+        } else {
+          events.context = {
+            user: _user
+          };
+        }
+        try {
+          events.userId = _user.id;
+        } catch (error) {
+          log.error('Event User Error', error);
+        }
+        return generic
+          .post(`${SERVER}${API}${EVENTS_ROUTE}`, events, TOKEN, ZERO, log);
+      });
     }, // createEvents
 
     /**

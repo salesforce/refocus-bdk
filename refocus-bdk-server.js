@@ -54,6 +54,22 @@ let HEARTBEAT_TIMER =
   +process.env.HEARTBEAT_TIMER || MIN_HEARTBEAT_TIMER; // Milliseconds
 HEARTBEAT_TIMER = HEARTBEAT_TIMER > MIN_HEARTBEAT_TIMER ?
   HEARTBEAT_TIMER : MIN_HEARTBEAT_TIMER;
+
+const settingsChangedEventName =
+  'refocus.internal.realtime.room.settingsChanged';
+const initalizeEventName =
+  'refocus.internal.realtime.bot.namespace.initialize';
+const botActionsAdd =
+  'refocus.internal.realtime.bot.action.add';
+const botActionsUpdate =
+  'refocus.internal.realtime.bot.action.update';
+const botDataAdd =
+  'refocus.internal.realtime.bot.data.add';
+const botDataUpdate =
+  'refocus.internal.realtime.bot.data.update';
+const botEventAdd =
+  'refocus.internal.realtime.bot.event.add';
+
 /* eslint-enable no-process-env */
 /* eslint-enable no-implicit-coercion*/
 const DEFAULT_UI_PATH = 'web/dist/bot.zip';
@@ -109,6 +125,7 @@ const logger = new (winston.Logger)({
 });
 module.exports = (config) => {
   const SERVER = config.refocusUrl;
+  const REALTIME_APP_URL = config.refocusRealtimeUrl;
   let TOKEN = config.token;
   const botName = config.botName;
   const BOT_INSTALL_TOKEN = config.token;
@@ -142,38 +159,34 @@ module.exports = (config) => {
    *
    * @param {Express} app - App stream so we can push events to the server
    * @param {String} token - Socket Token needed to connect to Refocus socket
+   * @param {String} botId - Id of the bot
    */
-  function refocusConnectSocket(app, token) {
+  function refocusConnectSocket(app, token, botId) {
     const opts = {
       reconnect: true,
-      'reconnection delay': 10,
+      'reconnection delay': 1000,
       transports: ['websocket'],
       upgrade: false,
-      extraHeaders: {
-        Authorization: token
-      }
+      query: {
+        id: botId,
+      },
     };
+
+    let connectUrl;
+    if (REALTIME_APP_URL) {
+      connectUrl = `${REALTIME_APP_URL}/bots`;
+    } else {
+      connectUrl = SERVER;
+      opts.extraHeaders = {
+        Authorization: token
+      };
+    }
 
     if (PROXY_URL) {
       opts.agent = new HttpsProxyAgent(PROXY_URL);
     }
 
-    const socket = io.connect(SERVER, opts);
-
-    const settingsChangedEventName =
-      'refocus.internal.realtime.room.settingsChanged';
-    const initalizeEventName =
-      'refocus.internal.realtime.bot.namespace.initialize';
-    const botActionsAdd =
-      'refocus.internal.realtime.bot.action.add';
-    const botActionsUpdate =
-      'refocus.internal.realtime.bot.action.update';
-    const botDataAdd =
-      'refocus.internal.realtime.bot.data.add';
-    const botDataUpdate =
-      'refocus.internal.realtime.bot.data.update';
-    const botEventAdd =
-      'refocus.internal.realtime.bot.event.add';
+    const socket = io.connect(connectUrl, opts);
 
     socket.on(initalizeEventName, (data) => {
       const eventData = JSON.parse(data);
@@ -225,8 +238,16 @@ module.exports = (config) => {
     });
 
     socket.on('connect', () => {
-      logger.info('Socket Connected');
-    });
+      if (REALTIME_APP_URL) {
+        socket.emit('auth', BOT_INSTALL_TOKEN);
+      } else {
+        logger.info('Socket Connected > Refocus');
+      }
+    }).on('authenticated', () => {
+      logger.info('Socket Connected > Realtime app');
+    }).on('auth error', (err) =>
+      logger.error('Socket auth error:', err)
+    );
 
     socket.on('disconnect', () => {
       logger.info('Socket Disconnected');
@@ -1035,7 +1056,8 @@ module.exports = (config) => {
       } else if (USE_POLLING) {
         refocusConnectPolling(app, botRoute);
       } else {
-        refocusConnectSocket(app, connectToken);
+        log.error('Cannot connect to refocus - name provided to ' +
+          `refocusConnect() is null or undefined: ${name}`);
       }
     }, // refocusConnect
 

@@ -31,7 +31,8 @@ describe('BDK Client botActions: ', () => {
   it('Ok, createBotAction', (done) => {
     const postStub = sinon.stub(generic, 'post')
       .resolves({ body: { isPending: true } });
-    bdkClient.__get__('module.exports')(config).createBotAction({})
+    bdkClient.__get__('module.exports')(config, config.botName)
+      .createBotAction({})
       .then(() => {
         expect(postStub.firstCall.args[0])
           .to.equal(config.refocusUrl+'/v1/botActions');
@@ -40,7 +41,8 @@ describe('BDK Client botActions: ', () => {
         expect(postStub.firstCall.args[2]).to.equal(config.token);
         expect(postStub.calledOnce).to.equal(true);
       }).then(() => generic.post.restore())
-      .then(() => done());
+      .then(() => done())
+      .catch((err) => done(err));
   });
 });
 
