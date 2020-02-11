@@ -199,42 +199,36 @@ module.exports = (config) => {
       const eventData = JSON.parse(data);
       const room = eventData[settingsChangedEventName];
       app.emit('refocus.room.settings', room);
-      log.realtime('Room Settings', room);
     });
 
     socket.on(botActionsAdd, (data) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsAdd];
       app.emit('refocus.bot.actions', action);
-      log.realtime('Bot Action', action);
     });
 
     socket.on(botActionsUpdate, (data) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsUpdate].new;
       app.emit('refocus.bot.actions', action);
-      log.realtime('Bot Action', action);
     });
 
     socket.on(botDataAdd, (data) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataAdd];
       app.emit('refocus.bot.data', botData);
-      log.realtime('Bot Data', botData);
     });
 
     socket.on(botDataUpdate, (data) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataUpdate].new;
       app.emit('refocus.bot.data', botData);
-      log.realtime('Bot Data', botData);
     });
 
     socket.on(botEventAdd, (data) => {
       const eventData = JSON.parse(data);
       const botEvent = eventData[botEventAdd];
       app.emit('refocus.events', botEvent);
-      log.realtime('Room Events', botEvent);
     });
 
     socket.on('connect', () => {
@@ -306,7 +300,6 @@ module.exports = (config) => {
                 if (!pendingActions.hasOwnProperty(botAction.id)) {
                   pendingActions[botAction.id] = botAction;
                   app.emit('refocus.bot.actions', botAction);
-                  log.realtime('Bot Action', botAction);
                 }
               } else if (IS_ACTION_TIMED_OUT) {
                 const responseObject = {
