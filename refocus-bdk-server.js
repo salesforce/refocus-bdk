@@ -244,7 +244,7 @@ module.exports = (config) => {
     );
 
     socket.on('disconnect', (reason) => {
-      logger.info('Socket Disconnected');
+      logger.info(`Socket Disconnected, reason: ${reason}`);
       if (reason === 'io server disconnect') {
         socket.connect();
       }
