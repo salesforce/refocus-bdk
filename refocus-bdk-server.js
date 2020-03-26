@@ -243,8 +243,11 @@ module.exports = (config) => {
       logger.error('Socket auth error:', err)
     );
 
-    socket.on('disconnect', () => {
-      logger.info('Socket Disconnected');
+    socket.on('disconnect', (reason) => {
+      logger.info(`Socket Disconnected, reason: ${reason}`);
+      if (reason === 'io server disconnect') {
+        socket.connect();
+      }
     });
   } // refocusConnectSocket
 
