@@ -485,6 +485,22 @@ module.exports = (config) => {
     }, HEARTBEAT_TIMER);
   } // heartBeat
 
+  /**
+   * Checks RoomType bot list for bot triggering event
+   * @param {Object} event - refocusEvent
+   * @param {String} bot - botName
+   * @returns {boolean}
+   */
+  function isBotInstalledInRoom(event, bot) {
+    const botsInRoom = event.Room.RoomType.Bots;
+    const botsInstalled = [];
+    botsInRoom.forEach((bots) => botsInstalled.push(bots.name));
+    log.info(`bots installed in room: ${botsInstalled}`);
+    if (botsInstalled.includes(`${bot}`)) {
+      return true;
+    }
+  }
+
   return {
 
     /**
@@ -498,6 +514,11 @@ module.exports = (config) => {
      */
     installBot,
     updateBot,
+
+    /**
+     * exporting isBotInstalledInRoom for bots usage
+     */
+    isBotInstalledInRoom,
 
     /**
      * Find room by id/name
