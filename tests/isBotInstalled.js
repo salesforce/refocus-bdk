@@ -34,11 +34,16 @@ const event = {
     }
   }
 };
-const bot = 'test-bot';
 
-describe('check if bot is installed in Room:', () => {
-  it('Ok, returns true if bot in RoomType is listed', () => {
-    const action = bdk.isBotInstalledInRoom(event, bot), expectation = true;
-    expect(action).to.equal(expectation);
+describe('BDK isBotInstalledInRoom:', () => {
+  it('Ok, returns true if bot in Room', () => {
+    const bot = 'test-bot';
+    const isBotInstalled = bdk.isBotInstalledInRoom(event, bot);
+    expect(isBotInstalled).to.equal(true);
+  });
+  it('Ok, returns false when bot not in Room', () => {
+    const bot = 'test-bot-b';
+    const isBotInstalled = bdk.isBotInstalledInRoom(event, bot);
+    expect(isBotInstalled).to.equal(false) ;
   });
 });

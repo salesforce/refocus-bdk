@@ -493,12 +493,11 @@ module.exports = (config) => {
    */
   function isBotInstalledInRoom(event, bot) {
     const botsInRoom = event.Room.RoomType.Bots;
-    const botsInstalled = [];
-    botsInRoom.forEach((bots) => botsInstalled.push(bots.name));
-    log.info(`bots installed in room: ${botsInstalled}`);
-    if (botsInstalled.includes(`${bot}`)) {
+    const botsInstalled = botsInRoom.find((b) => b.name === bot);
+    if (botsInstalled) {
       return true;
     }
+    return false;
   }
 
   return {
@@ -515,9 +514,6 @@ module.exports = (config) => {
     installBot,
     updateBot,
 
-    /**
-     * exporting isBotInstalledInRoom for bots usage
-     */
     isBotInstalledInRoom,
 
     /**
