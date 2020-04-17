@@ -58,6 +58,7 @@ bdk.createBotData(roomId, botName, 'timers', JSON.stringify(timers))
 * getActiveRooms
 * getOrInitializeBotData
 * getRoomTypes
+* isBotInstalledInRoom
 
 ## Contributing
 If you have any ideas on how this project could be improved, please feel free. The steps involved are:
@@ -135,3 +136,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.9.0  Added ability to connect to realtime app.
 * 1.9.1  Added botId to clientside events.
 * 1.9.2 Added logic to reconnect when refocus terminates websocket connection
+* 1.9.3 Added the isBotInstalledInRoom function.
