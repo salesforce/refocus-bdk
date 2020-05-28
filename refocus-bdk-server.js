@@ -486,14 +486,27 @@ module.exports = (config) => {
   } // heartBeat
 
   /**
+   * Gets room type information
+   * @param {*} roomTypeId;
+   * @returns {object} Roomtype information
+   */
+  async function getRoomTypeById(roomTypeId) {
+    // eslint-disable-next-line max-len
+    const response = await generic.get(`${SERVER}${API}${ROOM_TYPES_ROUTE}/${roomTypeId}`,
+      TOKEN, DEFAULT_TRIES, null, PROXY_URL);
+    return response.body;
+  }
+
+  /**
    * Checks RoomType bot list for bot triggering event
    * @param {Object} event - refocusEvent
    * @param {String} bot - botName
    * @returns {boolean}
    */
-  function isBotInstalledInRoom(event, bot) {
-    const botsInRoom = event.Room.RoomType.Bots;
-    const botsInstalled = botsInRoom.find((b) => b.name === bot);
+  async function isBotInstalledInRoom(event, bot) {
+    const eventRoomTypeId = event.Room.RoomType.id;
+    const botsInRoomType = await getRoomTypeById(eventRoomTypeId);
+    const botsInstalled = botsInRoomType.bots.find((b) => b.name === bot);
     if (botsInstalled) {
       return true;
     }
