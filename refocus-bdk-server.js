@@ -488,13 +488,20 @@ module.exports = (config) => {
   /**
    * Gets room type information
    * @param {*} roomTypeId;
-   * @returns {object} Roomtype information
+   * @returns {object} Roomtype information or null
    */
   async function getRoomTypeById(roomTypeId) {
-    // eslint-disable-next-line max-len
-    const response = await generic.get(`${SERVER}${API}${ROOM_TYPES_ROUTE}/${roomTypeId}`,
-      TOKEN, DEFAULT_TRIES, null, PROXY_URL);
-    return response.body;
+    try {
+      if (roomTypeId) {
+        // eslint-disable-next-line max-len
+        const response = await generic.get(`${SERVER}${API}${ROOM_TYPES_ROUTE}/${roomTypeId}`,
+          TOKEN, DEFAULT_TRIES, null, PROXY_URL);
+        return response.body;
+      }
+    } catch (error) {
+      return null;
+    }
+    return null;
   }
 
   /**
@@ -505,12 +512,15 @@ module.exports = (config) => {
    */
   async function isBotInstalledInRoom(event, bot) {
     const eventRoomTypeId = event.Room.RoomType.id;
-    const botsInRoomType = await getRoomTypeById(eventRoomTypeId);
-    const botsInstalled = botsInRoomType.bots.find((b) => b.name === bot);
-    if (botsInstalled) {
-      return true;
+    try {
+      const botsInRoomType = await getRoomTypeById(eventRoomTypeId);
+      if (botsInRoomType) {
+        const botsInstalled = botsInRoomType.bots.find((b) => b === bot);
+        return Boolean(botsInstalled);
+      }
+    } catch (error) {
+      return false;
     }
-    return false;
   }
 
   return {
@@ -528,6 +538,7 @@ module.exports = (config) => {
     updateBot,
 
     isBotInstalledInRoom,
+    getRoomTypeById,
 
     /**
      * Find room by id/name

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 
 // /**
 //  * Copyright (c) 2020, salesforce.com, inc.
@@ -7,45 +8,62 @@
 //  * https://opensource.org/licenses/BSD-3-Clause
 //  */
 
-// const expect = require('chai').expect;
-// const config = { refocusUrl: 'zzz', token: 'dummy' };
-// const bdk = require('../refocus-bdk-server')(config);
-// const sinon = require('sinon');
-// const generic = require('../generic.js');
+const expect = require('chai').expect;
+const config = { refocusUrl: 'zzz', token: 'dummy' };
+// eslint-disable-next-line max-len
+const bdk = require('../refocus-bdk-server')(config);
+const generic = require('../generic');
+const sinon = require('sinon');
 
-// const event = {
-//   id: 'b44dc350-9706-4800-adb2-d0999152e408',
-//   log: 'Room Deactivated',
-//   actionType: null,
-//   context: {
-//     type: 'RoomState',
-//     active: false
-//   },
-//   Room: {
-//     id: 2,
-//     name: 'testRoom',
-//     RoomType: {
-//       id: 'e118e6f1-a6d5-4164-9c14-7344c733c3e6',
-//       name: 'testRoomType',
-//       Bots: [
-//         {
-//           id: '6812d9f4-191d-48c0-abff-8c013a697c76',
-//           name: 'test-bot'
-//         }
-//       ]
-//     }
-//   }
-// };
+const event = {
+  id: 'b44dc350-9706-4800-adb2-d0999152e408',
+  Room: {
+    id: 2,
+    name: 'testRoom',
+    RoomType: {
+      id: 'e118e6f1-a6d5-4164-9c14-7344c733c3e6',
+      name: 'testRoomType'
+    }
+  }
+};
 
-// // describe('BDK isBotInstalledInRoom:', () => {
-// //   it('Ok, returns true if bot in Room', () => {
-// //     const bot = 'test-bot';
-// //     const isBotInstalled = bdk.isBotInstalledInRoom(event, bot);
-// //     expect(isBotInstalled).to.equal(true);
-// //   });
-// //   it('Ok, returns false when bot not in Room', () => {
-// //     const bot = 'test-bot-b';
-// //     const isBotInstalled = bdk.isBotInstalledInRoom(event, bot);
-// //     expect(isBotInstalled).to.equal(false) ;
-// //   });
-// // });
+const roomType = {
+  body: {
+    id: 'e118e6f1-a6d5-4164-9c14-7344c733c3e6',
+    name: 'test-room-type',
+    isEnabled: true,
+    bots: [
+      'test-bot'
+    ]
+  }
+};
+
+describe('IsBotInstalledInRoom', () => {
+  let getRoomTypeByIdStub;
+  let getGenericRoomTypeStub;
+  beforeEach(() => {
+    getGenericRoomTypeStub = sinon.stub(generic, 'get');
+    getRoomTypeByIdStub = sinon.stub(bdk, 'getRoomTypeById');
+  });
+
+  afterEach(() => {
+    getRoomTypeByIdStub.restore();
+    getGenericRoomTypeStub.restore();
+  });
+
+  it('true if Bot is listed in RoomType', async () => {
+    getGenericRoomTypeStub.returns(Promise.resolve(roomType));
+    getRoomTypeByIdStub.returns(Promise.resolve(roomType));
+    const botName = 'test-bot';
+    const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
+    expect(isBotInstalled).to.be.true;
+  });
+
+  it('OK false if bot not roomType ', async () => {
+    getGenericRoomTypeStub.returns(Promise.resolve(roomType));
+    getRoomTypeByIdStub.returns(Promise.resolve(roomType));
+    const botName = 'robot';
+    const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
+    expect(isBotInstalled).to.be.false;
+  });
+});
