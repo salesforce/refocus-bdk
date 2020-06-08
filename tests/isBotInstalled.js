@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-expressions */
 
-// /**
-//  * Copyright (c) 2020, salesforce.com, inc.
-//  * All rights reserved.
-//  * Licensed under the BSD 3-Clause license.
-//  * For full license text, see LICENSE.txt file in the repo root or
-//  * https://opensource.org/licenses/BSD-3-Clause
-//  */
+/**
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or
+ * https://opensource.org/licenses/BSD-3-Clause
+ */
 
 const expect = require('chai').expect;
 const config = { refocusUrl: 'zzz', token: 'dummy' };
@@ -62,6 +62,33 @@ describe('IsBotInstalledInRoom', () => {
   it('OK false if bot not roomType ', async () => {
     getGenericRoomTypeStub.returns(Promise.resolve(roomType));
     getRoomTypeByIdStub.returns(Promise.resolve(roomType));
+    const botName = 'robot';
+    const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
+    expect(isBotInstalled).to.be.false;
+  });
+
+  it('OK false if roomType is invalid ', async () => {
+    const invalidRoomType = {
+      body: {
+        id: 'e118e6f1-a6d5-4164-9c14-7344c733c3e6',
+        name: 'test-room-type',
+        isEnabled: true,
+        Wrongbots: [
+          'test-bot'
+        ]
+      }
+    };
+    getGenericRoomTypeStub.returns(Promise.resolve(invalidRoomType));
+    getRoomTypeByIdStub.returns(Promise.resolve(invalidRoomType));
+    const botName = 'robot';
+    const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
+    expect(isBotInstalled).to.be.false;
+  });
+
+  it('OK false if roomType is null ', async () => {
+    const invalidRoomType = null;
+    getGenericRoomTypeStub.returns(Promise.resolve(invalidRoomType));
+    getRoomTypeByIdStub.returns(Promise.resolve(invalidRoomType));
     const botName = 'robot';
     const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
     expect(isBotInstalled).to.be.false;

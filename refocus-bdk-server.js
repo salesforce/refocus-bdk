@@ -499,6 +499,7 @@ module.exports = (config) => {
         return response.body;
       }
     } catch (error) {
+      log.error('failed return Roomtype data from Refocus:', error.message);
       return null;
     }
     return null;
@@ -518,7 +519,9 @@ module.exports = (config) => {
         const botsInstalled = botsInRoomType.bots.find((b) => b === bot);
         return Boolean(botsInstalled);
       }
+      return false;
     } catch (error) {
+      log.error('failed to get roomType:', error.message);
       return false;
     }
   }

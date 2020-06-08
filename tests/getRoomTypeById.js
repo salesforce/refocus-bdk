@@ -42,9 +42,17 @@ describe('getRoomTypeById', () => {
     expect(roomTypeBody.id).to.be.equal('e118e6f1-a6d5-4164-9c14-7344c733c3e6');
   });
 
-  it('OK should Fail on a bad request', async () => {
+  it('OK should fail when invalid id', async () => {
     getGenericRoomTypeStub.returns(Promise.resolve(roomType));
     const roomTypeBody = await bdk.getRoomTypeById();
+    // eslint-disable-next-line no-unused-expressions
+    expect(roomTypeBody).to.be.null;
+  });
+
+  it('OK should be null in when request fails', async () => {
+    getGenericRoomTypeStub.returns(Promise.resolve());
+    const roomTypeId = 'e118e6f1-a6d5-4164-9c14-7344c733c3e6';
+    const roomTypeBody = await bdk.getRoomTypeById(roomTypeId);
     // eslint-disable-next-line no-unused-expressions
     expect(roomTypeBody).to.be.null;
   });
