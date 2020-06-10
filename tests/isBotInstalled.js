@@ -39,21 +39,17 @@ const roomType = {
 };
 
 describe('IsBotInstalledInRoom', () => {
-  let getRoomTypeByIdStub;
   let getGenericRoomTypeStub;
   beforeEach(() => {
     getGenericRoomTypeStub = sinon.stub(generic, 'get');
-    getRoomTypeByIdStub = sinon.stub(bdk, 'getRoomTypeById');
   });
 
   afterEach(() => {
-    getRoomTypeByIdStub.restore();
     getGenericRoomTypeStub.restore();
   });
 
   it('true if Bot is listed in RoomType', async () => {
     getGenericRoomTypeStub.returns(Promise.resolve(roomType));
-    getRoomTypeByIdStub.returns(Promise.resolve(roomType));
     const botName = 'test-bot';
     const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
     expect(isBotInstalled).to.be.true;
@@ -61,7 +57,6 @@ describe('IsBotInstalledInRoom', () => {
 
   it('OK false if bot not roomType ', async () => {
     getGenericRoomTypeStub.returns(Promise.resolve(roomType));
-    getRoomTypeByIdStub.returns(Promise.resolve(roomType));
     const botName = 'robot';
     const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
     expect(isBotInstalled).to.be.false;
@@ -79,7 +74,6 @@ describe('IsBotInstalledInRoom', () => {
       }
     };
     getGenericRoomTypeStub.returns(Promise.resolve(invalidRoomType));
-    getRoomTypeByIdStub.returns(Promise.resolve(invalidRoomType));
     const botName = 'robot';
     const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
     expect(isBotInstalled).to.be.false;
@@ -88,7 +82,6 @@ describe('IsBotInstalledInRoom', () => {
   it('OK false if roomType is null ', async () => {
     const invalidRoomType = null;
     getGenericRoomTypeStub.returns(Promise.resolve(invalidRoomType));
-    getRoomTypeByIdStub.returns(Promise.resolve(invalidRoomType));
     const botName = 'robot';
     const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
     expect(isBotInstalled).to.be.false;
