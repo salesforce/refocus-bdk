@@ -23,6 +23,7 @@ const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
 const generic = require('./generic.js');
+const Cache = require('./Cache.js');
 const io = require('socket.io-client');
 const serialize = require('serialize-javascript');
 const API = '/v1';
@@ -149,6 +150,21 @@ module.exports = (config) => {
     },
   };
 
+  // Create connection to redis for caching (if enabled)
+  let cache;
+  if (config.useRedisCache) {
+    if (config.redisCacheHost && config.redisCachePort) {
+      cache = new Cache({
+        host: config.redisCacheHost,
+        port: config.redisCachePort,
+        logger
+      });
+    } else {
+      logger.error('USE_REDIS_CACHE environment variable is set to true, ' +
+      'but REDIS_CACHE_HOST and/or REDIS_CACHE_PORT are not set');
+    }
+  }
+
   if (config.httpProxy) {
     requestProxy(request);
     PROXY_URL = config.httpProxy;
@@ -188,46 +204,87 @@ module.exports = (config) => {
 
     const socket = io.connect(connectUrl, opts);
 
-    socket.on(initalizeEventName, (data) => {
+    socket.on(initalizeEventName, async (data) => {
       const eventData = JSON.parse(data);
       const room = eventData[initalizeEventName];
+      const { id, updatedAt } = room;
+      const hasAlreadyBeenConsumed = cache &&
+        await cache.hasBeenConsumed(id, updatedAt, initalizeEventName);
+      if (hasAlreadyBeenConsumed) {
+        return;
+      }
       app.emit('refocus.internal.realtime.bot.namespace.initialize', room);
-      log.realtime('New Room', room);
     });
 
-    socket.on(settingsChangedEventName, (data) => {
+    socket.on(settingsChangedEventName, async (data) => {
       const eventData = JSON.parse(data);
       const room = eventData[settingsChangedEventName];
+      const { id, updatedAt } = room;
+      const hasAlreadyBeenConsumed = cache &&
+        await cache.hasBeenConsumed(id, updatedAt, settingsChangedEventName);
+      if (hasAlreadyBeenConsumed) {
+        return;
+      }
       app.emit('refocus.room.settings', room);
     });
 
-    socket.on(botActionsAdd, (data) => {
+    socket.on(botActionsAdd, async (data) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsAdd];
+      const { id, updatedAt } = action;
+      const hasAlreadyBeenConsumed = cache &&
+        await cache.hasBeenConsumed(id, updatedAt, botActionsAdd);
+      if (hasAlreadyBeenConsumed) {
+        return;
+      }
       app.emit('refocus.bot.actions', action);
     });
 
-    socket.on(botActionsUpdate, (data) => {
+    socket.on(botActionsUpdate, async (data) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsUpdate].new;
+      const { id, updatedAt } = action;
+      const hasAlreadyBeenConsumed = cache &&
+        await cache.hasBeenConsumed(id, updatedAt, botActionsUpdate);
+      if (hasAlreadyBeenConsumed) {
+        return;
+      }
       app.emit('refocus.bot.actions', action);
     });
 
-    socket.on(botDataAdd, (data) => {
+    socket.on(botDataAdd, async (data) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataAdd];
+      const { id, updatedAt } = botData;
+      const hasAlreadyBeenConsumed = cache &&
+        await cache.hasBeenConsumed(id, updatedAt, botDataAdd);
+      if (hasAlreadyBeenConsumed) {
+        return;
+      }
       app.emit('refocus.bot.data', botData);
     });
 
-    socket.on(botDataUpdate, (data) => {
+    socket.on(botDataUpdate, async (data) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataUpdate].new;
+      const { id, updatedAt } = botData;
+      const hasAlreadyBeenConsumed = cache &&
+        await cache.hasBeenConsumed(id, updatedAt, botDataUpdate);
+      if (hasAlreadyBeenConsumed) {
+        return;
+      }
       app.emit('refocus.bot.data', botData);
     });
 
-    socket.on(botEventAdd, (data) => {
+    socket.on(botEventAdd, async (data) => {
       const eventData = JSON.parse(data);
       const botEvent = eventData[botEventAdd];
+      const { id, updatedAt } = botEvent;
+      const hasAlreadyBeenConsumed = cache &&
+        await cache.hasBeenConsumed(id, updatedAt, botEventAdd);
+      if (hasAlreadyBeenConsumed) {
+        return;
+      }
       app.emit('refocus.events', botEvent);
     });
 

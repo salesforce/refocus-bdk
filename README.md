@@ -137,3 +137,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.9.1  Added botId to clientside events.
 * 1.9.2 Added logic to reconnect when refocus terminates websocket connection
 * 1.9.3 Added the isBotInstalledInRoom function.
+* 1.9.4 Added optional support for multiple instances of bots (requires redis instance)
