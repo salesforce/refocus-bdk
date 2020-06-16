@@ -486,18 +486,44 @@ module.exports = (config) => {
   } // heartBeat
 
   /**
+   * Gets room type information
+   * @param {*} roomTypeId;
+   * @returns {object} Roomtype information or null
+   */
+  async function getRoomTypeById(roomTypeId) {
+    try {
+      if (roomTypeId) {
+        // eslint-disable-next-line max-len
+        const response = await generic.get(`${SERVER}${API}${ROOM_TYPES_ROUTE}/${roomTypeId}`,
+          TOKEN, DEFAULT_TRIES, null, PROXY_URL);
+        return response.body;
+      }
+    } catch (error) {
+      log.error('failed return Roomtype data from Refocus:', error.message);
+      return null;
+    }
+    return null;
+  }
+
+  /**
    * Checks RoomType bot list for bot triggering event
    * @param {Object} event - refocusEvent
    * @param {String} bot - botName
    * @returns {boolean}
    */
-  function isBotInstalledInRoom(event, bot) {
-    const botsInRoom = event.Room.RoomType.Bots;
-    const botsInstalled = botsInRoom.find((b) => b.name === bot);
-    if (botsInstalled) {
-      return true;
+  async function isBotInstalledInRoom(event, bot) {
+    const eventRoomTypeId = event.Room.RoomType.id;
+    try {
+      const botsInRoomType = await getRoomTypeById(eventRoomTypeId);
+      if (botsInRoomType) {
+        const botsInstalled = botsInRoomType.bots.find((b) => b === bot);
+        return Boolean(botsInstalled);
+      }
+      return false;
+    } catch (error) {
+      log.error('failed to get roomType:', error.message);
+      return false;
     }
-    return false;
   }
 
   return {
@@ -515,6 +541,7 @@ module.exports = (config) => {
     updateBot,
 
     isBotInstalledInRoom,
+    getRoomTypeById,
 
     /**
      * Find room by id/name
