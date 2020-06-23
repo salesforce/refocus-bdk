@@ -210,9 +210,7 @@ module.exports = (config) => {
       const { id, updatedAt } = room;
       const hasAlreadyBeenConsumed = cache &&
         await cache.hasBeenConsumed(id, updatedAt, initalizeEventName);
-      if (hasAlreadyBeenConsumed) {
-        return;
-      }
+      if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.internal.realtime.bot.namespace.initialize', room);
     });
 
@@ -222,9 +220,7 @@ module.exports = (config) => {
       const { id, updatedAt } = room;
       const hasAlreadyBeenConsumed = cache &&
         await cache.hasBeenConsumed(id, updatedAt, settingsChangedEventName);
-      if (hasAlreadyBeenConsumed) {
-        return;
-      }
+      if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.room.settings', room);
     });
 
@@ -234,9 +230,7 @@ module.exports = (config) => {
       const { id, updatedAt } = action;
       const hasAlreadyBeenConsumed = cache &&
         await cache.hasBeenConsumed(id, updatedAt, botActionsAdd);
-      if (hasAlreadyBeenConsumed) {
-        return;
-      }
+      if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.bot.actions', action);
     });
 
@@ -246,9 +240,7 @@ module.exports = (config) => {
       const { id, updatedAt } = action;
       const hasAlreadyBeenConsumed = cache &&
         await cache.hasBeenConsumed(id, updatedAt, botActionsUpdate);
-      if (hasAlreadyBeenConsumed) {
-        return;
-      }
+      if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.bot.actions', action);
     });
 
@@ -258,9 +250,7 @@ module.exports = (config) => {
       const { id, updatedAt } = botData;
       const hasAlreadyBeenConsumed = cache &&
         await cache.hasBeenConsumed(id, updatedAt, botDataAdd);
-      if (hasAlreadyBeenConsumed) {
-        return;
-      }
+      if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.bot.data', botData);
     });
 
@@ -270,9 +260,7 @@ module.exports = (config) => {
       const { id, updatedAt } = botData;
       const hasAlreadyBeenConsumed = cache &&
         await cache.hasBeenConsumed(id, updatedAt, botDataUpdate);
-      if (hasAlreadyBeenConsumed) {
-        return;
-      }
+      if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.bot.data', botData);
     });
 
@@ -282,9 +270,7 @@ module.exports = (config) => {
       const { id, updatedAt } = botEvent;
       const hasAlreadyBeenConsumed = cache &&
         await cache.hasBeenConsumed(id, updatedAt, botEventAdd);
-      if (hasAlreadyBeenConsumed) {
-        return;
-      }
+      if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.events', botEvent);
     });
 
