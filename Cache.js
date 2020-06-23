@@ -31,7 +31,7 @@ class Cache {
         }
         this.logger.debug(`bdk-cache: ${res ? 'new event, responding' :
           'event already responded to'}`);
-        resolve(res === 'OK');
+        resolve(res !== 'OK');
       });
     });
   }
