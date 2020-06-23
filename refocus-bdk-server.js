@@ -128,7 +128,7 @@ module.exports = (config) => {
   const SERVER = config.refocusUrl;
   const REALTIME_APP_URL = config.refocusRealtimeUrl;
   let TOKEN = config.token;
-  const botName = config.botName;
+  let botName = config.botName;
   const BOT_INSTALL_TOKEN = config.token;
   let SOCKET_TOKEN;
   let PROXY_URL;
@@ -209,7 +209,7 @@ module.exports = (config) => {
       const room = eventData[initalizeEventName];
       const { id, updatedAt } = room;
       const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, initalizeEventName);
+        await cache.hasBeenConsumed(id, updatedAt, botName, initalizeEventName);
       if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.internal.realtime.bot.namespace.initialize', room);
     });
@@ -219,7 +219,8 @@ module.exports = (config) => {
       const room = eventData[settingsChangedEventName];
       const { id, updatedAt } = room;
       const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, settingsChangedEventName);
+        await cache.hasBeenConsumed(id, updatedAt, botName,
+          settingsChangedEventName);
       if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.room.settings', room);
     });
@@ -229,7 +230,7 @@ module.exports = (config) => {
       const action = eventData[botActionsAdd];
       const { id, updatedAt } = action;
       const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botActionsAdd);
+        await cache.hasBeenConsumed(id, updatedAt, botName, botActionsAdd);
       if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.bot.actions', action);
     });
@@ -239,7 +240,7 @@ module.exports = (config) => {
       const action = eventData[botActionsUpdate].new;
       const { id, updatedAt } = action;
       const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botActionsUpdate);
+        await cache.hasBeenConsumed(id, updatedAt, botName, botActionsUpdate);
       if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.bot.actions', action);
     });
@@ -249,7 +250,7 @@ module.exports = (config) => {
       const botData = eventData[botDataAdd];
       const { id, updatedAt } = botData;
       const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botDataAdd);
+        await cache.hasBeenConsumed(id, updatedAt, botName, botDataAdd);
       if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.bot.data', botData);
     });
@@ -259,7 +260,7 @@ module.exports = (config) => {
       const botData = eventData[botDataUpdate].new;
       const { id, updatedAt } = botData;
       const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botDataUpdate);
+        await cache.hasBeenConsumed(id, updatedAt, botName, botDataUpdate);
       if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.bot.data', botData);
     });
@@ -269,7 +270,7 @@ module.exports = (config) => {
       const botEvent = eventData[botEventAdd];
       const { id, updatedAt } = botEvent;
       const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botEventAdd);
+        await cache.hasBeenConsumed(id, updatedAt, botName, botEventAdd);
       if (hasAlreadyBeenConsumed) return;
       app.emit('refocus.events', botEvent);
     });
@@ -506,7 +507,7 @@ module.exports = (config) => {
 
             return reject(err || !ok);
           }
-
+          botName = bot.name;
           SOCKET_TOKEN = res.body.token;
           TOKEN = res.body.token;
           return resolve(res);

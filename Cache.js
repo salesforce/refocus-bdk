@@ -19,12 +19,13 @@ class Cache {
   /**
    * @param {string} realtimeEventId - event from websocket stream
    * @param {string} updatedAt - timestamp, avoids ignoring events with same id
+   * @param {string} botName - botName to differentiate from other bot types
    * @param {string} type - one of botAction, botData, event
    * @returns {Promise}
    */
-  hasBeenConsumed(realtimeEventId, updatedAt, type) {
+  hasBeenConsumed(realtimeEventId, updatedAt, botName, type) {
     return new Promise((resolve) => {
-      const key = `${type}${realtimeEventId}${updatedAt}`;
+      const key = `${type}${realtimeEventId}${updatedAt}${botName}`;
       this.client.set(key, '1', 'NX', 'ex', timeToLiveInSeconds, (err, res) => {
         if (err) {
           this.logger.error(err);
