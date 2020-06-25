@@ -23,7 +23,7 @@ const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
 const generic = require('./generic.js');
-const Cache = require('./Cache.js');
+const CacheFactory = require('./cache/CacheFactory');
 const io = require('socket.io-client');
 const serialize = require('serialize-javascript');
 const API = '/v1';
@@ -130,8 +130,7 @@ module.exports = (config) => {
   let TOKEN = config.token;
   let botName = config.botName;
   const BOT_INSTALL_TOKEN = config.token;
-  let SOCKET_TOKEN;
-  let PROXY_URL;
+  let PROXY_URL, SOCKET_TOKEN;
 
   /**
    * Define a set of log functions
@@ -153,12 +152,17 @@ module.exports = (config) => {
   // Create connection to redis for caching (if enabled)
   let cache;
   if (config.useRedisCache) {
-    if (config.redisCacheHost && config.redisCachePort) {
-      cache = new Cache({
-        host: config.redisCacheHost,
-        port: config.redisCachePort,
-        logger
-      });
+    const { redisCacheHost, redisCachePort } = config;
+    if (redisCacheHost && redisCachePort) {
+      const cacheFactory = new CacheFactory();
+      const REDIS = cacheFactory.clientTypes.REDIS;
+      cacheFactory.build(REDIS, logger, redisCacheHost, redisCachePort)
+        .then((client) => {
+          cache = client;
+        })
+        .cache((error) => {
+          logger.error(error);
+        });
     } else {
       logger.error('USE_REDIS_CACHE environment variable is set to true, ' +
       'but REDIS_CACHE_HOST and/or REDIS_CACHE_PORT are not set');
