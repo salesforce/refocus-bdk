@@ -176,7 +176,7 @@ module.exports = (config) => {
         .then((client) => {
           cache = client;
         })
-        .cache((error) => {
+        .catch((error) => {
           logger.error(error);
         });
     } else {
