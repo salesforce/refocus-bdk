@@ -99,6 +99,22 @@ if (((logging === 'both') || (logging === 'file')) &&
   (!fs.existsSync(logDir))) {
   fs.mkdirSync(logDir);
 }
+
+/**
+ * @param {object} cache - connection to cache
+ * @param {string} id - id of botAction, event, data etc.
+ * @param {string} updatedAt - timestamp of event's occurence
+ * @param {string} botName - current bot's name
+ * @param {string} eventType - string describing type of socket event
+ * @returns {Promise<boolean>} - whether or not event has been consumed
+ * according to cache
+ */
+function hasAlreadyBeenConsumed(cache, id, updatedAt, botName, eventType) {
+  if (!cache) return Promise.resolve(true);
+  return cache.hasBeenConsumed(id, updatedAt, botName,
+    eventType);
+}
+
 /* eslint func-style: ["error", "declaration",
   { "allowArrowFunctions": true }] */
 const tsFormat = () => moment().format('YYYY-MM-DD hh:mm:ss').trim();
@@ -212,9 +228,8 @@ module.exports = (config) => {
       const eventData = JSON.parse(data);
       const room = eventData[initalizeEventName];
       const { id, updatedAt } = room;
-      const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botName, initalizeEventName);
-      if (hasAlreadyBeenConsumed) return;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, initalizeEventName)) return;
       app.emit('refocus.internal.realtime.bot.namespace.initialize', room);
     });
 
@@ -222,10 +237,8 @@ module.exports = (config) => {
       const eventData = JSON.parse(data);
       const room = eventData[settingsChangedEventName];
       const { id, updatedAt } = room;
-      const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botName,
-          settingsChangedEventName);
-      if (hasAlreadyBeenConsumed) return;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, settingsChangedEventName)) return;
       app.emit('refocus.room.settings', room);
     });
 
@@ -233,9 +246,8 @@ module.exports = (config) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsAdd];
       const { id, updatedAt } = action;
-      const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botName, botActionsAdd);
-      if (hasAlreadyBeenConsumed) return;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botActionsAdd)) return;
       app.emit('refocus.bot.actions', action);
     });
 
@@ -243,9 +255,8 @@ module.exports = (config) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsUpdate].new;
       const { id, updatedAt } = action;
-      const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botName, botActionsUpdate);
-      if (hasAlreadyBeenConsumed) return;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botActionsUpdate)) return;
       app.emit('refocus.bot.actions', action);
     });
 
@@ -253,9 +264,8 @@ module.exports = (config) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataAdd];
       const { id, updatedAt } = botData;
-      const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botName, botDataAdd);
-      if (hasAlreadyBeenConsumed) return;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botDataAdd)) return;
       app.emit('refocus.bot.data', botData);
     });
 
@@ -263,9 +273,8 @@ module.exports = (config) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataUpdate].new;
       const { id, updatedAt } = botData;
-      const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botName, botDataUpdate);
-      if (hasAlreadyBeenConsumed) return;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botDataUpdate)) return;
       app.emit('refocus.bot.data', botData);
     });
 
@@ -273,9 +282,8 @@ module.exports = (config) => {
       const eventData = JSON.parse(data);
       const botEvent = eventData[botEventAdd];
       const { id, updatedAt } = botEvent;
-      const hasAlreadyBeenConsumed = cache &&
-        await cache.hasBeenConsumed(id, updatedAt, botName, botEventAdd);
-      if (hasAlreadyBeenConsumed) return;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botEventAdd)) return;
       app.emit('refocus.events', botEvent);
     });
 
