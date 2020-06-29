@@ -633,8 +633,9 @@ module.exports = (config) => {
      * @returns {Promise} - An object of the users currently in the room
      */
     getActiveUsers: (room) => {
-      return generic.get(SERVER + API + EVENTS_ROUTE + '?roomId=' + room,
-        TOKEN, DEFAULT_TRIES, log, PROXY_URL)
+      return generic.get(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+      '&type=User',
+      TOKEN, DEFAULT_TRIES, log, PROXY_URL)
         .then((events) => {
           const users = [];
           const userEvents = events.body
