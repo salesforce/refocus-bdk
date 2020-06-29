@@ -634,7 +634,7 @@ module.exports = (config) => {
      */
     getActiveUsers: (room) => {
       return generic.get(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-      '&type=User',
+      '&type=User&limit=500',
       TOKEN, DEFAULT_TRIES, log, PROXY_URL)
         .then((events) => {
           const users = [];

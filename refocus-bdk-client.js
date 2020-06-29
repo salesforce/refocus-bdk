@@ -229,7 +229,7 @@ module.exports = (config, botName='') => {
     getActiveUsers: (room) => {
       log.debug('Requesting active users for room ', room);
       return generic.get(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
-      '&type=User',
+      '&type=User&limit=500',
       TOKEN,
       ZERO, log)
         .then((events) => {
