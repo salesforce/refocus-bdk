@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-expressions,max-len */
-
 /**
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -52,14 +50,18 @@ describe('IsBotInstalledInRoom', () => {
   it('true if Bot is listed in Room', async () => {
     getGenericRoomStub.returns(Promise.resolve(room));
     const botName = 'test-Bot';
+    // eslint-disable-next-line max-len
     const isBotInstalled = await bdk.isBotInstalledInRoom(event.roomId, botName);
+    // eslint-disable-next-line no-unused-expressions
     expect(isBotInstalled).to.be.true;
   });
 
   it('OK false if bot not room', async () => {
     getGenericRoomStub.returns(Promise.resolve(room));
     const botName = 'robot';
+    // eslint-disable-next-line max-len
     const isBotInstalled = await bdk.isBotInstalledInRoom(event.roomId, botName);
+    // eslint-disable-next-line no-unused-expressions
     expect(isBotInstalled).to.be.false;
   });
 
@@ -76,7 +78,9 @@ describe('IsBotInstalledInRoom', () => {
     };
     getGenericRoomStub.returns(Promise.resolve(invalidRoom));
     const botName = 'robot';
+    // eslint-disable-next-line max-len
     const isBotInstalled = await bdk.isBotInstalledInRoom(event.roomId, botName);
+    // eslint-disable-next-line no-unused-expressions
     expect(isBotInstalled).to.be.false;
   });
 
@@ -84,7 +88,9 @@ describe('IsBotInstalledInRoom', () => {
     const invalidRoom = null;
     getGenericRoomStub.returns(Promise.resolve(invalidRoom));
     const botName = 'robot';
+    // eslint-disable-next-line max-len
     const isBotInstalled = await bdk.isBotInstalledInRoom(event.roomId, botName);
+    // eslint-disable-next-line no-unused-expressions
     expect(isBotInstalled).to.be.false;
   });
 });

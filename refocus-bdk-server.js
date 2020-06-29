@@ -513,10 +513,10 @@ module.exports = (config) => {
    */
   async function isBotInstalledInRoom(roomId, bot) {
     try {
-      const botsInRoom = await getRoomById(roomId);
-      if (botsInRoom) {
-        const botsInstalled = botsInRoom.bots.find((b) => b === bot);
-        return Boolean(botsInstalled);
+      const room = await getRoomById(roomId);
+      if (room) {
+        const botsInstalled = room.bots;
+        return botsInstalled.includes(bot);
       }
       return false;
     } catch (error) {

@@ -9,7 +9,6 @@
 
 const expect = require('chai').expect;
 const config = { refocusUrl: 'zzz', token: 'dummy' };
-// eslint-disable-next-line max-len
 const bdk = require('../refocus-bdk-server')(config);
 const generic = require('../generic');
 const sinon = require('sinon');
@@ -37,11 +36,12 @@ describe('getRoomById', () => {
     getGenericRoomStub.restore();
   });
 
-  it('OK if roomTypeId matches response', async () => {
+  it('OK if roomId matches response', async () => {
     getGenericRoomStub.returns(Promise.resolve(room));
     const roomId = 2;
     const roomBody = await bdk.getRoomById(roomId);
-    expect(roomBody.id).to.be.equal(roomId);
+    // eslint-disable-next-line no-unused-expressions
+    expect(roomBody).to.not.be.null;
   });
 
   it('OK should fail when invalid id', async () => {
