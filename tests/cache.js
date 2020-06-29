@@ -14,20 +14,27 @@ const logger = new winston.Logger();
 
 /**
    * @param {object} cache - instance of cache
+   * @param {function} done(error?)
    */
-async function testCache(cache) {
-  const shouldNotExist = await cache.hasBeenConsumed('test');
+async function testCache(cache, done) {
+  const shouldNotExist = await cache.hasBeenConsumed('test')
+    .catch(done);
   expect(shouldNotExist).to.equal(false);
-  const shouldExist = await cache.hasBeenConsumed('test');
+  const shouldExist = await cache.hasBeenConsumed('test')
+    .catch(done);
   expect(shouldExist).to.equal(true);
+  done();
 }
 
 describe('Testing cache creation', () => {
-  it('Creates redis cache', async () => {
+  it('Creates redis cache', (done) => {
     const cacheFactory = new CacheFactory();
-    const redisCache = await cacheFactory.build(cacheFactory.clientTypes.REDIS,
-      logger, null, null);
-    await testCache(redisCache);
+    cacheFactory.build(cacheFactory.clientTypes.REDIS,
+      logger, null, null).then((redisCache) => {
+      testCache(redisCache, done);
+    }).catch((error) => {
+      done(error);
+    });
   });
 
   it('Fails to create cache due to invalid type', (done) => {

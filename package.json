@@ -4,7 +4,7 @@
   "description": "Utilities used by Refocus Bots to communicate with Refocus.",
   "scripts": {
     "lint": "eslint --ext=js --ext=jsx . ",
-    "test": "mocha tests",
+    "test": "mocha tests --exit",
     "coverage": "istanbul cover _mocha tests"
   },
   "main": "refocus-bdk-server.js",
