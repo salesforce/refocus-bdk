@@ -542,18 +542,43 @@ module.exports = (config) => {
   } // heartBeat
 
   /**
-   * Checks RoomType bot list for bot triggering event
-   * @param {Object} event - refocusEvent
+   * Gets room payload
+   * @param {*} roomId;
+   * @returns {object} Room information or null
+   */
+  async function getRoomById(roomId) {
+    try {
+      if (roomId) {
+        // eslint-disable-next-line max-len
+        const response = await generic.get(`${SERVER}${API}${ROOMS_ROUTE}/${roomId}`,
+          TOKEN, DEFAULT_TRIES, null, PROXY_URL);
+        return response.body;
+      }
+    } catch (error) {
+      log.error('failed return Room data from Refocus:', error.message);
+      return null;
+    }
+    return null;
+  }
+
+  /**
+   * Checks Room by id for bot triggering event
+   * @param {Object} roomId - refocusEvent
    * @param {String} bot - botName
    * @returns {boolean}
    */
-  function isBotInstalledInRoom(event, bot) {
-    const botsInRoom = event.Room.RoomType.Bots;
-    const botsInstalled = botsInRoom.find((b) => b.name === bot);
-    if (botsInstalled) {
-      return true;
+  async function isBotInstalledInRoom(roomId, bot) {
+    try {
+      const room = await getRoomById(roomId);
+      if (room) {
+        const botsInstalled = room.bots;
+        return botsInstalled.includes(bot);
+      }
+      return false;
+    } catch (error) {
+      log.error('failed to get room:', error.message);
+      return false;
     }
-    return false;
   }
 
   return {
@@ -571,6 +596,7 @@ module.exports = (config) => {
     updateBot,
 
     isBotInstalledInRoom,
+    getRoomById,
 
     /**
      * Find room by id/name
