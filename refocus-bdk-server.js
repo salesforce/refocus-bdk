@@ -486,42 +486,41 @@ module.exports = (config) => {
   } // heartBeat
 
   /**
-   * Gets room type information
-   * @param {*} roomTypeId;
-   * @returns {object} Roomtype information or null
+   * Gets room payload
+   * @param {*} roomId;
+   * @returns {object} Room information or null
    */
-  async function getRoomTypeById(roomTypeId) {
+  async function getRoomById(roomId) {
     try {
-      if (roomTypeId) {
+      if (roomId) {
         // eslint-disable-next-line max-len
-        const response = await generic.get(`${SERVER}${API}${ROOM_TYPES_ROUTE}/${roomTypeId}`,
+        const response = await generic.get(`${SERVER}${API}${ROOMS_ROUTE}/${roomId}`,
           TOKEN, DEFAULT_TRIES, null, PROXY_URL);
         return response.body;
       }
     } catch (error) {
-      log.error('failed return Roomtype data from Refocus:', error.message);
+      log.error('failed return Room data from Refocus:', error.message);
       return null;
     }
     return null;
   }
 
   /**
-   * Checks RoomType bot list for bot triggering event
-   * @param {Object} event - refocusEvent
+   * Checks Room by id for bot triggering event
+   * @param {Object} roomId - refocusEvent
    * @param {String} bot - botName
    * @returns {boolean}
    */
-  async function isBotInstalledInRoom(event, bot) {
-    const eventRoomTypeId = event.Room.RoomType.id;
+  async function isBotInstalledInRoom(roomId, bot) {
     try {
-      const botsInRoomType = await getRoomTypeById(eventRoomTypeId);
-      if (botsInRoomType) {
-        const botsInstalled = botsInRoomType.bots.find((b) => b === bot);
-        return Boolean(botsInstalled);
+      const room = await getRoomById(roomId);
+      if (room) {
+        const botsInstalled = room.bots;
+        return botsInstalled.includes(bot);
       }
       return false;
     } catch (error) {
-      log.error('failed to get roomType:', error.message);
+      log.error('failed to get room:', error.message);
       return false;
     }
   }
@@ -541,7 +540,7 @@ module.exports = (config) => {
     updateBot,
 
     isBotInstalledInRoom,
-    getRoomTypeById,
+    getRoomById,
 
     /**
      * Find room by id/name

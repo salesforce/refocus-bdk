@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-expressions */
-
 /**
  * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
@@ -10,60 +8,65 @@
 
 const expect = require('chai').expect;
 const config = { refocusUrl: 'zzz', token: 'dummy' };
-// eslint-disable-next-line max-len
 const bdk = require('../refocus-bdk-server')(config);
 const generic = require('../generic');
 const sinon = require('sinon');
 
 const event = {
-  id: 'b44dc350-9706-4800-adb2-d0999152e408',
-  Room: {
-    id: 2,
-    name: 'testRoom',
-    RoomType: {
-      id: 'e118e6f1-a6d5-4164-9c14-7344c733c3e6',
-      name: 'testRoomType'
-    }
-  }
+  'id': '3020a0d7-099b-42cd-b668-3f73fbca674d',
+  'log': 'Room deactivated',
+  'context': {
+    'type': 'RoomState',
+    'active': false
+  },
+  'createdAt': '2020-06-28T07:31:00.614Z',
+  'updatedAt': '2020-06-28T07:31:00.614Z',
+  'roomId': 2,
 };
 
-const roomType = {
-  body: {
-    id: 'e118e6f1-a6d5-4164-9c14-7344c733c3e6',
-    name: 'test-room-type',
-    isEnabled: true,
-    bots: [
-      'test-bot'
-    ]
+const room = {
+  'body': {
+    'id': 2,
+    'name': 'testRoom',
+    'origin': 'other',
+    'active': false,
+    'bots': [
+      'test-Bot'
+    ],
+    'type': 'e118e6f1-a6d5-4164-9c14-7344c733c3e6'
   }
 };
 
 describe('IsBotInstalledInRoom', () => {
-  let getGenericRoomTypeStub;
+  let getGenericRoomStub;
   beforeEach(() => {
-    getGenericRoomTypeStub = sinon.stub(generic, 'get');
+    getGenericRoomStub = sinon.stub(generic, 'get');
   });
 
   afterEach(() => {
-    getGenericRoomTypeStub.restore();
+    getGenericRoomStub.restore();
   });
 
-  it('true if Bot is listed in RoomType', async () => {
-    getGenericRoomTypeStub.returns(Promise.resolve(roomType));
-    const botName = 'test-bot';
-    const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
+  it('true if Bot is listed in Room', async () => {
+    getGenericRoomStub.returns(Promise.resolve(room));
+    const botName = 'test-Bot';
+    // eslint-disable-next-line max-len
+    const isBotInstalled = await bdk.isBotInstalledInRoom(event.roomId, botName);
+    // eslint-disable-next-line no-unused-expressions
     expect(isBotInstalled).to.be.true;
   });
 
-  it('OK false if bot not roomType ', async () => {
-    getGenericRoomTypeStub.returns(Promise.resolve(roomType));
+  it('OK false if bot not room', async () => {
+    getGenericRoomStub.returns(Promise.resolve(room));
     const botName = 'robot';
-    const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
+    // eslint-disable-next-line max-len
+    const isBotInstalled = await bdk.isBotInstalledInRoom(event.roomId, botName);
+    // eslint-disable-next-line no-unused-expressions
     expect(isBotInstalled).to.be.false;
   });
 
-  it('OK false if roomType is invalid ', async () => {
-    const invalidRoomType = {
+  it('OK false if room is invalid ', async () => {
+    const invalidRoom = {
       body: {
         id: 'e118e6f1-a6d5-4164-9c14-7344c733c3e6',
         name: 'test-room-type',
@@ -73,17 +76,21 @@ describe('IsBotInstalledInRoom', () => {
         ]
       }
     };
-    getGenericRoomTypeStub.returns(Promise.resolve(invalidRoomType));
+    getGenericRoomStub.returns(Promise.resolve(invalidRoom));
     const botName = 'robot';
-    const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
+    // eslint-disable-next-line max-len
+    const isBotInstalled = await bdk.isBotInstalledInRoom(event.roomId, botName);
+    // eslint-disable-next-line no-unused-expressions
     expect(isBotInstalled).to.be.false;
   });
 
-  it('OK false if roomType is null ', async () => {
-    const invalidRoomType = null;
-    getGenericRoomTypeStub.returns(Promise.resolve(invalidRoomType));
+  it('OK false if room is null ', async () => {
+    const invalidRoom = null;
+    getGenericRoomStub.returns(Promise.resolve(invalidRoom));
     const botName = 'robot';
-    const isBotInstalled = await bdk.isBotInstalledInRoom(event, botName);
+    // eslint-disable-next-line max-len
+    const isBotInstalled = await bdk.isBotInstalledInRoom(event.roomId, botName);
+    // eslint-disable-next-line no-unused-expressions
     expect(isBotInstalled).to.be.false;
   });
 });

@@ -138,3 +138,4 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.9.2 Added logic to reconnect when refocus terminates websocket connection
 * 1.9.3 Added function isBotInstalledInRoom.
 * 1.9.4 Added function getRoomTypeById.
+* 1.9.5 Added function getRoomById, removed getRoomTypeById.

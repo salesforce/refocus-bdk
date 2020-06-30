@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/refocus-bdk",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "description": "Utilities used by Refocus Bots to communicate with Refocus.",
   "scripts": {
     "lint": "eslint --ext=js --ext=jsx . ",
