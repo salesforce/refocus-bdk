@@ -228,8 +228,10 @@ module.exports = (config, botName='') => {
      */
     getActiveUsers: (room) => {
       log.debug('Requesting active users for room ', room);
-      return generic.get(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}`, TOKEN,
-        ZERO, log)
+      return generic.get(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+      '&type=User&limit=500',
+      TOKEN,
+      ZERO, log)
         .then((events) => {
           const users = [];
           const userEvents = events.body

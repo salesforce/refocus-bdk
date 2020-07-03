@@ -23,6 +23,7 @@ const request = require('superagent');
 const requestProxy = require('superagent-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
 const generic = require('./generic.js');
+const CacheFactory = require('./cache/CacheFactory');
 const io = require('socket.io-client');
 const serialize = require('serialize-javascript');
 const API = '/v1';
@@ -98,6 +99,22 @@ if (((logging === 'both') || (logging === 'file')) &&
   (!fs.existsSync(logDir))) {
   fs.mkdirSync(logDir);
 }
+
+/**
+ * @param {object} cache - connection to cache
+ * @param {string} id - id of botAction, event, data etc.
+ * @param {string} updatedAt - timestamp of event's occurence
+ * @param {string} botName - current bot's name
+ * @param {string} eventType - string describing type of socket event
+ * @returns {Promise<boolean>} - whether or not event has been consumed
+ * according to cache
+ */
+function hasAlreadyBeenConsumed(cache, id, updatedAt, botName, eventType) {
+  if (!cache) return Promise.resolve(true);
+  return cache.hasBeenConsumed(id, updatedAt, botName,
+    eventType);
+}
+
 /* eslint func-style: ["error", "declaration",
   { "allowArrowFunctions": true }] */
 const tsFormat = () => moment().format('YYYY-MM-DD hh:mm:ss').trim();
@@ -127,10 +144,9 @@ module.exports = (config) => {
   const SERVER = config.refocusUrl;
   const REALTIME_APP_URL = config.refocusRealtimeUrl;
   let TOKEN = config.token;
-  const botName = config.botName;
+  let botName = config.botName;
   const BOT_INSTALL_TOKEN = config.token;
-  let SOCKET_TOKEN;
-  let PROXY_URL;
+  let PROXY_URL, SOCKET_TOKEN;
 
   /**
    * Define a set of log functions
@@ -148,6 +164,26 @@ module.exports = (config) => {
       logger.verbose('realtime: ' + msg, obj);
     },
   };
+
+  // Create connection to redis for caching (if enabled)
+  let cache;
+  if (config.useRedisCache) {
+    const { redisCacheHost, redisCachePort } = config;
+    if (redisCacheHost && redisCachePort) {
+      const cacheFactory = new CacheFactory();
+      const REDIS = cacheFactory.clientTypes.REDIS;
+      cacheFactory.build(REDIS, logger, redisCacheHost, redisCachePort)
+        .then((client) => {
+          cache = client;
+        })
+        .catch((error) => {
+          logger.error(error);
+        });
+    } else {
+      logger.error('USE_REDIS_CACHE environment variable is set to true, ' +
+      'but REDIS_CACHE_HOST and/or REDIS_CACHE_PORT are not set');
+    }
+  }
 
   if (config.httpProxy) {
     requestProxy(request);
@@ -188,46 +224,66 @@ module.exports = (config) => {
 
     const socket = io.connect(connectUrl, opts);
 
-    socket.on(initalizeEventName, (data) => {
+    socket.on(initalizeEventName, async (data) => {
       const eventData = JSON.parse(data);
       const room = eventData[initalizeEventName];
+      const { id, updatedAt } = room;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, initalizeEventName)) return;
       app.emit('refocus.internal.realtime.bot.namespace.initialize', room);
-      log.realtime('New Room', room);
     });
 
-    socket.on(settingsChangedEventName, (data) => {
+    socket.on(settingsChangedEventName, async (data) => {
       const eventData = JSON.parse(data);
       const room = eventData[settingsChangedEventName];
+      const { id, updatedAt } = room;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, settingsChangedEventName)) return;
       app.emit('refocus.room.settings', room);
     });
 
-    socket.on(botActionsAdd, (data) => {
+    socket.on(botActionsAdd, async (data) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsAdd];
+      const { id, updatedAt } = action;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botActionsAdd)) return;
       app.emit('refocus.bot.actions', action);
     });
 
-    socket.on(botActionsUpdate, (data) => {
+    socket.on(botActionsUpdate, async (data) => {
       const eventData = JSON.parse(data);
       const action = eventData[botActionsUpdate].new;
+      const { id, updatedAt } = action;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botActionsUpdate)) return;
       app.emit('refocus.bot.actions', action);
     });
 
-    socket.on(botDataAdd, (data) => {
+    socket.on(botDataAdd, async (data) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataAdd];
+      const { id, updatedAt } = botData;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botDataAdd)) return;
       app.emit('refocus.bot.data', botData);
     });
 
-    socket.on(botDataUpdate, (data) => {
+    socket.on(botDataUpdate, async (data) => {
       const eventData = JSON.parse(data);
       const botData = eventData[botDataUpdate].new;
+      const { id, updatedAt } = botData;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botDataUpdate)) return;
       app.emit('refocus.bot.data', botData);
     });
 
-    socket.on(botEventAdd, (data) => {
+    socket.on(botEventAdd, async (data) => {
       const eventData = JSON.parse(data);
       const botEvent = eventData[botEventAdd];
+      const { id, updatedAt } = botEvent;
+      if (await hasAlreadyBeenConsumed(cache, id, updatedAt,
+        botName, botEventAdd)) return;
       app.emit('refocus.events', botEvent);
     });
 
@@ -463,7 +519,7 @@ module.exports = (config) => {
 
             return reject(err || !ok);
           }
-
+          botName = bot.name;
           SOCKET_TOKEN = res.body.token;
           TOKEN = res.body.token;
           return resolve(res);
@@ -603,8 +659,9 @@ module.exports = (config) => {
      * @returns {Promise} - An object of the users currently in the room
      */
     getActiveUsers: (room) => {
-      return generic.get(SERVER + API + EVENTS_ROUTE + '?roomId=' + room,
-        TOKEN, DEFAULT_TRIES, log, PROXY_URL)
+      return generic.get(`${SERVER}${API}${EVENTS_ROUTE}?roomId=${room}` +
+      '&type=User&limit=500',
+      TOKEN, DEFAULT_TRIES, log, PROXY_URL)
         .then((events) => {
           const users = [];
           const userEvents = events.body
