@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "eslint --ext=js --ext=jsx . ",
     "test": "mocha tests --exit",
-    "coverage": "istanbul cover _mocha tests"
+    "coverage": "nyc mocha tests --exit"
   },
   "main": "refocus-bdk-server.js",
   "browser": "refocus-bdk-client.js",
@@ -37,8 +37,8 @@
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "7.7.0",
     "husky": "^0.15.0-rc.8",
-    "istanbul": "^0.4.5",
     "mocha": "^8.0.1",
+    "nyc": "^15.1.0",
     "rewire": "^4.0.0",
     "sinon": "4.5.0",
     "superagent": "^3.8.1",
