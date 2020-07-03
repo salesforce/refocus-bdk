@@ -17,10 +17,11 @@ const logger = new winston.Logger();
    * @param {function} done(error?)
    */
 async function testCache(cache, done) {
-  const shouldNotExist = await cache.hasBeenConsumed('test')
+  const timestamp = new Date().toString();
+  const shouldNotExist = await cache.hasBeenConsumed(timestamp)
     .catch(done);
   expect(shouldNotExist).to.equal(false);
-  const shouldExist = await cache.hasBeenConsumed('test')
+  const shouldExist = await cache.hasBeenConsumed(timestamp)
     .catch(done);
   expect(shouldExist).to.equal(true);
   done();
