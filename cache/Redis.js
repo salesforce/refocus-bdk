@@ -2,11 +2,13 @@ const redis = require('redis');
 const defaultHost = '127.0.0.1';
 const defaultPort = 6379;
 const timeToLiveInSeconds = 60;
+const defaultPassword = '';
 
 class Redis {
-  build (logger, host = defaultHost, port = defaultPort) {
+  build (logger, host = defaultHost, port = defaultPort,
+    password = defaultPassword) {
     return new Promise((resolve) => {
-      this.client = redis.createClient({ host, port });
+      this.client = redis.createClient({ host, port, password });
       this.logger = logger;
       this.client.on('error', (error) => {
         this.logger.error(error);
