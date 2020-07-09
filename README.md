@@ -139,4 +139,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.9.3 Added function isBotInstalledInRoom.
 * 1.9.4 Added function getRoomTypeById.
 * 1.9.5 Added function getRoomById, removed getRoomTypeById.
-* 1.10.0 Added optional support for multiple instances of bots (requires redis instance)
+* 1.10.0 Added optional support for multiple instances of bots (requires redis instance).
+* 1.10.1 Added password option to cache initialisation for authentication.

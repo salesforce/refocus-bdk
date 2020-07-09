@@ -168,11 +168,12 @@ module.exports = (config) => {
   // Create connection to redis for caching (if enabled)
   let cache;
   if (config.useRedisCache) {
-    const { redisCacheHost, redisCachePort } = config;
+    const { redisCacheHost, redisCachePort, redisCachePassword } = config;
     if (redisCacheHost && redisCachePort) {
       const cacheFactory = new CacheFactory();
       const REDIS = cacheFactory.clientTypes.REDIS;
-      cacheFactory.build(REDIS, logger, redisCacheHost, redisCachePort)
+      cacheFactory.build(REDIS, logger, redisCacheHost,
+        redisCachePort, redisCachePassword)
         .then((client) => {
           cache = client;
         })
