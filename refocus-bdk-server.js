@@ -110,7 +110,7 @@ if (((logging === 'both') || (logging === 'file')) &&
  * according to cache
  */
 function hasAlreadyBeenConsumed(cache, id, updatedAt, botName, eventType) {
-  if (!cache) return Promise.resolve(true);
+  if (!cache) return Promise.resolve(false);
   return cache.hasBeenConsumed(id, updatedAt, botName,
     eventType);
 }
