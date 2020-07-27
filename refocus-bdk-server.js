@@ -111,8 +111,11 @@ if (((logging === 'both') || (logging === 'file')) &&
  */
 function hasAlreadyBeenConsumed(cache, id, updatedAt, botName, eventType) {
   if (!cache) return Promise.resolve(false);
-  return cache.hasBeenConsumed(id, updatedAt, botName,
-    eventType);
+  try {
+    return cache.hasBeenConsumed(id, updatedAt, botName, eventType);
+  } catch (e) {
+    return Promise.resolve(false);
+  }
 }
 
 /* eslint func-style: ["error", "declaration",
