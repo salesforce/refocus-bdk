@@ -17,7 +17,10 @@ const logger = new winston.Logger();
    * @param {function} done(error?)
    */
 async function testCache(cache, done) {
-  if (!cache) done('Failed, cache is null');
+  if (!cache) {
+    done(`Failed, cache is ${cache}`);
+    return;
+  }
   const timestamp = new Date().toString();
   const shouldNotExist = await cache.hasBeenConsumed(timestamp)
     .catch(done);
