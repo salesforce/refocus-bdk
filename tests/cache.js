@@ -31,7 +31,7 @@ describe('Testing cache creation', () => {
   it('Creates redis cache', (done) => {
     const cacheFactory = new CacheFactory();
     cacheFactory.build(cacheFactory.clientTypes.REDIS,
-      logger, null, null).then((redisCache) => {
+      logger).then((redisCache) => {
       testCache(redisCache, done);
     }).catch((error) => {
       done(error);
