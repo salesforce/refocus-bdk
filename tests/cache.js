@@ -18,6 +18,7 @@ const logger = new winston.Logger();
    */
 async function testCache(cache, done) {
   const timestamp = new Date().toString();
+  expect(cache).to.not.equal(null);
   const shouldNotExist = await cache.hasBeenConsumed(timestamp)
     .catch(done);
   expect(shouldNotExist).to.equal(false);
@@ -49,7 +50,7 @@ describe('Testing cache creation', () => {
   it('Returns null when connection to redis cannot be established', (done) => {
     const cacheFactory = new CacheFactory();
     const redisClientType = cacheFactory.clientTypes.REDIS;
-    cacheFactory.build(redisClientType, logger, '127.0.0.1', 5123)
+    cacheFactory.build(redisClientType, logger, 'redis://127.0.0.1:1000')
       .then((client) => {
         expect(client).to.equal(null);
         done();
