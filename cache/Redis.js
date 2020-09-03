@@ -2,16 +2,19 @@ const redis = require('redis');
 const defaultUrl = 'redis://127.0.0.1:6379/0';
 const timeToLiveInSeconds = 60;
 const defaultPassword = '';
+const MAX_RETRIES = 3;
 
 class Redis {
   build (logger, url = defaultUrl,
     password = defaultPassword) {
+    let errors = 0;
     return new Promise((resolve) => {
       this.client = redis.createClient({ url, password });
       this.logger = logger;
       this.client.on('error', (error) => {
         this.logger.error(error);
-        resolve(false);
+        errors++;
+        if (errors > MAX_RETRIES) resolve(false);
       });
 
       this.client.on('ready', () => {
