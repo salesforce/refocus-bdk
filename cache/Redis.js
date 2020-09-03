@@ -1,5 +1,5 @@
 const redis = require('redis');
-const defaultUrl = 'redis://127.0.0.1:6379';
+const defaultUrl = 'redis://127.0.0.1:6379/0';
 const timeToLiveInSeconds = 60;
 const defaultPassword = '';
 
