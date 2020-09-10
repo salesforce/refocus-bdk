@@ -10,18 +10,17 @@ class CacheFactory {
    *
    * @param {string} type - one of the implemented clientTypes
    * @param {object} logger - instance of logger
-   * @param {string?} host - host to reach cache at (overrides default)
-   * @param {number?} port - port to reach cache on (overrides default)
+   * @param {string?} url - url to reach cache at (overrides default)
    * @param {string?} password - password for redis cache
    * @returns {object} - connection to cache | null
    */
-  async build(type, logger, host = null, port = null, password) {
+  async build(type, logger, url, password) {
     let instance;
     let builtSuccessfully = false;
     switch (type) {
       case this.clientTypes.REDIS: {
         instance = new Redis();
-        builtSuccessfully = await instance.build(logger, host, port, password);
+        builtSuccessfully = await instance.build(logger, url, password);
         break;
       }
 

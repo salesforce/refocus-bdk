@@ -142,4 +142,5 @@ Follows [semantic versioning](https://docs.npmjs.com/getting-started/semantic-ve
 * 1.10.0 Added optional support for multiple instances of bots (requires redis instance).
 * 1.10.1 Added password option to cache initialisation for authentication.
 * 1.10.2 Fixed bug in cache checking, when cache is not enabled.
+* 1.10.3 Changed redis cache settings from host and port to url.
 * 1.11.0 added method for getting and parsing botdata
