@@ -510,6 +510,26 @@ module.exports = (config, botName='') => {
     }, // getBotData
 
     /**
+     * Generic function for getting and parsing bot data in JSON form.
+     *
+     * @param {String} roomId - the id of the room to query
+     * @param {String} botDataName - the name of the bot data to query
+     * @param {String} bot - the name of the bot
+     * @returns {Object} - the parsed bot data
+     */
+    getAndParseBotData(roomId, botDataName, bot) {
+      if (!roomId || !botDataName) return null;
+      let retBotData = null;
+
+      return this.getBotData(roomId, bot, botDataName).then((botData) => {
+        if (botData && botData.body && botData.body.length > ZERO) {
+          retBotData = JSON.parse(botData.body[ZERO].value);
+        }
+        return retBotData;
+      });
+    },
+
+    /**
      * Update bot data by id/name
      *
      * @param {String} id - Id of bot data
