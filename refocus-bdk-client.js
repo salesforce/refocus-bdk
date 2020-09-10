@@ -520,13 +520,17 @@ module.exports = (config, botName='') => {
     getAndParseBotData(roomId, botDataName, bot) {
       if (!roomId || !botDataName) return null;
       let retBotData = null;
-
-      return this.getBotData(roomId, bot, botDataName).then((botData) => {
-        if (botData && botData.body && botData.body.length > ZERO) {
-          retBotData = JSON.parse(botData.body[ZERO].value);
-        }
-        return retBotData;
-      });
+      try {
+        return this.getBotData(roomId, bot, botDataName).then((botData) => {
+          if (botData && botData.body && botData.body.length > ZERO) {
+            retBotData = JSON.parse(botData.body[ZERO].value);
+          }
+          return retBotData;
+        });
+      } catch (err) {
+        log.error(err);
+        return null;
+      }
     },
 
     /**
