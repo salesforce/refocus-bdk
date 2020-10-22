@@ -80,6 +80,7 @@ const STATUS_CODE_CREATED = 201;
 const STATUS_CODE_NOT_FOUND = 404;
 const DEFAULT_LIMIT = 100;
 const NO_OFFSET = 0;
+const ZERO = 0; // eslint-disable-line
 
 // Create logger
 const winston = require('winston');
@@ -886,6 +887,30 @@ module.exports = (config) => {
         SERVER + API + BOTDATA_ROUTE + '?roomId=' + room + '&botId=' +
         bot + '&name=' + name, TOKEN, DEFAULT_TRIES, log, PROXY_URL);
     }, // getBotData
+
+    /**
+     * Generic function for getting and parsing bot data in JSON form.
+     *
+     * @param {String} roomId - the id of the room to query
+     * @param {String} botDataName - the name of the bot data to query
+     * @param {String} bot - the name of the bot
+     * @returns {Object} - the parsed bot data
+     */
+    getAndParseBotData(roomId, botDataName, bot) {
+      if (!roomId || !botDataName) return null;
+      let retBotData = null;
+      try {
+        return this.getBotData(roomId, bot, botDataName).then((botData) => {
+          if (botData && botData.body && botData.body.length > ZERO) {
+            retBotData = JSON.parse(botData.body[ZERO].value);
+          }
+          return retBotData;
+        });
+      } catch (err) {
+        log.error(err);
+        return null;
+      }
+    },
 
     /**
      * Create bot data
